@@ -7,19 +7,15 @@
 int sLen;
 
 #include <stdio.h>
-#include <string.h>
 int main()
 {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    char str[50 + 3];
+    int buddaYear;
 
-    (void)scanf("%s", &str);
-
-    (void)strcat(str, "??!");
-
-    (void)printf("%s", str);
+    (void)scanf("%d", &buddaYear);
+    (void)printf("%d", buddaYear - 544 + 1);
 
     return 0;
 }
