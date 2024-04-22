@@ -24,6 +24,7 @@
     <ProjectGuid>{22bcb5b4-1d04-4fbd-8513-73e0285a7e38}</ProjectGuid>
     <RootNamespace>BaekjoonCPP</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Answer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
