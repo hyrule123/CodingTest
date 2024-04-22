@@ -11,13 +11,14 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    constexpr const char* cat =
-        R"(\    /\
- )  ( ')
-(  /  )
- \(__)|)";
+    const char* dog =
+        R"(|\_/|
+|q p|   /}
+( 0 ))" R"("""\
+|"^"`    |
+||_/=\\__|)";
 
-    (void)printf("%s", cat);
+    (void)printf("%s", dog);
 
     return 0;
 }
