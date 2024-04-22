@@ -11,12 +11,13 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    using uint64 = unsigned long long;
+    constexpr const char* cat =
+        R"(\    /\
+ )  ( ')
+(  /  )
+ \(__)|)";
 
-    uint64 A, B, C;
-
-    (void)scanf("%llu %llu %llu", &A, &B, &C);
-    (void)printf("%llu", A + B + C);
+    (void)printf("%s", cat);
 
     return 0;
 }
