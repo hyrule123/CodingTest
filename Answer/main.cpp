@@ -4,18 +4,19 @@
 #define WRITE_OUTPUT (void)0
 #endif //NDEF LOCAL
 
-int sLen;
-
 #include <stdio.h>
+
 int main()
 {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int buddaYear;
+    using uint64 = unsigned long long;
 
-    (void)scanf("%d", &buddaYear);
-    (void)printf("%d", buddaYear - 544 + 1);
+    uint64 A, B, C;
+
+    (void)scanf("%llu %llu %llu", &A, &B, &C);
+    (void)printf("%llu", A + B + C);
 
     return 0;
 }
