@@ -11,9 +11,9 @@ int main()
     WRITE_OUTPUT;
 
     int a, b;
-    
+
     (void)scanf("%d %d", &a, &b);
-    (void)printf("%d", a * b);
+    (void)printf("%.9lf", (double)a / (double)b);
 
 
     return 0;
