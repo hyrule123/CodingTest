@@ -10,35 +10,15 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int x, y;
-    (void)scanf("%d\n%d", &x, &y);
+    int H, M;
+    (void)scanf("%d %d", &H, &M);
 
-    //x != 0, y != 0
-    int quadrant;
-    if (x > 0)
+    int minuteDayTime = (H * 60 + M) - 45;
+    if (minuteDayTime < 0)
     {
-        if (y > 0)
-        {
-            quadrant = 1;
-        }
-        else
-        {
-            quadrant = 4;
-        }
+        minuteDayTime += 60 * 24;
     }
-    else
-    {
-        if (y > 0)
-        {
-            quadrant = 2;
-        }
-        else
-        {
-            quadrant = 3;
-        }
-    }
-
-    (void)printf("%d", quadrant);
+    (void)printf("%d %d", minuteDayTime / 60, minuteDayTime % 60);
 
     return 0;
 }
