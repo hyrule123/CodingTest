@@ -5,15 +5,40 @@
 #endif //NDEF LOCAL
 
 #include <stdio.h>
-#include <string.h>
 int main()
 {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    unsigned int year;
-    (void)scanf("%u", &year);
-    (void)printf("%d", (0 == year % 400) ? 1 : (0 != year % 100 && 0 == year % 4) ? 1 : 0);
+    int x, y;
+    (void)scanf("%d\n%d", &x, &y);
+
+    //x != 0, y != 0
+    int quadrant;
+    if (x > 0)
+    {
+        if (y > 0)
+        {
+            quadrant = 1;
+        }
+        else
+        {
+            quadrant = 4;
+        }
+    }
+    else
+    {
+        if (y > 0)
+        {
+            quadrant = 2;
+        }
+        else
+        {
+            quadrant = 3;
+        }
+    }
+
+    (void)printf("%d", quadrant);
 
     return 0;
 }
