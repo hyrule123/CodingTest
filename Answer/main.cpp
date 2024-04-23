@@ -10,18 +10,29 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int H, M, D;
-    (void)scanf("%d %d\n%d", &H, &M, &D);
+    unsigned int d1, d2, d3;
+    (void)scanf("%d %d %d", &d1, &d2, &d3);
 
-    constexpr int dayInMinute = 24 * 60;
-
-    int endTime = H * 60 + M + D;
-    if (endTime >= dayInMinute)
+    unsigned int money;
+    if (d1 == d2 && d2 == d3)
     {
-        endTime -= dayInMinute;
+        money = 10000 + d1 * 1000;
     }
-
-    (void)printf("%d %d", endTime / 60, endTime % 60);
+    else if (d1 == d2 || d1 == d3)
+    {
+        money = 1000 + d1 * 100;
+    }
+    else if (d2 == d3)
+    {
+        money = 1000 + d2 * 100;
+    }
+    else
+    {
+        money = d1 > d2 ? d1 : d2;
+        money = money > d3 ? money : d3;
+        money *= 100;
+    }
+    (void)printf("%u", money);
 
     return 0;
 }
