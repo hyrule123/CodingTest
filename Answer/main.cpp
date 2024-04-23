@@ -10,15 +10,18 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int H, M;
-    (void)scanf("%d %d", &H, &M);
+    int H, M, D;
+    (void)scanf("%d %d\n%d", &H, &M, &D);
 
-    int minuteDayTime = (H * 60 + M) - 45;
-    if (minuteDayTime < 0)
+    constexpr int dayInMinute = 24 * 60;
+
+    int endTime = H * 60 + M + D;
+    if (endTime >= dayInMinute)
     {
-        minuteDayTime += 60 * 24;
+        endTime -= dayInMinute;
     }
-    (void)printf("%d %d", minuteDayTime / 60, minuteDayTime % 60);
+
+    (void)printf("%d %d", endTime / 60, endTime % 60);
 
     return 0;
 }
