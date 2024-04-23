@@ -5,29 +5,40 @@
 #endif //NDEF LOCAL
 
 #include <stdio.h>
-#include <string.h>
 int main()
 {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int score;
-    (void)scanf("%d", &score);
-
-    constexpr const char* answers[] = { "F", "D", "C", "B", "A" };
-
-    if (score < 50)
+    int x, y;
+    (void)scanf("%d\n%d", &x, &y);
+    
+    //x != 0, y != 0
+    int quadrant;
+    if (x > 0)
     {
-        score = 50;
+        if (y > 0)
+        {
+            quadrant = 1;
+        }
+        else
+        {
+            quadrant = 4;
+        }
     }
-    else if (score == 100)
+    else
     {
-        score = 99;
+        if (y > 0)
+        {
+            quadrant = 2;
+        }
+        else
+        {
+            quadrant = 3;
+        }
     }
 
-    score = (score - 50) / 10;
-
-    (void)printf("%s", answers[score]);
+    (void)printf("%d", quadrant);
 
     return 0;
 }
