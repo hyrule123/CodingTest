@@ -5,20 +5,32 @@
 #endif //NDEF LOCAL
 
 #include <stdio.h>
-
+#include <string.h>
 int main()
 {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    const char* dog =
-        R"(|\_/|
-|q p|   /}
-( 0 ))" R"("""\
-|"^"`    |
-||_/=\\__|)";
+    int A, B;
+    (void)scanf("%d %d", &A, &B);
 
-    (void)printf("%s", dog);
+    constexpr const char* answers[] = { ">", "<", "==" };
+    unsigned int index;
+
+    if (A > B)
+    {
+        index = 0;
+    }
+    else if (A < B)
+    {
+        index = 1;
+    }
+    else
+    {
+        index = 2;
+    }
+
+    (void)printf("%s", answers[index]);
 
     return 0;
 }
