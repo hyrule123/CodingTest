@@ -11,26 +11,23 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int A, B;
-    (void)scanf("%d %d", &A, &B);
+    int score;
+    (void)scanf("%d", &score);
 
-    constexpr const char* answers[] = { ">", "<", "==" };
-    unsigned int index;
+    constexpr const char* answers[] = { "F", "D", "C", "B", "A" };
 
-    if (A > B)
+    if (score < 50)
     {
-        index = 0;
+        score = 50;
     }
-    else if (A < B)
+    else if (score == 100)
     {
-        index = 1;
-    }
-    else
-    {
-        index = 2;
+        score = 99;
     }
 
-    (void)printf("%s", answers[index]);
+    score = (score - 50) / 10;
+
+    (void)printf("%s", answers[score]);
 
     return 0;
 }
