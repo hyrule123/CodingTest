@@ -8,23 +8,19 @@ std::cin.tie(nullptr);\
 std::ios_base::sync_with_stdio(false)
 
 #include <stdio.h>
-#include <iostream>
 int main()
 {
-    USING_IOSTREAM;
-
     READ_INPUT;
     WRITE_OUTPUT;
 
     unsigned int T;
-    std::cin >> T;
-
+    (void)scanf("%u", &T);
 
     unsigned int A, B;
     for (unsigned int i = 0u; i < T; ++i)
     {
-        std::cin >> A >> B;
-        std::cout << A + B << "\n";
+        (void)scanf("%u %u", &A, &B);
+        (void)printf("%u\n", A + B);
     }
 
     return 0;
