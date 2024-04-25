@@ -10,14 +10,16 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    unsigned int N;
-    (void)scanf("%d", &N);
-    
-    for (int i = 0; i < 9; ++i)
-    {
-        (void)printf("%d * %d = %d", N, i + 1, N * (i + 1));
+    unsigned int T;
+    (void)scanf("%d", &T);
 
-        if (i < 8)
+    for (unsigned int i = 0u; i < T; ++i)
+    {
+        int A, B;
+        (void)scanf("%d %d", &A, &B);
+        (void)printf("%d", A + B);
+
+        if (i < (T - 1))
         {
             (void)printf("\n");
         }
