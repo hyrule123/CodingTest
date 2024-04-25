@@ -9,7 +9,7 @@ std::ios_base::sync_with_stdio(false)
 
 #include <stdio.h>
 #include <iostream>
-#include <sstream>
+#include <cstring>
 int main()
 {
     USING_IOSTREAM;
@@ -17,18 +17,17 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    unsigned int T;
+    size_t T;
     std::cin >> T;
 
-    std::stringstream stream{};
-    
-    int A, B;
-    for (unsigned int i = 1u; i <= T; ++i)
+    unsigned char string[102]{};
+    for (size_t i = (size_t)1; i <= T; ++i)
     {
-        std::cin >> A >> B;
-        stream << "Case #" << i << ": " << A << " + " << B << " = " << A + B << "\n";
+        memset(string, '*', i);
+        string[i] = '\n';
+        string[i + 1] = '\0';
+        std::cout << string;
     }
-    std::cout << stream.str();
 
     return 0;
 }
