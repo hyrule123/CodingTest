@@ -10,15 +10,25 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    unsigned int n;
-    (void)scanf("%d", &n);
+    unsigned int X, N;
+    (void)scanf("%u\n%u", &X, &N);
 
     unsigned int sum{ 0u };
-    for (unsigned int i = 1u; i <= n; ++i)
+    for (unsigned int i = 0u; i < N; ++i)
     {
-        sum += i;
+        unsigned int a, b;
+        (void)scanf("%u %u", &a, &b);
+        sum += a * b;
     }
-    (void)printf("%d", sum);
+
+    if (X == sum)
+    {
+        (void)printf("Yes");
+    }
+    else
+    {
+        (void)printf("No");
+    }
 
     return 0;
 }
