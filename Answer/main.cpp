@@ -26,7 +26,7 @@ int main()
     for (unsigned int i = 1u; i <= T; ++i)
     {
         std::cin >> A >> B;
-        stream << "Case #" << i << ": " << A + B << "\n";
+        stream << "Case #" << i << ": " << A << " + " << B << " = " << A + B << "\n";
     }
     std::cout << stream.str();
 
