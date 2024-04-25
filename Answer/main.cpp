@@ -10,20 +10,15 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    unsigned int T;
-    (void)scanf("%d", &T);
+    unsigned int n;
+    (void)scanf("%d", &n);
 
-    for (unsigned int i = 0u; i < T; ++i)
+    unsigned int sum{ 0u };
+    for (unsigned int i = 1u; i <= n; ++i)
     {
-        int A, B;
-        (void)scanf("%d %d", &A, &B);
-        (void)printf("%d", A + B);
-
-        if (i < (T - 1))
-        {
-            (void)printf("\n");
-        }
+        sum += i;
     }
+    (void)printf("%d", sum);
 
     return 0;
 }
