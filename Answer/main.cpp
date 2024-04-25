@@ -17,18 +17,18 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t N;
-    std::cin >> N;
+    int A{}, B{};
 
-    unsigned char string[102]{};
-    for (size_t i = (size_t)1; i <= N; ++i)
+    while (true)
     {
-        memset(string, ' ', N - i);
-        memset(string + (N - i), '*', i);
-        string[N] = '\n';
-        string[N + 1] = '\0';
-        std::cout << string;
+        std::cin >> A >> B;
+        if (A == 0 && B == 0)
+        {
+            break;
+        }
+        std::cout << A + B << "\n";
     }
+
 
     return 0;
 }
