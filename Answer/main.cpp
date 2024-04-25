@@ -10,29 +10,18 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    unsigned int d1, d2, d3;
-    (void)scanf("%d %d %d", &d1, &d2, &d3);
+    unsigned int N;
+    (void)scanf("%d", &N);
+    
+    for (int i = 0; i < 9; ++i)
+    {
+        (void)printf("%d * %d = %d", N, i + 1, N * (i + 1));
 
-    unsigned int money;
-    if (d1 == d2 && d2 == d3)
-    {
-        money = 10000 + d1 * 1000;
+        if (i < 8)
+        {
+            (void)printf("\n");
+        }
     }
-    else if (d1 == d2 || d1 == d3)
-    {
-        money = 1000 + d1 * 100;
-    }
-    else if (d2 == d3)
-    {
-        money = 1000 + d2 * 100;
-    }
-    else
-    {
-        money = d1 > d2 ? d1 : d2;
-        money = money > d3 ? money : d3;
-        money *= 100;
-    }
-    (void)printf("%u", money);
 
     return 0;
 }
