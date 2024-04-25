@@ -17,15 +17,16 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t T;
-    std::cin >> T;
+    size_t N;
+    std::cin >> N;
 
     unsigned char string[102]{};
-    for (size_t i = (size_t)1; i <= T; ++i)
+    for (size_t i = (size_t)1; i <= N; ++i)
     {
-        memset(string, '*', i);
-        string[i] = '\n';
-        string[i + 1] = '\0';
+        memset(string, ' ', N - i);
+        memset(string + (N - i), '*', i);
+        string[N] = '\n';
+        string[N + 1] = '\0';
         std::cout << string;
     }
 
