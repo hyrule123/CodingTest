@@ -23,32 +23,29 @@ int main()
 
     using namespace std;
 
-    char S[101]{};
-    
-    char found[26]{};
-    memset(found, -1, 26);
+    int T{};
+    std::cin >> T;
 
-    std::cin >> S;
-    
-    for (int i = 0; i < 101; ++i)
-    {
-        if ('\0' == S[i])
-        {
-            break;
-        }
-        
-        //ASCII 97 == 'a'
-        int pos = S[i] - 97;
-        if (-1 == found[pos])
-        {
-            found[pos] = i;
-        }
-    }
+    int R{}; char S[21]{};
+    char output[161]{};
 
-    for (int i = 0; i < 26; ++i)
+    for (int i = 0; i < T; ++i)
     {
-        std::cout << (int)(found[i]) << ' ';
+        std::cin >> R >> S;
+
+        for (int j = 0; j < 21; ++j)
+        {
+            if ('\0' == S[j])
+            {
+                int eot = j * R;
+                output[eot] = '\n';
+                output[eot + 1] = '\0';
+                break;
+            }
+
+            memset(output + (j * R), S[j], R);
+        }
+        std::cout << output;
     }
-    
     return 0;
 }
