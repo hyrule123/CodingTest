@@ -12,7 +12,6 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <bitset>
 
 int main()
 {
@@ -23,23 +22,24 @@ int main()
 
     using namespace std;
 
-    std::bitset<32> attendance{};
+    bool remainders[42] = {};
 
-    for (int i = 1; i <= 28; ++i)
+    int diffCount{};
+    for (int i = 0; i < 10; ++i)
     {
-        int num{};
+        unsigned int num{};
         std::cin >> num;
-        attendance[num] = true;
-    }
+        num %= 42;
 
-    for (int i = 1; i <= 30; ++i)
-    {
-        if (false == attendance[i])
+        if (remainders[num] == false)
         {
-            std::cout << i << "\n";
+            remainders[num] = true;
+            ++diffCount;
         }
     }
 
+    std::cout << diffCount;
+    
     
     return 0;
 }
