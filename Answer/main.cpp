@@ -10,6 +10,7 @@ std::ios_base::sync_with_stdio(false)
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
+#include <limits>
 int main()
 {
     USING_IOSTREAM;
@@ -17,19 +18,30 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    unsigned int N;
-    int X;
-    std::cin >> N >> X;
+    using namespace std;
+    
+    int32_t N;
+    std::cin >> N;
 
-    for (unsigned int i = 0u; i < N; ++i)
+    int32_t min{ std::numeric_limits<int32_t>::max() };
+    int32_t max{ std::numeric_limits<int32_t>::min() };
+
+    for (int32_t i = 0; i < N; ++i)
     {
-        int num;
-        std::cin >> num;
-        if (num < X)
+        int32_t num;
+        cin >> num;
+        
+        if (num < min)
         {
-            std::cout << num << " ";
+            min = num;
+        }
+        if (num > max)
+        {
+            max = num;
         }
     }
+
+    std::cout << min << " " << max;
 
     return 0;
 }
