@@ -12,7 +12,25 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <vector>
+#include <string>
+#include <array>
+
+inline char CharToIndex(char _c)
+{
+    constexpr char toUpper = 'a' - 'A';
+
+    if ('a' <= _c)
+    {
+        _c -= toUpper;
+    }
+    
+    return (_c - 'A');
+}
+inline char IndexToChar(int _i)
+{
+    return ((char)_i + 'A');
+}
+
 
 int main()
 {
@@ -23,21 +41,34 @@ int main()
 
     using namespace std;
 
-    char S[101]{};
-    std::cin >> S;
-    int slen = (int)strlen(S);
-    int loopCount = slen / 2;
-    --slen;
-    
-    bool isPalindrome = true;
-    for (int i = 0; i < loopCount; ++i)
+    std::array<int, 26> usedCount{};
+
+    std::string inputStr{};
+    inputStr.reserve(1000001);
+    std::cin >> inputStr;
+
+    for (size_t i = 0; i < inputStr.size(); ++i)
     {
-        if (S[i] != S[slen - i])
+        ++usedCount[CharToIndex(inputStr[i])];   
+    }
+
+    
+    int mostUsedIdx{};
+    bool redundantSame{};
+    for (size_t i = 1; i < usedCount.size(); ++i)
+    {
+        if (usedCount[i] > usedCount[mostUsedIdx])
         {
-            isPalindrome = false;
+            mostUsedIdx = (int)i;
+            redundantSame = false;
+        }
+        else if (usedCount[i] == usedCount[mostUsedIdx])
+        {
+            redundantSame = true;
         }
     }
-    std::cout << (isPalindrome ? 1 : 0);
+
+    std::cout << (redundantSame ? '?' : IndexToChar(mostUsedIdx));
 
     return 0;
 }
