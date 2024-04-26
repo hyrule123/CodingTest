@@ -9,9 +9,11 @@ std::ios_base::sync_with_stdio(false)
 
 #include <stdio.h>
 #include <iostream>
-#include <sstream>
+#include <cstring>  //memset
 #include <limits>
-#include <cstring>
+
+#include <vector>
+
 int main()
 {
     USING_IOSTREAM;
@@ -20,30 +22,32 @@ int main()
     WRITE_OUTPUT;
 
     using namespace std;
-    
+
     int N{}, M{};
     std::cin >> N >> M;
 
-    int* basket = new int[N];
-    memset(basket, 0, sizeof(int) * N);
+    std::vector<int> baskets((size_t)N);
 
-    for (int count = 0; count < M; ++count)
+    for (size_t i = 0; i < baskets.size(); ++i)
     {
-        int i{}, j{}, k{};
-        std::cin >> i >> j >> k;
+        baskets[i] = (int)i + 1;
+    }
+
+    for (int c = 0; c < M; ++c)
+    {
+        int i{}, j{};
+        std::cin >> i >> j;
         --i; --j;
-
-        for (i; i <= j; ++i)
-        {
-            basket[i] = k;
-        }
+        int temp = baskets[i];
+        baskets[i] = baskets[j];
+        baskets[j] = temp;
     }
 
-    for (int count = 0; count < N; ++count)
+    for (size_t i = 0; i < baskets.size(); ++i)
     {
-        std::cout << basket[count] << " ";
+        std::cout << baskets[i] << " ";
     }
 
-    delete[] basket;
+    
     return 0;
 }
