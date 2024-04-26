@@ -23,24 +23,9 @@ int main()
 
     using namespace std;
 
-    int T{};
+    char T{};
     std::cin >> T;
-
-    char S[1001];
-    for (int i = 0; i < T; ++i)
-    {
-        std::cin >> S;
-        std::cout << S[0];
-
-        for(int i = 0; i < 1001; ++i)
-        {
-            if ('\0' == S[i])
-            {
-                std::cout << S[i - 1] << "\n";
-                break;
-            }
-        }
-    }
+    std::cout << (int)T;
     
     return 0;
 }
