@@ -23,9 +23,21 @@ int main()
 
     using namespace std;
 
-    char T{};
-    std::cin >> T;
-    std::cout << (int)T;
+    int N{};
+    std::cin >> N;
+    std::cin.get();
+    
+    int sum{};
+    for (int i = 0; i < N; ++i)
+    {
+        char c{};
+        std::cin >> c;
+
+        //ASCII code 0 == 48
+        sum += c - 48;
+    }
+    
+    std::cout << sum;
     
     return 0;
 }
