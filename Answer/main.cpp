@@ -13,7 +13,6 @@ std::ios_base::sync_with_stdio(false)
 #include <limits>
 
 #include <string>
-#include <sstream>
 
 int main()
 {
@@ -24,23 +23,30 @@ int main()
 
     using namespace std;
 
-    std::string line{};
-    std::getline(std::cin, line);
+    std::string input{};
+    std::getline(std::cin, input);
 
-    size_t reverseCount = line.size() / (size_t)2;
-    for (size_t l = 0; l < reverseCount; ++l)
+    char A[4]{}, B[4]{};
+    bool isA_Bigger{};
+    for (int i = 0; i < 3; ++i)
     {
-        char temp = line[l];
-        size_t r = line.size() - 1 - l;
-        line[l] = line[r];
-        line[r] = temp;
+        A[i] = input[2 - i];
+        B[i] = input[6 - i];
+
+
+        if (false == isA_Bigger && A[i] > B[i])
+        {
+            isA_Bigger = true;
+        }
     }
 
-    std::stringstream stream{ line };
-    int A{}, B{};
-    stream >> B >> A;
-    
-    std::cout << (A > B ? A : B);
-
+    if (isA_Bigger)
+    {
+        std::cout << A;
+    }
+    else
+    {
+        std::cout << B;
+    }
     return 0;
 }
