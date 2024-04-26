@@ -23,27 +23,13 @@ int main()
 
     using namespace std;
 
-    int N{};
-    std::cin >> N;
+    char S[1001]{};
+    int i{};
 
-    std::vector<float> scores((size_t)N);
+    std::cin >> S;
+    std::cin >> i;
 
-    float maxScore = 0;
-    for (size_t i = 0; i < scores.size(); ++i)
-    {
-        std::cin >> scores[i];
-        if (maxScore < scores[i])
-        {
-            maxScore = scores[i];
-        }
-    }
-    
-    float avg{};
-    for (size_t i = 0; i < scores.size(); ++i)
-    {
-        avg += scores[i] / maxScore * 100.f;
-    }
-    std::cout << avg / (float)N;
+    std::cout << S[i - 1];
     
     return 0;
 }
