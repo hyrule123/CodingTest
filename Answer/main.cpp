@@ -21,12 +21,14 @@ int main()
 
     using namespace std;
 
-    char str[101]{};
+    constexpr const char* sprout = R"(         ,r'"7
+r`-_   ,'  ,/
+ \. ". L_r'
+   `~\/
+      |
+      |)";
 
-    while (std::cin.getline(str, 101))
-    {
-        std::cout << str << '\n';
-    }
+    std::cout << sprout;
 
     return 0;
 }
