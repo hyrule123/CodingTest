@@ -13,6 +13,7 @@ std::ios_base::sync_with_stdio(false)
 #include <limits>
 
 #include <string>
+#include <sstream>
 
 int main()
 {
@@ -23,14 +24,23 @@ int main()
 
     using namespace std;
 
-    std::string S{};
-    int vocCount{};
-    while (std::cin >> S)
+    std::string line{};
+    std::getline(std::cin, line);
+
+    size_t reverseCount = line.size() / (size_t)2;
+    for (size_t l = 0; l < reverseCount; ++l)
     {
-        ++vocCount;
+        char temp = line[l];
+        size_t r = line.size() - 1 - l;
+        line[l] = line[r];
+        line[r] = temp;
     }
+
+    std::stringstream stream{ line };
+    int A{}, B{};
+    stream >> B >> A;
     
-    std::cout << vocCount;
+    std::cout << (A > B ? A : B);
 
     return 0;
 }
