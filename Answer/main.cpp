@@ -25,43 +25,43 @@ int main()
 
     using namespace std;
 
-    constexpr const std::string_view croatian[] =
-    {
-        "c=", "c-", "d-", "dz=", "lj", "nj", "s=", "z="
-    };
-    size_t arrSize = sizeof(croatian) / sizeof(std::string_view);
+    int N{};
+    std::cin >> N;
 
-    char input[103]{};
-    std::cin >> input;
-    size_t slen = std::strlen(input);
-
-    size_t croatianCharCount{};
-    for (size_t i = 0; i < slen; ++i)
+    
+    int groupWordCount{ 0 };
+    for (int i = 0; i < N; ++i)
     {
-        for (size_t j = 0; j < arrSize; ++j)
+        bool groupFound[26]{};
+        char word[101]{};
+        std::cin >> word;
+        size_t slen = strlen(word);
+        
+        bool isGroupWord{ true };
+        for (size_t j = 0; j < slen; ++j)
         {
-            bool found = true;
-
-            for (size_t k = 0; k < croatian[j].size(); ++k)
+            //다른 알파벳이 나올때까지 진행
+            if (word[j] != word[j + 1])
             {
-                if (input[i + k] != croatian[j][k])
+                char alphabet2Idx = word[j] - 'a';
+
+                //이미 찾은 그룹일경우 false
+                if (groupFound[alphabet2Idx])
                 {
-                    found = false;
+                    isGroupWord = false;
                     break;
                 }
-            }
-
-            if (found)
-            {
-                i += croatian[j].size() - 1;
-                break;
+                
+                groupFound[alphabet2Idx] = true;
             }
         }
 
-        ++croatianCharCount;
+        if (isGroupWord)
+        {
+            ++groupWordCount;
+        }
     }
+    std::cout << groupWordCount;
 
-
-    std::cout << croatianCharCount;
     return 0;
 }
