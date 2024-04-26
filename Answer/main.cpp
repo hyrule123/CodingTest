@@ -23,21 +23,32 @@ int main()
 
     using namespace std;
 
-    int N{};
-    std::cin >> N;
-    std::cin.get();
+    char S[101]{};
     
-    int sum{};
-    for (int i = 0; i < N; ++i)
-    {
-        char c{};
-        std::cin >> c;
+    char found[26]{};
+    memset(found, -1, 26);
 
-        //ASCII code 0 == 48
-        sum += c - 48;
-    }
+    std::cin >> S;
     
-    std::cout << sum;
+    for (int i = 0; i < 101; ++i)
+    {
+        if ('\0' == S[i])
+        {
+            break;
+        }
+        
+        //ASCII 97 == 'a'
+        int pos = S[i] - 97;
+        if (-1 == found[pos])
+        {
+            found[pos] = i;
+        }
+    }
+
+    for (int i = 0; i < 26; ++i)
+    {
+        std::cout << (int)(found[i]) << ' ';
+    }
     
     return 0;
 }
