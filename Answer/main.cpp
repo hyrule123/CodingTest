@@ -12,9 +12,6 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <string>
-#include <array>
-
 
 int main()
 {
@@ -24,44 +21,41 @@ int main()
     WRITE_OUTPUT;
 
     using namespace std;
-
-    int N{};
-    std::cin >> N;
-
     
-    int groupWordCount{ 0 };
-    for (int i = 0; i < N; ++i)
-    {
-        bool groupFound[26]{};
-        char word[101]{};
-        std::cin >> word;
-        size_t slen = strlen(word);
-        
-        bool isGroupWord{ true };
-        for (size_t j = 0; j < slen; ++j)
-        {
-            //다른 알파벳이 나올때까지 진행
-            if (word[j] != word[j + 1])
-            {
-                char alphabet2Idx = word[j] - 'a';
+    constexpr const char* grades[] = { "A+", "A0", "B+", "B0", "C+", "C0", "D+", "D0", "F" };
+    constexpr size_t gradeCount = sizeof(grades) / sizeof(const char*);
+    constexpr float gradeScores[] = { 4.5f, 4.f, 3.5f, 3.f, 2.5f, 2.f, 1.5f, 1.f, 0.f };
 
-                //이미 찾은 그룹일경우 false
-                if (groupFound[alphabet2Idx])
-                {
-                    isGroupWord = false;
-                    break;
-                }
-                
-                groupFound[alphabet2Idx] = true;
+    static_assert(gradeCount == (sizeof(gradeScores) / sizeof(float)));
+
+
+    //학점: credit
+    //과목평점: gradeScore
+
+    //학점 * 과목평점
+    float credit_x_gradeScore_sum{ 0.f };
+
+    //학점의 총합
+    float creditSum{ 0.f };
+    for (int i = 0; i < 20; ++i)
+    {
+        char cls[51]{};
+        float credit{};
+        char grade[3]{};
+
+        std::cin >> cls >> credit >> grade;
+
+        for (size_t j = 0; j < gradeCount; ++j)
+        {
+            if (0 == strcmp(grade, grades[j]))
+            {
+                credit_x_gradeScore_sum += credit * gradeScores[j];
+                creditSum += credit;
             }
         }
-
-        if (isGroupWord)
-        {
-            ++groupWordCount;
-        }
     }
-    std::cout << groupWordCount;
+
+    std::cout << (credit_x_gradeScore_sum / creditSum);
 
     return 0;
 }
