@@ -21,14 +21,16 @@ int main()
 
     using namespace std;
 
-    constexpr const char* sprout = R"(         ,r'"7
-r`-_   ,'  ,/
- \. ". L_r'
-   `~\/
-      |
-      |)";
-
-    std::cout << sprout;
+    int chessPieceNum[] = { 1, 1, 2, 2, 2, 8 };
+    constexpr int arrSize = sizeof(chessPieceNum) / sizeof(int);
+    
+    for (int i = 0; i < arrSize; ++i)
+    {
+        int curNum{};
+        std::cin >> curNum;
+        chessPieceNum[i] -= curNum;
+        std::cout << chessPieceNum[i] << ' ';
+    }
 
     return 0;
 }
