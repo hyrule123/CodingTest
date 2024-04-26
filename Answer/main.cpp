@@ -21,25 +21,12 @@ int main()
 
     using namespace std;
 
-    constexpr int alphabet2Time[] =
-    { 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10 };
+    char str[101]{};
 
-    char S[16]{};
-    std::cin >> S;
-
-    int sumTime{};
-    for (int i = 0; i < 16; ++i)
+    while (std::cin.getline(str, 101))
     {
-        if ('\0' == S[i])
-        {
-            break;
-        }
-
-        //A == 65
-        sumTime += alphabet2Time[S[i] - 65];
+        std::cout << str << '\n';
     }
-
-    std::cout << sumTime;
 
     return 0;
 }
