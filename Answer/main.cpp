@@ -15,22 +15,6 @@ std::ios_base::sync_with_stdio(false)
 #include <string>
 #include <array>
 
-inline char CharToIndex(char _c)
-{
-    constexpr char toUpper = 'a' - 'A';
-
-    if ('a' <= _c)
-    {
-        _c -= toUpper;
-    }
-    
-    return (_c - 'A');
-}
-inline char IndexToChar(int _i)
-{
-    return ((char)_i + 'A');
-}
-
 
 int main()
 {
@@ -41,34 +25,43 @@ int main()
 
     using namespace std;
 
-    std::array<int, 26> usedCount{};
-
-    std::string inputStr{};
-    inputStr.reserve(1000001);
-    std::cin >> inputStr;
-
-    for (size_t i = 0; i < inputStr.size(); ++i)
+    constexpr const std::string_view croatian[] =
     {
-        ++usedCount[CharToIndex(inputStr[i])];   
+        "c=", "c-", "d-", "dz=", "lj", "nj", "s=", "z="
+    };
+    size_t arrSize = sizeof(croatian) / sizeof(std::string_view);
+
+    char input[103]{};
+    std::cin >> input;
+    size_t slen = std::strlen(input);
+
+    size_t croatianCharCount{};
+    for (size_t i = 0; i < slen; ++i)
+    {
+        for (size_t j = 0; j < arrSize; ++j)
+        {
+            bool found = true;
+
+            for (size_t k = 0; k < croatian[j].size(); ++k)
+            {
+                if (input[i + k] != croatian[j][k])
+                {
+                    found = false;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                i += croatian[j].size() - 1;
+                break;
+            }
+        }
+
+        ++croatianCharCount;
     }
 
-    
-    int mostUsedIdx{};
-    bool redundantSame{};
-    for (size_t i = 1; i < usedCount.size(); ++i)
-    {
-        if (usedCount[i] > usedCount[mostUsedIdx])
-        {
-            mostUsedIdx = (int)i;
-            redundantSame = false;
-        }
-        else if (usedCount[i] == usedCount[mostUsedIdx])
-        {
-            redundantSame = true;
-        }
-    }
 
-    std::cout << (redundantSame ? '?' : IndexToChar(mostUsedIdx));
-
+    std::cout << croatianCharCount;
     return 0;
 }
