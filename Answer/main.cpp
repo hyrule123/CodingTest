@@ -9,7 +9,7 @@ std::ios_base::sync_with_stdio(false)
 
 #include <stdio.h>
 #include <iostream>
-#include <cstring>
+#include <sstream>
 int main()
 {
     USING_IOSTREAM;
@@ -17,12 +17,33 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int A{}, B{};
+    //line 1
+    unsigned int N;
+    std::cin >> N;
+    (void)std::cin.get();
 
-    while (std::cin >> A >> B)
+    //line 2 미리 받아놓기
+    std::string l2{};
+    std::getline(std::cin, l2);
+    std::stringstream line2{l2};
+
+    //line 3
+    int target;
+    std::cin >> target;
+
+    //line 2
+    unsigned int count{0u};
+    for (unsigned int i = 0u; i < N; ++i)
     {
-        std::cout << A + B << "\n";
+        int num;
+        line2 >> num;
+
+        if (num == target)
+        {
+            ++count;
+        }
     }
+    std::cout << count;
 
     return 0;
 }
