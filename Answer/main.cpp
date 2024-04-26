@@ -11,6 +11,7 @@ std::ios_base::sync_with_stdio(false)
 #include <iostream>
 #include <sstream>
 #include <limits>
+#include <cstring>
 int main()
 {
     USING_IOSTREAM;
@@ -20,19 +21,29 @@ int main()
 
     using namespace std;
     
-    int max{};
-    int index{};
-    for (int i = 0; i < 9; ++i)
+    int N{}, M{};
+    std::cin >> N >> M;
+
+    int* basket = new int[N];
+    memset(basket, 0, sizeof(int) * N);
+
+    for (int count = 0; count < M; ++count)
     {
-        int num{};
-        std::cin >> num;
-        if (max < num)
+        int i{}, j{}, k{};
+        std::cin >> i >> j >> k;
+        --i; --j;
+
+        for (i; i <= j; ++i)
         {
-            max = num;
-            index = i + 1; 
+            basket[i] = k;
         }
     }
-    std::cout << max << "\n" << index;
 
+    for (int count = 0; count < N; ++count)
+    {
+        std::cout << basket[count] << " ";
+    }
+
+    delete[] basket;
     return 0;
 }
