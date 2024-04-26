@@ -23,13 +23,20 @@ int main()
 
     using namespace std;
 
-    char S[1001]{};
-    int i{};
-
+    char S[101]{};
     std::cin >> S;
-    std::cin >> i;
 
-    std::cout << S[i - 1];
+    int slen{};
+    for (int i = 0; i < 101; ++i)
+    {
+        if ('\0' == S[i])
+        {
+            break;
+        }
+        ++slen;
+    }
+
+    std::cout << slen;
     
     return 0;
 }
