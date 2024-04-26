@@ -20,28 +20,19 @@ int main()
 
     using namespace std;
     
-    int32_t N;
-    std::cin >> N;
-
-    int32_t min{ std::numeric_limits<int32_t>::max() };
-    int32_t max{ std::numeric_limits<int32_t>::min() };
-
-    for (int32_t i = 0; i < N; ++i)
+    int max{};
+    int index{};
+    for (int i = 0; i < 9; ++i)
     {
-        int32_t num;
-        cin >> num;
-        
-        if (num < min)
-        {
-            min = num;
-        }
-        if (num > max)
+        int num{};
+        std::cin >> num;
+        if (max < num)
         {
             max = num;
+            index = i + 1; 
         }
     }
-
-    std::cout << min << " " << max;
+    std::cout << max << "\n" << index;
 
     return 0;
 }
