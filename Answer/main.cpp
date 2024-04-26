@@ -12,6 +12,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
+#include <vector>
 
 int main()
 {
@@ -21,24 +22,38 @@ int main()
     WRITE_OUTPUT;
 
     using namespace std;
+    
+    int N{}, M{};
+    std::cin >> N >> M;
 
-    bool remainders[42] = {};
-
-    int diffCount{};
-    for (int i = 0; i < 10; ++i)
+    std::vector<int> baskets{};
+    baskets.resize(N);
+    for (size_t i = 0; i < baskets.size(); ++i)
     {
-        unsigned int num{};
-        std::cin >> num;
-        num %= 42;
+        baskets[i] = (int)i + 1;
+    }
 
-        if (remainders[num] == false)
+    for (int c = 0; c < M; ++c)
+    {
+        int i{}, j{};
+        std::cin >> i >> j;
+        --i; --j;
+
+        int swapCount = (j - i + 1) / 2;
+        for (int d = 0; d < swapCount; ++d)
         {
-            remainders[num] = true;
-            ++diffCount;
+            int left = i + d;
+            int right = j - d;
+            int temp = baskets[left];
+            baskets[left] = baskets[right];
+            baskets[right] = temp;
         }
     }
 
-    std::cout << diffCount;
+    for (size_t i = 0; i < baskets.size(); ++i)
+    {
+        std::cout << baskets[i] << " ";
+    }
     
     
     return 0;
