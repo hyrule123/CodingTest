@@ -23,27 +23,21 @@ int main()
 
     using namespace std;
 
-    int N{};
-    std::cin >> N;
+    char S[101]{};
+    std::cin >> S;
+    int slen = (int)strlen(S);
+    int loopCount = slen / 2;
+    --slen;
     
-    int maxStar = 1 + 2 * (N - 1);
-    int centerIdx = maxStar / 2;
-
-    std::vector<std::string> stars(N);
-    for (size_t i = 0; i < stars.size(); ++i)
+    bool isPalindrome = true;
+    for (int i = 0; i < loopCount; ++i)
     {
-        int slen = centerIdx + i + 2;
-        stars[i].resize(slen, ' ');
-        memset(stars[i].data() + (centerIdx - i), '*', 1 + i * 2);
-        stars[i][slen - 1] = '\n';
-        std::cout << stars[i];
+        if (S[i] != S[slen - i])
+        {
+            isPalindrome = false;
+        }
     }
-
-    for (int i = (int)stars.size() - 2; i >= 0; --i)
-    {
-        std::cout << stars[i];
-    }
-    
+    std::cout << (isPalindrome ? 1 : 0);
 
     return 0;
 }
