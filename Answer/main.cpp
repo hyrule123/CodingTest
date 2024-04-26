@@ -12,8 +12,6 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <string>
-
 int main()
 {
     USING_IOSTREAM;
@@ -23,30 +21,25 @@ int main()
 
     using namespace std;
 
-    std::string input{};
-    std::getline(std::cin, input);
+    constexpr int alphabet2Time[] =
+    { 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10 };
 
-    char A[4]{}, B[4]{};
-    bool isA_Bigger{};
-    for (int i = 0; i < 3; ++i)
+    char S[16]{};
+    std::cin >> S;
+
+    int sumTime{};
+    for (int i = 0; i < 16; ++i)
     {
-        A[i] = input[2 - i];
-        B[i] = input[6 - i];
-
-
-        if (false == isA_Bigger && A[i] > B[i])
+        if ('\0' == S[i])
         {
-            isA_Bigger = true;
+            break;
         }
+
+        //A == 65
+        sumTime += alphabet2Time[S[i] - 65];
     }
 
-    if (isA_Bigger)
-    {
-        std::cout << A;
-    }
-    else
-    {
-        std::cout << B;
-    }
+    std::cout << sumTime;
+
     return 0;
 }
