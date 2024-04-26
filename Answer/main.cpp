@@ -12,7 +12,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <vector>
+#include <bitset>
 
 int main()
 {
@@ -23,29 +23,21 @@ int main()
 
     using namespace std;
 
-    int N{}, M{};
-    std::cin >> N >> M;
+    std::bitset<32> attendance{};
 
-    std::vector<int> baskets((size_t)N);
-
-    for (size_t i = 0; i < baskets.size(); ++i)
+    for (int i = 1; i <= 28; ++i)
     {
-        baskets[i] = (int)i + 1;
+        int num{};
+        std::cin >> num;
+        attendance[num] = true;
     }
 
-    for (int c = 0; c < M; ++c)
+    for (int i = 1; i <= 30; ++i)
     {
-        int i{}, j{};
-        std::cin >> i >> j;
-        --i; --j;
-        int temp = baskets[i];
-        baskets[i] = baskets[j];
-        baskets[j] = temp;
-    }
-
-    for (size_t i = 0; i < baskets.size(); ++i)
-    {
-        std::cout << baskets[i] << " ";
+        if (false == attendance[i])
+        {
+            std::cout << i << "\n";
+        }
     }
 
     
