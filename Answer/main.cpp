@@ -22,39 +22,28 @@ int main()
     WRITE_OUTPUT;
 
     using namespace std;
-    
-    int N{}, M{};
-    std::cin >> N >> M;
 
-    std::vector<int> baskets{};
-    baskets.resize(N);
-    for (size_t i = 0; i < baskets.size(); ++i)
+    int N{};
+    std::cin >> N;
+
+    std::vector<float> scores((size_t)N);
+
+    float maxScore = 0;
+    for (size_t i = 0; i < scores.size(); ++i)
     {
-        baskets[i] = (int)i + 1;
-    }
-
-    for (int c = 0; c < M; ++c)
-    {
-        int i{}, j{};
-        std::cin >> i >> j;
-        --i; --j;
-
-        int swapCount = (j - i + 1) / 2;
-        for (int d = 0; d < swapCount; ++d)
+        std::cin >> scores[i];
+        if (maxScore < scores[i])
         {
-            int left = i + d;
-            int right = j - d;
-            int temp = baskets[left];
-            baskets[left] = baskets[right];
-            baskets[right] = temp;
+            maxScore = scores[i];
         }
     }
-
-    for (size_t i = 0; i < baskets.size(); ++i)
-    {
-        std::cout << baskets[i] << " ";
-    }
     
+    float avg{};
+    for (size_t i = 0; i < scores.size(); ++i)
+    {
+        avg += scores[i] / maxScore * 100.f;
+    }
+    std::cout << avg / (float)N;
     
     return 0;
 }
