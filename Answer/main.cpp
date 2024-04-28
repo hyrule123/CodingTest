@@ -12,7 +12,19 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <array>
+#include <string>
+
+inline int PowInt(int _base, int _exponent)
+{
+    int ret{ 1 };
+
+    while (_exponent--)
+    {
+        ret *= _base;
+    }
+
+    return ret;
+}
 
 int main()
 {
@@ -23,37 +35,30 @@ int main()
 
     using namespace std;
     
-    std::array<std::array<bool, 100>, 100> paper{};
+    std::string notationNumber{};
+    int base{};
+    std::cin >> notationNumber >> base;
 
-    int numPaper{};
-    std::cin >> numPaper;
+    int decimal{};
 
-    int colorPaperSize{};
-    for (int n = 0; n < numPaper; ++n)
+    //가장 낮은 자릿수부터 시작
+    for (size_t i = 1; i <= notationNumber.size(); ++i)
     {
-        int x{};
-        int y{};
-
-        std::cin >> x;
-        std::cin >> y;
-
-        int xEnd = x + 10;
-        int yEnd = y + 10;
-
-        for (int i = x; i < xEnd; ++i)
+        char digit = notationNumber[notationNumber.size() - i];
+        if (digit >= 'A')
         {
-            for (int j = y; j < yEnd; ++j)
-            {
-                if (false == paper[i][j])
-                {
-                    paper[i][j] = true;
-                    ++colorPaperSize;
-                }
-            }
+            digit -= 'A';
+            digit += 10;
         }
+        else
+        {
+            digit -= '0';
+        }
+
+        //현재 자리 숫자 * 자릿수 지수
+        decimal += (int)digit * PowInt(base, (int)i - 1);
     }
 
-    std::cout << colorPaperSize;
-
+    std::cout << decimal;
     return 0;
 }
