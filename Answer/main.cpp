@@ -22,40 +22,52 @@ int main()
 
     using namespace std;
     
-    constexpr const char* grades[] = { "A+", "A0", "B+", "B0", "C+", "C0", "D+", "D0", "F" };
-    constexpr size_t gradeCount = sizeof(grades) / sizeof(const char*);
-    constexpr float gradeScores[] = { 4.5f, 4.f, 3.5f, 3.f, 2.5f, 2.f, 1.5f, 1.f, 0.f };
+    int N{}, M{};
+    std::cin >> N >> M;
+    int matSize = N * M;
 
-    static_assert(gradeCount == (sizeof(gradeScores) / sizeof(float)));
+    //정석 이중포인터로 해보기
+    int** matSum{};
 
+    //1차 동적할당
+    matSum = new int*[N];
+    memset(matSum, 0, sizeof(int*) * N);
 
-    //학점: credit
-    //과목평점: gradeScore
-
-    //학점 * 과목평점
-    float credit_x_gradeScore_sum{ 0.f };
-
-    //학점의 총합
-    float creditSum{ 0.f };
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < N; ++i)
     {
-        char cls[51]{};
-        float credit{};
-        char grade[3]{};
+        //2차 동적할당
+        matSum[i] = new int[M];
+        memset(matSum[i], 0, sizeof(int) * M);
+    }
 
-        std::cin >> cls >> credit >> grade;
-
-        for (size_t j = 0; j < gradeCount; ++j)
+    for (int numMat = 0; numMat < 2; ++numMat)
+    {
+        for (int i = 0; i < N; ++i)
         {
-            if (0 == strcmp(grade, grades[j]))
+            for (int j = 0; j < M; ++j)
             {
-                credit_x_gradeScore_sum += credit * gradeScores[j];
-                creditSum += credit;
+                int input{};
+                std::cin >> input;
+                matSum[i][j] += input;
             }
         }
     }
 
-    std::cout << (credit_x_gradeScore_sum / creditSum);
+    for (int i = 0; i < N; ++i)
+    {
+        for (int j = 0; j < M; ++j)
+        {
+            std::cout << matSum[i][j] << ' ';
+        }
 
+        std::cout << '\n';
+    }
+    
+    //동적할당 메모리 해제
+    for (int i = 0; i < N; ++i)
+    {
+        delete[] matSum[i];
+    }
+    delete[] matSum;
     return 0;
 }
