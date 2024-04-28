@@ -23,42 +23,25 @@ int main()
 
     using namespace std;
 
-    unsigned long long fromDecimal{};
-    unsigned long long toBase{};
-    std::cin >> fromDecimal >> toBase;
+    int T{};
+    std::cin >> T;
 
-    //1. 최저 지수에서 시작해서 하나씩 올려가기(대신 답이 거꾸로 들어감)
-    //2. 최대 지수까지 올린후 하나씩 내려오기 ->이걸로
-    std::string notation{};
+    constexpr int changes[] = { 25, 10, 5, 1 };
+    constexpr int numChanges = sizeof(changes) / sizeof(int);
 
-    unsigned long long exp = 1;
-    while (fromDecimal > exp)
+    for (int c = 0; c < T; ++c)
     {
-        exp *= toBase;
+        int cents{};
+        std::cin >> cents;
+
+        for (int i = 0; i < numChanges; ++i)
+        {
+            int change = cents / changes[i];
+            cents -= change * changes[i];
+            std::cout << change << ' ';
+        }
+        std::cout << '\n';
     }
-
-    while (true)
-    {
-        auto prevExp = exp;
-        exp /= toBase;
-        if (0 == exp)
-        {
-            break;
-        }
-
-        char remainder = (char)((fromDecimal % prevExp) / exp);
-        if (remainder >= 10)
-        {
-            remainder += ('A' - 10);
-        }
-        else
-        {
-            remainder += '0';
-        }
-        notation.push_back(remainder);
-    }
-
-    std::cout << notation;
 
     return 0;
 }
