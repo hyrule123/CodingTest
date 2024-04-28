@@ -12,6 +12,8 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
+#include <array>
+#include <string>
 
 int main()
 {
@@ -22,28 +24,25 @@ int main()
 
     using namespace std;
     
-    
-    int maxNum{std::numeric_limits<int>::min()};
-    int X{};
-    int Y{};
-
-    for (int i = 0; i < 9; ++i)
+    std::array<std::string, 5> lines{};
+    size_t longestLength{};
+    for (size_t i = 0; i < lines.size(); ++i)
     {
-        for (int j = 0; j < 9; ++j)
-        {
-            int input{};
-            std::cin >> input;
+        std::cin >> lines[i];
 
-            if (maxNum < input)
+        longestLength = std::max(longestLength, lines[i].size());
+    }
+
+    for (size_t c = 0; c < longestLength; ++c)
+    {
+        for (size_t r = 0; r < lines.size(); ++r)
+        {
+            if (c < lines[r].size())
             {
-                maxNum = input;
-                X = i;
-                Y = j;
+                std::cout << lines[r][c];
             }
         }
     }
-
-    std::cout << maxNum << '\n' << X + 1 << ' ' << Y + 1;
 
     return 0;
 }
