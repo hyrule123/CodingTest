@@ -42,25 +42,27 @@ int main()
 
     using namespace std;
 
-    //n회: 점 x개, 사각형 y개
-    //초기상태: 점4(2*2),   사각형1(4^0)
-    //1번: 점9(3*3),       사각형4(4^1)
-    //2번: 점25(5*5),      사각형16(4^2)
-    //3번: 점81(9*9),      사각형64(4^3)
-    //4번: 점x개(17*17)
-    //n번: (2^n + 1)^2
+    //1, 7, 19, 37
+    //  6, 12, 18, 24, 36
+    //S(1) = 1
+    //S(n) = S(n-1) + 6(n-1)
+    //매 바퀴당 갯수는 6n개
+    //시작 숫자: 시그마(1~n)1 + 6n 단위로 증가
 
     int N{};
     std::cin >> N;
+
+    int prev{ 1 };
+    int diff{ 6 };
+    int count{ 1 };
     
-    int answer{ 1 };
-    for (int i = 0; i < N; ++i)
+    while (prev < N)
     {
-        answer *= 2;
+        prev += diff;
+        diff += 6;
+        ++count;
     }
-    answer += 1;
 
-    std::cout << PowInt(answer, 2);
-
+    std::cout << count;
     return 0;
 }
