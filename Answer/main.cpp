@@ -14,18 +14,6 @@ std::ios_base::sync_with_stdio(false)
 
 #include <string>
 
-inline int PowInt(int _base, int _exponent)
-{
-    int ret{ 1 };
-
-    while (_exponent--)
-    {
-        ret *= _base;
-    }
-
-    return ret;
-}
-
 int main()
 {
     USING_IOSTREAM;
@@ -34,31 +22,42 @@ int main()
     WRITE_OUTPUT;
 
     using namespace std;
-    
-    std::string notationNumber{};
-    int base{};
-    std::cin >> notationNumber >> base;
 
-    int decimal{};
+    unsigned long long fromDecimal{};
+    unsigned long long toBase{};
+    std::cin >> fromDecimal >> toBase;
 
-    //가장 낮은 자릿수부터 시작
-    for (size_t i = 1; i <= notationNumber.size(); ++i)
+    //1. 최저 지수에서 시작해서 하나씩 올려가기(대신 답이 거꾸로 들어감) ->이걸로
+    //2. 최대 지수까지 올린후 하나씩 내려오기
+    std::string notation{};
+
+    unsigned long long exp = 1;
+    while (true)
     {
-        char digit = notationNumber[notationNumber.size() - i];
-        if (digit >= 'A')
+        if (exp > fromDecimal)
         {
-            digit -= 'A';
-            digit += 10;
+            break;
+        }
+
+
+        unsigned long long prevExp = exp;
+        exp *= toBase;
+
+        char remainder = (char)((fromDecimal % exp) / prevExp);
+        if (remainder >= 10)
+        {
+            remainder += ('A' - 10);
         }
         else
         {
-            digit -= '0';
+            remainder += '0';
         }
-
-        //현재 자리 숫자 * 자릿수 지수
-        decimal += (int)digit * PowInt(base, (int)i - 1);
+        notation.push_back(remainder);
     }
 
-    std::cout << decimal;
+    for (int i = (int)notation.size() - 1; i >= 0; --i)
+    {
+        std::cout << notation[i];
+    }
     return 0;
 }
