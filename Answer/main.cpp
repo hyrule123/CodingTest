@@ -12,27 +12,6 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <string>
-
-int GetDotNumRecursive(int _dotNumber, const int _targetLevel, int _currentLevel = 0)
-{
-    if (_currentLevel < _targetLevel)
-    {
-        return GetDotNumRecursive(2 * _dotNumber - 1, _targetLevel, ++_currentLevel);
-    }
-    
-    return _dotNumber;
-}
-inline int PowInt(int _base, int _exponent)
-{
-    int ret = 1;
-    while (_exponent--)
-    {
-        ret *= _base;
-    }
-    return ret;
-}
-
 int main()
 {
     USING_IOSTREAM;
@@ -42,27 +21,35 @@ int main()
 
     using namespace std;
 
-    //1, 7, 19, 37
-    //  6, 12, 18, 24, 36
-    //S(1) = 1
-    //S(n) = S(n-1) + 6(n-1)
-    //매 바퀴당 갯수는 6n개
-    //시작 숫자: 시그마(1~n)1 + 6n 단위로 증가
+    // 1/1 -> 1/2 -> 2/1 -> 3/1 -> 2/2 -> 1/3 -> 1/4 -> 2/3 -> 3/2 -> 1/4
+    // 계차수열(등차: 1)
 
-    int N{};
-    std::cin >> N;
-
-    int prev{ 1 };
-    int diff{ 6 };
-    int count{ 1 };
+    int X{};
+    std::cin >> X;
     
-    while (prev < N)
+    int diff{ 1 };
+    int lineCount{ 0 };
+    while (0 < X)
     {
-        prev += diff;
-        diff += 6;
-        ++count;
+        X -= diff;
+        diff += 1;
+        ++lineCount;
     }
+    
+    //한 줄 안에서의 위치
+    int posInLine = X + lineCount;
 
-    std::cout << count;
+    int num1{ lineCount + 1 - posInLine };
+    int num2{ lineCount + 1 - num1 };
+
+    //짝수일때는 오른쪽 위부터, 홀수일때는 왼쪽 아래부터
+    if (1 == lineCount % 2)
+    {
+        std::cout << num1 << '/' << num2;
+    }
+    else
+    {
+        std::cout << num2 << '/' << num1;
+    }
     return 0;
 }
