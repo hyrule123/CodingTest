@@ -13,7 +13,6 @@ std::ios_base::sync_with_stdio(false)
 #include <limits>
 
 #include <array>
-#include <string>
 
 int main()
 {
@@ -24,25 +23,37 @@ int main()
 
     using namespace std;
     
-    std::array<std::string, 5> lines{};
-    size_t longestLength{};
-    for (size_t i = 0; i < lines.size(); ++i)
-    {
-        std::cin >> lines[i];
+    std::array<std::array<bool, 100>, 100> paper{};
 
-        longestLength = std::max(longestLength, lines[i].size());
-    }
+    int numPaper{};
+    std::cin >> numPaper;
 
-    for (size_t c = 0; c < longestLength; ++c)
+    int colorPaperSize{};
+    for (int n = 0; n < numPaper; ++n)
     {
-        for (size_t r = 0; r < lines.size(); ++r)
+        int x{};
+        int y{};
+
+        std::cin >> x;
+        std::cin >> y;
+
+        int xEnd = x + 10;
+        int yEnd = y + 10;
+
+        for (int i = x; i < xEnd; ++i)
         {
-            if (c < lines[r].size())
+            for (int j = y; j < yEnd; ++j)
             {
-                std::cout << lines[r][c];
+                if (false == paper[i][j])
+                {
+                    paper[i][j] = true;
+                    ++colorPaperSize;
+                }
             }
         }
     }
+
+    std::cout << colorPaperSize;
 
     return 0;
 }
