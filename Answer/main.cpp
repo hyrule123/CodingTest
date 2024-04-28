@@ -12,7 +12,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <string>
+#include <vector>
 
 int main()
 {
@@ -23,45 +23,29 @@ int main()
 
     using namespace std;
 
-    int A, B;
-    
-    
-    while (true)
+    int N, K;
+    std::cin >> N >> K;
+    --K;
+
+    std::vector<int> divisors{};
+    divisors.reserve(100);
+    divisors.push_back(1);
+    for (int i = 2; i < N; ++i)
     {
-        std::cin >> A >> B;
-        if (0 == A && 0 == B)
+        if (0 == N % i)
         {
-            break;
+            divisors.push_back(i);
         }
-
-        int idx = -1;
-        if (A < B)
-        {
-            if (B % A == 0)
-            {
-                idx = 0;
-            }
-            else
-            {
-                idx = 2;
-            }
-        }
-        else
-        {
-            if (A % B == 0)
-            {
-                idx = 1;
-            }
-            else
-            {
-                idx = 2;
-            }
-        }
-
-        constexpr const std::string_view output[] = { "factor\n", "multiple\n", "neither\n" };
-        std::cout << output[idx];
     }
+    divisors.push_back(N);
 
-
+    if (K < (int)divisors.size())
+    {
+        std::cout << divisors[K];
+    }
+    else
+    {
+        std::cout << 0;
+    }
     return 0;
 }
