@@ -14,6 +14,25 @@ std::ios_base::sync_with_stdio(false)
 
 #include <string>
 
+int GetDotNumRecursive(int _dotNumber, const int _targetLevel, int _currentLevel = 0)
+{
+    if (_currentLevel < _targetLevel)
+    {
+        return GetDotNumRecursive(2 * _dotNumber - 1, _targetLevel, ++_currentLevel);
+    }
+    
+    return _dotNumber;
+}
+inline int PowInt(int _base, int _exponent)
+{
+    int ret = 1;
+    while (_exponent--)
+    {
+        ret *= _base;
+    }
+    return ret;
+}
+
 int main()
 {
     USING_IOSTREAM;
@@ -23,25 +42,19 @@ int main()
 
     using namespace std;
 
-    int T{};
-    std::cin >> T;
+    //n회: 점 x개, 사각형 y개
+    //초기상태: 점4(2*2),   사각형1(4^0)
+    //1번: 점9(3*3),       사각형4(4^1)
+    //2번: 점25(5*5),      사각형16(4^2)
+    //3번: 점81(9*9),      사각형64(4^3)
+    //4번: 점x개(17*17)
+    //n번: (n-1번째 점개수 * 2 - 1)^2
 
-    constexpr int changes[] = { 25, 10, 5, 1 };
-    constexpr int numChanges = sizeof(changes) / sizeof(int);
-
-    for (int c = 0; c < T; ++c)
-    {
-        int cents{};
-        std::cin >> cents;
-
-        for (int i = 0; i < numChanges; ++i)
-        {
-            int change = cents / changes[i];
-            cents -= change * changes[i];
-            std::cout << change << ' ';
-        }
-        std::cout << '\n';
-    }
+    int N{};
+    std::cin >> N;
+    
+    //int로 커버 될듯??
+    std::cout << PowInt(GetDotNumRecursive(2, N), 2);
 
     return 0;
 }
