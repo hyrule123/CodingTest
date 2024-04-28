@@ -27,23 +27,26 @@ int main()
     unsigned long long toBase{};
     std::cin >> fromDecimal >> toBase;
 
-    //1. 최저 지수에서 시작해서 하나씩 올려가기(대신 답이 거꾸로 들어감) ->이걸로
-    //2. 최대 지수까지 올린후 하나씩 내려오기
+    //1. 최저 지수에서 시작해서 하나씩 올려가기(대신 답이 거꾸로 들어감)
+    //2. 최대 지수까지 올린후 하나씩 내려오기 ->이걸로
     std::string notation{};
 
     unsigned long long exp = 1;
+    while (fromDecimal > exp)
+    {
+        exp *= toBase;
+    }
+
     while (true)
     {
-        if (exp > fromDecimal)
+        auto prevExp = exp;
+        exp /= toBase;
+        if (0 == exp)
         {
             break;
         }
 
-
-        unsigned long long prevExp = exp;
-        exp *= toBase;
-
-        char remainder = (char)((fromDecimal % exp) / prevExp);
+        char remainder = (char)((fromDecimal % prevExp) / exp);
         if (remainder >= 10)
         {
             remainder += ('A' - 10);
@@ -55,9 +58,7 @@ int main()
         notation.push_back(remainder);
     }
 
-    for (int i = (int)notation.size() - 1; i >= 0; --i)
-    {
-        std::cout << notation[i];
-    }
+    std::cout << notation;
+
     return 0;
 }
