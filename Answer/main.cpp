@@ -22,52 +22,28 @@ int main()
 
     using namespace std;
     
-    int N{}, M{};
-    std::cin >> N >> M;
-    int matSize = N * M;
+    
+    int maxNum{std::numeric_limits<int>::min()};
+    int X{};
+    int Y{};
 
-    //정석 이중포인터로 해보기
-    int** matSum{};
-
-    //1차 동적할당
-    matSum = new int*[N];
-    memset(matSum, 0, sizeof(int*) * N);
-
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < 9; ++i)
     {
-        //2차 동적할당
-        matSum[i] = new int[M];
-        memset(matSum[i], 0, sizeof(int) * M);
-    }
-
-    for (int numMat = 0; numMat < 2; ++numMat)
-    {
-        for (int i = 0; i < N; ++i)
+        for (int j = 0; j < 9; ++j)
         {
-            for (int j = 0; j < M; ++j)
+            int input{};
+            std::cin >> input;
+
+            if (maxNum < input)
             {
-                int input{};
-                std::cin >> input;
-                matSum[i][j] += input;
+                maxNum = input;
+                X = i;
+                Y = j;
             }
         }
     }
 
-    for (int i = 0; i < N; ++i)
-    {
-        for (int j = 0; j < M; ++j)
-        {
-            std::cout << matSum[i][j] << ' ';
-        }
+    std::cout << maxNum << '\n' << X + 1 << ' ' << Y + 1;
 
-        std::cout << '\n';
-    }
-    
-    //동적할당 메모리 해제
-    for (int i = 0; i < N; ++i)
-    {
-        delete[] matSum[i];
-    }
-    delete[] matSum;
     return 0;
 }
