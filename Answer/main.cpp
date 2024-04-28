@@ -48,13 +48,19 @@ int main()
     //2번: 점25(5*5),      사각형16(4^2)
     //3번: 점81(9*9),      사각형64(4^3)
     //4번: 점x개(17*17)
-    //n번: (n-1번째 점개수 * 2 - 1)^2
+    //n번: (2^n + 1)^2
 
     int N{};
     std::cin >> N;
     
-    //int로 커버 될듯??
-    std::cout << PowInt(GetDotNumRecursive(2, N), 2);
+    int answer{ 1 };
+    for (int i = 0; i < N; ++i)
+    {
+        answer *= 2;
+    }
+    answer += 1;
+
+    std::cout << PowInt(answer, 2);
 
     return 0;
 }
