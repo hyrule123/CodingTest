@@ -21,35 +21,16 @@ int main()
 
     using namespace std;
 
-    // 1/1 -> 1/2 -> 2/1 -> 3/1 -> 2/2 -> 1/3 -> 1/4 -> 2/3 -> 3/2 -> 1/4
-    // 계차수열(등차: 1)
+    int A, B, V;
+    std::cin >> A >> B >> V;
 
-    int X{};
-    std::cin >> X;
-    
-    int diff{ 1 };
-    int lineCount{ 0 };
-    while (0 < X)
-    {
-        X -= diff;
-        diff += 1;
-        ++lineCount;
-    }
-    
-    //한 줄 안에서의 위치
-    int posInLine = X + lineCount;
+    //매일 올라갈수있는 높이
+    A -= B;
 
-    int num1{ lineCount + 1 - posInLine };
-    int num2{ lineCount + 1 - num1 };
+    //마지막 결승점 도달에는 B만큼 떨어지는게 의미가 없으므로
+    V -= B;
 
-    //짝수일때는 오른쪽 위부터, 홀수일때는 왼쪽 아래부터
-    if (1 == lineCount % 2)
-    {
-        std::cout << num1 << '/' << num2;
-    }
-    else
-    {
-        std::cout << num2 << '/' << num1;
-    }
+    std::cout << (0 == V % A ? V / A : V / A + 1);
+
     return 0;
 }
