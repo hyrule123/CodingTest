@@ -19,37 +19,14 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
     
-    int x1{}, x2{}, x3{}, y1{}, y2{}, y3{};
-    std::cin >> x1 >> y1 >> x2 >> y2 >> x3 >> y3;
+    //계차수열: 1 2 3 4 ...
+    //변 하나의 길이 1, 단계 x라고 하면
+    //위, 아래: 2 * x
+    //좌, 우: 2 * x
+    //4 * x
 
-    int printX{};
-    if (x1 == x2)
-    {
-        printX = x3;
-    }
-    else if (x1 == x3)
-    {
-        printX = x2;
-    }
-    else
-    {
-        printX = x1;
-    }
-
-    int printY{};
-    if (y1 == y2)
-    {
-        printY = y3;
-    }
-    else if (y1 == y3)
-    {
-        printY = y2;
-    }
-    else
-    {
-        printY = y1;
-    }
-
-    std::cout << printX << ' ' << printY;
+    std::uint64_t n{};
+    std::cin >> n;
+    std::cout << (std::uint64_t)4 * n;
     return 0;
 }
