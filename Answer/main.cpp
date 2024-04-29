@@ -12,6 +12,8 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
+#include <string>
+
 int main()
 {
     USING_IOSTREAM;
@@ -19,26 +21,37 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int N{};
-    std::cin >> N;
-    
-    constexpr int intMin{ std::numeric_limits<int>::min() };
-    constexpr int intMax{ std::numeric_limits<int>::max() };
-    
-    int l{ intMax }, b{ intMax }, r{ intMin }, t{ intMin };
-    for (int i = 0; i < N; ++i)
-    {
-        int x{}, y{};
-        std::cin >> x >> y;
-        
-        l = std::min(x, l);
-        r = std::max(x, r);
+    constexpr std::string_view answers[]{ "Scalene", "Isosceles", "Equilateral" };
 
-        b = std::min(y, b);
-        t = std::max(y, t);
+    int lines[3]{};
+    for (int i = 0; i < 3; ++i)
+    {
+        std::cin >> lines[i];
     }
 
-    std::cout << std::labs(r - l) * std::labs(t - b);
+    if (180 != (lines[0] + lines[1] + lines[2]))
+    {
+        std::cout << "Error";
+        return 0;
+    }
+
+    //for문으로 하는건 별론듯
+    int sameCount{};
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = i + 1; j < 3; ++j)
+        {
+            if (lines[i] == lines[j])
+            {
+                ++sameCount;
+            }
+        }
+        if (2 <= sameCount)
+        {
+            break;
+        }
+    }
+    std::cout << answers[sameCount];
 
     return 0;
 }
