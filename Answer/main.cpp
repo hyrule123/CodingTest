@@ -21,47 +21,36 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
+    int a{}, b{}, c{};
+    std::cin >> a >> b >> c;
+    
+    //sort
+    if (a > b)
+    {
+        int temp = a;
+        a = b;
+        b = temp;
+    }
+    if (b > c)
+    {
+        int temp = b;
+        b = c;
+        c = temp;
+    }
+    int abSum = a + b;
+
     while (true)
     {
-        //c가 제일 길게 해주기
-        int a{}, b{}, c{};
-        std::cin >> a >> b >> c;
-        if (0 == a && 0 == b && 0 == c)
+        if (abSum > c)
         {
-            break;
-        }
-
-        //sort
-        if(a > b)
-        {
-            int temp = a;
-            a = b;
-            b = temp;
-        }
-        if (b > c)
-        {
-            int temp = b;
-            b = c;
-            c = temp;
-        }
-
-        if ((a + b) <= c)
-        {
-            std::cout << "Invalid\n";
-        }
-
-        else if (a == b && b == c)
-        {
-            std::cout << "Equilateral\n";
-        }
-        else if (a == b || b == c || a == c)
-        {
-            std::cout << "Isosceles\n";
+            std::cout << a + b + c;
+            return 0;
         }
         else
         {
-            std::cout << "Scalene\n";
+            --c;
         }
     }
+
     return 0;
 }
