@@ -86,34 +86,35 @@ int main()
 
     using namespace std;
 
-    int N;
-    std::cin >> N;
+    int M{}, N{};
+    std::cin >> M >> N;
+    
+    std::vector<bool> sieve = EratosthenesSieve(N);
 
-    std::vector<size_t> target{};
-    target.resize(N);
+    int minPrime{};
+    int sumPrime{};
 
-    size_t maxNum{};
-    for (size_t i = 0; i < target.size(); ++i)
+    ++N;
+    for (int i = M; i < N; ++i)
     {
-        std::cin >> target[i];
-        
-        if (target[i] > maxNum)
+        if (sieve[i])
         {
-            maxNum = target[i];
+            if (0 == minPrime)
+            {
+                minPrime = i;
+            }
+
+            sumPrime += i;
         }
     }
 
-    std::vector<bool> sieve = EratosthenesSieve(maxNum);
-
-    int primeCount{};
-    for (size_t i = 0; i < target.size(); ++i)
+    if (0 == sumPrime)
     {
-        if (sieve[target[i]])
-        {
-            ++primeCount;
-        }
+        std::cout << -1;
     }
-    std::cout << primeCount;
-
+    else
+    {
+        std::cout << sumPrime << '\n' << minPrime;
+    }
     return 0;
 }
