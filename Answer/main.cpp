@@ -12,20 +12,17 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-
 int main()
 {
     USING_IOSTREAM;
 
     READ_INPUT;
     WRITE_OUTPUT;
+    
+    int x{}, y{}, w{}, h{};
+    std::cin >> x >> y >> w >> h;
 
-    using namespace std;
-
-    int A{}, B{};
-    std::cin >> A >> B;
-
-    std::cout << A * B;
+    std::cout << std::min(std::min(x, w - x), std::min(y, h - y));
 
     return 0;
 }
