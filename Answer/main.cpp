@@ -15,18 +15,30 @@ std::ios_base::sync_with_stdio(false)
 int main()
 {
     USING_IOSTREAM;
-    
+
     READ_INPUT;
     WRITE_OUTPUT;
-    
-    //계차수열: 1 2 3 4 ...
-    //변 하나의 길이 1, 단계 x라고 하면
-    //위, 아래: 2 * x
-    //좌, 우: 2 * x
-    //4 * x
 
-    std::uint64_t n{};
-    std::cin >> n;
-    std::cout << (std::uint64_t)4 * n;
+    int N{};
+    std::cin >> N;
+    
+    constexpr int intMin{ std::numeric_limits<int>::min() };
+    constexpr int intMax{ std::numeric_limits<int>::max() };
+    
+    int l{ intMax }, b{ intMax }, r{ intMin }, t{ intMin };
+    for (int i = 0; i < N; ++i)
+    {
+        int x{}, y{};
+        std::cin >> x >> y;
+        
+        l = std::min(x, l);
+        r = std::max(x, r);
+
+        b = std::min(y, b);
+        t = std::max(y, t);
+    }
+
+    std::cout << std::labs(r - l) * std::labs(t - b);
+
     return 0;
 }
