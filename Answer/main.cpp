@@ -15,14 +15,41 @@ std::ios_base::sync_with_stdio(false)
 int main()
 {
     USING_IOSTREAM;
-
+    
     READ_INPUT;
     WRITE_OUTPUT;
     
-    int x{}, y{}, w{}, h{};
-    std::cin >> x >> y >> w >> h;
+    int x1{}, x2{}, x3{}, y1{}, y2{}, y3{};
+    std::cin >> x1 >> y1 >> x2 >> y2 >> x3 >> y3;
 
-    std::cout << std::min(std::min(x, w - x), std::min(y, h - y));
+    int printX{};
+    if (x1 == x2)
+    {
+        printX = x3;
+    }
+    else if (x1 == x3)
+    {
+        printX = x2;
+    }
+    else
+    {
+        printX = x1;
+    }
 
+    int printY{};
+    if (y1 == y2)
+    {
+        printY = y3;
+    }
+    else if (y1 == y3)
+    {
+        printY = y2;
+    }
+    else
+    {
+        printY = y1;
+    }
+
+    std::cout << printX << ' ' << printY;
     return 0;
 }
