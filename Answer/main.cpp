@@ -12,8 +12,6 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <string>
-
 int main()
 {
     USING_IOSTREAM;
@@ -21,36 +19,7 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int a{}, b{}, c{};
-    std::cin >> a >> b >> c;
-    
-    //sort
-    if (a > b)
-    {
-        int temp = a;
-        a = b;
-        b = temp;
-    }
-    if (b > c)
-    {
-        int temp = b;
-        b = c;
-        c = temp;
-    }
-    int abSum = a + b;
-
-    while (true)
-    {
-        if (abSum > c)
-        {
-            std::cout << a + b + c;
-            return 0;
-        }
-        else
-        {
-            --c;
-        }
-    }
+    std::cout << 1 << '\n' << 0;
 
     return 0;
 }
