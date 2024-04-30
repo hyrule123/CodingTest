@@ -12,6 +12,8 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
+#include <vector>
+
 int main()
 {
     USING_IOSTREAM;
@@ -19,11 +21,35 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    std::uint64_t n{};
-    std::cin >> n;
+    std::int64_t N{}, M{};
+    std::cin >> N >> M;
 
-    //중첩 시그마 계산후 결과
-    std::cout << (n - 2) * (n - 1) * n / 6 << "\n3";
+    std::vector<std::int64_t> cards{};
+    cards.resize(N);
+    for (size_t i = 0; i < cards.size(); ++i)
+    {
+        std::cin >> cards[i];
+    }
+
+    std::int64_t nearest{ std::numeric_limits<std::int64_t>::max() };
+
+    const size_t iEnd = cards.size() - (size_t)2;
+    const size_t jEnd = cards.size() - (size_t)1;
+    for (size_t i = 0; i < iEnd; ++i)
+    {
+        for (size_t j = i + 1; j < jEnd; ++j)
+        {
+            for (size_t k = j + 1; k < cards.size(); ++k)
+            {
+                std::int64_t dist = M - (cards[i] + cards[j] + cards[k]);
+                if (0 <= dist && dist < nearest)
+                {
+                    nearest = dist;
+                }
+            }
+        }
+    }
+    std::cout << M - nearest;
 
     return 0;
 }
