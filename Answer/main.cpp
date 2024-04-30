@@ -19,7 +19,9 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    std::cout << 1 << '\n' << 0;
+    int n{};
+    std::cin >> n;
+    std::cout << n << '\n' << 1;
 
     return 0;
 }
