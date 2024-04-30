@@ -19,9 +19,9 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int n{};
+    std::uint64_t n{};
     std::cin >> n;
-    std::cout << n << '\n' << 1;
+    std::cout << n * n << '\n' << 2;
 
     return 0;
 }
