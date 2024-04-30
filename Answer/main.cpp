@@ -22,7 +22,8 @@ int main()
     std::uint64_t n{};
     std::cin >> n;
 
-    std::cout << n * n * n << '\n' << 3;
+    //중첩 시그마 계산후 결과
+    std::cout << (n - 2) * (n - 1) * n / 6 << "\n3";
 
     return 0;
 }
