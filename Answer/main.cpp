@@ -21,7 +21,9 @@ int main()
 
     std::uint64_t n{};
     std::cin >> n;
-    std::cout << n * n << '\n' << 2;
+    --n;
+
+    std::cout << (1 + n) * n / 2 << ' ' << 2;
 
     return 0;
 }
