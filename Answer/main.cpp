@@ -12,7 +12,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <vector>
+#include <array>
 
 int main()
 {
@@ -21,17 +21,14 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t size{};
-    std::cin >> size;
 
-    std::vector<int> arrNum{};
-    arrNum.resize(size);
-    for (size_t i = 0; i < size; ++i)
+    std::array<int, 5> arrNum{};
+    for (size_t i = 0; i < 5; ++i)
     {
         std::cin >> arrNum[i];
     }
 
-    --size;
+    size_t size = arrNum.size() - 1;
     for(bool sorted = false; false == sorted;)
     {
         sorted = true;
@@ -46,10 +43,15 @@ int main()
         }
     }
 
+    size_t average{};
     for (size_t i = 0; i < arrNum.size(); ++i)
     {
-        std::cout << arrNum[i] << '\n';
+        average += arrNum[i];
     }
+    average /= arrNum.size();
+
+    size_t middle = arrNum.size() / 2 + arrNum.size() % 2 - 1;
+    std::cout << average << '\n' << arrNum[middle];
 
     return 0;
 }
