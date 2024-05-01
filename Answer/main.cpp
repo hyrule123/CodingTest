@@ -12,17 +12,76 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <string>
 #include <vector>
-#include <array>
-
-//나머지를 통해 새당 위치의 값을 알 수 있다.
-//B로 시작하는 체스판 패턴일 때
-char GetColor_BStart(size_t _r, size_t _c)
+class DigitCounter
 {
-    constexpr std::array<std::array<char, 2>, 2> pattern = { { {'B', 'W'}, { 'W', 'B'} } };
-    return pattern[_r % 2][_c % 2];
-}
+public:
+    DigitCounter(std::vector<char>& _defaultDigit) : digits{} { digits.swap(_defaultDigit); digits.reserve(64); };
+    ~DigitCounter() {};
+
+    inline void operator ++() 
+    {
+        Add1Recursive(0);
+    }
+
+    inline std::uint64_t GetNumber()
+    {
+        std::uint64_t ret{};
+        std::uint64_t digitExponent = 1;
+        for (size_t i = 0; i < digits.size(); ++i)
+        {
+            ret += digits[i] * digitExponent;
+            digitExponent *= 10;
+        }
+        return ret;
+    }
+
+    inline bool Is666()
+    {
+        bool ret = false;
+
+        if (2 < digits.size())
+        {
+            int serialCount{};
+            for (size_t i = 0; i < digits.size(); ++i)
+            {
+                if (6 == digits[i])
+                {
+                    ++serialCount;
+                }
+                else
+                {
+                    serialCount = 0;
+                }
+
+                if (3 == serialCount)
+                {
+                    ret = true;
+                    break;
+                }
+            }
+        }
+
+        return ret;
+    }
+
+private:
+    void Add1Recursive(size_t _idx)
+    {
+        if (_idx >= digits.size())
+        {
+            digits.push_back(0);
+        }
+
+        char digit = ++digits[_idx];
+        if (digit >= 10)
+        {
+            digits[_idx] = 0;
+            Add1Recursive(++_idx);
+        }
+    }
+    std::vector<char> digits;
+};
 
 int main()
 {
@@ -31,53 +90,27 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t rows{}, cols{};
-    std::cin >> rows >> cols;
+    int N{};
+    std::cin >> N;
 
-    std::vector<std::string> chessBoard{};
-    chessBoard.resize(rows);
-
-    for (auto& r : chessBoard)
+    //거꾸로 넣어줘야함
+    std::vector<char> digits{ 5, 6, 6 };
+    DigitCounter checker{ digits };
+    
+    int _666Count{};
+    while (true)
     {
-        r.reserve(cols + 1);
-        std::cin >> r;
-    }
-
-    size_t minChanges{ std::numeric_limits<size_t>::max() };
-
-    size_t rowEnd = rows - 8;
-    size_t colEnd = cols - 8;
-    for (size_t rowStart = 0; rowStart <= rowEnd; ++rowStart)
-    {
-        for (size_t colStart = 0; colStart <= colEnd; ++colStart)
+        ++checker;
+        if (checker.Is666())
         {
-            //B로 시작할떄와 W로 시작할때 각각 변경해야 하는 갯수
-            size_t changes_BStart{};
-            size_t changes_WStart{};
+            ++_666Count;
 
-            //8x8 체스판 각각 테스트해준다.
-            size_t rTestEnd = rowStart + 8;
-            size_t cTestEnd = colStart + 8;
-            for (size_t r = rowStart; r < rTestEnd; ++r)
+            if (N == _666Count)
             {
-                for (size_t c = colStart; c < cTestEnd; ++c)
-                {
-                    if (GetColor_BStart(r, c) == chessBoard[r][c])
-                    {
-                        ++changes_BStart;
-                    }
-                    else
-                    {
-                        ++changes_WStart;
-                    }
-                }
+                std::cout << checker.GetNumber();
+                return 0;
             }
-
-            minChanges = std::min(minChanges, changes_BStart);
-            minChanges = std::min(minChanges, changes_WStart);
         }
     }
-    std::cout << minChanges;
-
     return 0;
 }
