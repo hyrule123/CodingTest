@@ -12,6 +12,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
+#include <vector>
 
 int main()
 {
@@ -20,32 +21,35 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int N{};
-    std::cin >> N;
+    size_t size{};
+    std::cin >> size;
 
-    //최소 갯수를 구해야하니까 3키로짜린 최대한 적고 5키로짜린 많아야함
-    for (int x = 0; x <= N; ++x)
+    std::vector<int> arrNum{};
+    arrNum.resize(size);
+    for (size_t i = 0; i < size; ++i)
     {
-        int _3x = 3 * x;
-        //5키로짜린 많아야하므로 역순으로 계산
-        for (int y = N / 5 ; y >= 0; --y)
-        {
-            int _5y = 5 * y;
+        std::cin >> arrNum[i];
+    }
 
-            int _3x_5y = _3x + _5y;
-            if (N == _3x_5y)
+    --size;
+    for(bool sorted = false; false == sorted;)
+    {
+        sorted = true;
+        for (size_t i = 0; i < size; ++i)
+        {
+            size_t next = i + 1;
+            if (arrNum[i] > arrNum[next])
             {
-                std::cout << x + y;
-                return 0;
-            }
-            //y는 계속 줄어드므로 N보다 작아지면 더이상 이번루프에서 근이 안나옴
-            else if (N > _3x_5y)
-            {
-                break;
+                std::swap(arrNum[i], arrNum[next]);
+                sorted = false;
             }
         }
     }
-    std::cout << -1;
+
+    for (size_t i = 0; i < arrNum.size(); ++i)
+    {
+        std::cout << arrNum[i] << '\n';
+    }
 
     return 0;
 }
