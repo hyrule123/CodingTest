@@ -12,76 +12,6 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <vector>
-class DigitCounter
-{
-public:
-    DigitCounter(std::vector<char>& _defaultDigit) : digits{} { digits.swap(_defaultDigit); digits.reserve(64); };
-    ~DigitCounter() {};
-
-    inline void operator ++() 
-    {
-        Add1Recursive(0);
-    }
-
-    inline std::uint64_t GetNumber()
-    {
-        std::uint64_t ret{};
-        std::uint64_t digitExponent = 1;
-        for (size_t i = 0; i < digits.size(); ++i)
-        {
-            ret += digits[i] * digitExponent;
-            digitExponent *= 10;
-        }
-        return ret;
-    }
-
-    inline bool Is666()
-    {
-        bool ret = false;
-
-        if (2 < digits.size())
-        {
-            int serialCount{};
-            for (size_t i = 0; i < digits.size(); ++i)
-            {
-                if (6 == digits[i])
-                {
-                    ++serialCount;
-                }
-                else
-                {
-                    serialCount = 0;
-                }
-
-                if (3 == serialCount)
-                {
-                    ret = true;
-                    break;
-                }
-            }
-        }
-
-        return ret;
-    }
-
-private:
-    void Add1Recursive(size_t _idx)
-    {
-        if (_idx >= digits.size())
-        {
-            digits.push_back(0);
-        }
-
-        char digit = ++digits[_idx];
-        if (digit >= 10)
-        {
-            digits[_idx] = 0;
-            Add1Recursive(++_idx);
-        }
-    }
-    std::vector<char> digits;
-};
 
 int main()
 {
@@ -93,24 +23,29 @@ int main()
     int N{};
     std::cin >> N;
 
-    //거꾸로 넣어줘야함
-    std::vector<char> digits{ 5, 6, 6 };
-    DigitCounter checker{ digits };
-    
-    int _666Count{};
-    while (true)
+    //최소 갯수를 구해야하니까 3키로짜린 최대한 적고 5키로짜린 많아야함
+    for (int x = 0; x <= N; ++x)
     {
-        ++checker;
-        if (checker.Is666())
+        int _3x = 3 * x;
+        //5키로짜린 많아야하므로 역순으로 계산
+        for (int y = N / 5 ; y >= 0; --y)
         {
-            ++_666Count;
+            int _5y = 5 * y;
 
-            if (N == _666Count)
+            int _3x_5y = _3x + _5y;
+            if (N == _3x_5y)
             {
-                std::cout << checker.GetNumber();
+                std::cout << x + y;
                 return 0;
+            }
+            //y는 계속 줄어드므로 N보다 작아지면 더이상 이번루프에서 근이 안나옴
+            else if (N > _3x_5y)
+            {
+                break;
             }
         }
     }
+    std::cout << -1;
+
     return 0;
 }
