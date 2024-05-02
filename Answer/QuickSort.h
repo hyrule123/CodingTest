@@ -1,38 +1,26 @@
-ï»¿#ifndef LOCAL
-#define READ_INPUT (void)0
-#define WRITE_OUTPUT (void)0
-#endif //NDEF LOCAL
-
-#define USING_IOSTREAM \
-std::cin.tie(nullptr);\
-std::ios_base::sync_with_stdio(false)
-
-#include <stdio.h>
-#include <iostream>
-#include <cstring>  //memset
-#include <limits>
+#pragma once
 
 #include <vector>
 #include <type_traits>
 #include <functional>
 
-//concept, í…œí”Œë¦¿ ì—°ìŠµ//
+//concept, ÅÛÇÃ¸´ ¿¬½À//
 template <typename T>
 concept is_comparable = requires(T::CompareType && _a, T::CompareType && _b)
 {
     { T::Compare(_a, _b) } -> std::same_as<bool>;
 };
 
-//ë¦¬í„´ê°’: ì •ë ¬ëœ pivotì˜ ìœ„ì¹˜
+//¸®ÅÏ°ª: Á¤·ÄµÈ pivotÀÇ À§Ä¡
 template<typename T, typename CompStruct> requires is_comparable<CompStruct>
 inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size_t _endIdx)
 {
     using compType = CompStruct::CompareType;
 
-    //ì˜ˆì™¸ ì²˜ë¦¬
+    //¿¹¿Ü Ã³¸®
     if (_startIdx >= _endIdx)
     {
-        return _startIdx;
+        return -1;
     }
 
     const size_t size = _endIdx - _startIdx + 1;
@@ -42,8 +30,8 @@ inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size
     }
     else if (size == 2)
     {
-        //ë˜‘ê°™ì´ ë§¨ ìš°ì¸¡ê°’ì„ pivotì´ë¼ê³  ê°€ì •í•˜ê³  ì§„í–‰.
-        //pivotì´ ì™¼ìª½ì— ë“¤ì–´ê°€ë©´ start ë°˜í™˜, ì˜¤ë¥¸ìª½ì— ë“¤ì–´ê°€ë©´ end ë°˜í™˜
+        //¶È°°ÀÌ ¸Ç ¿ìÃø°ªÀ» pivotÀÌ¶ó°í °¡Á¤ÇÏ°í ÁøÇà.
+        //pivotÀÌ ¿ŞÂÊ¿¡ µé¾î°¡¸é start ¹İÈ¯, ¿À¸¥ÂÊ¿¡ µé¾î°¡¸é end ¹İÈ¯
         if (false == CompStruct::Compare(_vec[_startIdx], _vec[_endIdx]))
         {
             std::swap(_vec[_startIdx], _vec[_endIdx]);
@@ -63,8 +51,8 @@ inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size
 
     while (true)
     {
-        //quick sort ì§„í–‰
-        //<=ì¸ ì´ìœ : ê°€ì¥ ë’¤ìª½ì— ìˆëŠ” pivot ì¸ë±ìŠ¤ì™€ë„ ë¹„êµë¥¼ í•´ì•¼ë¨
+        //quick sort ÁøÇà
+        //<=ÀÎ ÀÌÀ¯: °¡Àå µÚÂÊ¿¡ ÀÖ´Â pivot ÀÎµ¦½º¿Íµµ ºñ±³¸¦ ÇØ¾ßµÊ
         while (start <= end && CompStruct::Compare(_vec[start], pivot))
         {
             ++start;
@@ -73,7 +61,7 @@ inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size
         {
             --end;
         }
-        //left, right í¬ì¸í„°ê°€ êµì°¨í•˜ë©´ ì •ë ¬ ì™„ë£Œ
+        //left, right Æ÷ÀÎÅÍ°¡ ±³Â÷ÇÏ¸é Á¤·Ä ¿Ï·á
         if (start >= end)
         {
             std::swap(_vec[start], _vec[_endIdx]);
@@ -90,57 +78,52 @@ template<typename T, typename CompStruct> requires is_comparable<CompStruct>
 size_t QuickSelect(std::vector<T>& _vec, size_t _idxToFind, size_t _startIdx, size_t _endIdx)
 {
     using compType = CompStruct::CompareType;
-    static_assert(std::is_same_v<T, compType>, "ë¹„êµí•˜ë ¤ëŠ” íƒ€ì… ë¶ˆì¼ì¹˜");
+    static_assert(std::is_same_v<T, compType>, "ºñ±³ÇÏ·Á´Â Å¸ÀÔ ºÒÀÏÄ¡");
 
-    //partition í˜¸ì¶œ, ì •ë ¬ëœ í”¼ë²— ì¸ë±ìŠ¤ë¥¼ ë°›ì•„ì˜¨ë‹¤.
+    //partition È£Ãâ, Á¤·ÄµÈ ÇÇ¹ş ÀÎµ¦½º¸¦ ¹Ş¾Æ¿Â´Ù.
     size_t pivotIdx = Partition<T, CompStruct>(_vec, _startIdx, _endIdx);
 
-    //ì°¾ì„ ì¸ë±ìŠ¤ê°€ í”¼ë²— ì¢Œì¸¡(ì¬ê·€)
+    if (-1 == pivotIdx)
+    {
+        return pivotIdx;
+    }
+
+    //Ã£À» ÀÎµ¦½º°¡ ÇÇ¹ş ÁÂÃø(Àç±Í)
     if (_idxToFind < pivotIdx)
     {
         pivotIdx = QuickSelect<T, CompStruct>(_vec, _idxToFind, _startIdx, pivotIdx - 1);
     }
 
-    //ì°¾ì„ ì¸ë±ìŠ¤ê°€ í”¼ë²— ìš°ì¸¡(ì¬ê·€)
+    //Ã£À» ÀÎµ¦½º°¡ ÇÇ¹ş ¿ìÃø(Àç±Í)
     else if (pivotIdx < _idxToFind)
     {
         pivotIdx = QuickSelect<T, CompStruct>(_vec, _idxToFind, pivotIdx + 1, _endIdx);
     }
 
-    //ì°¾ì•˜ì„ê²½ìš° pivotì„ ë°˜í™˜í•œë‹¤.
+    //Ã£¾ÒÀ»°æ¿ì pivotÀ» ¹İÈ¯ÇÑ´Ù.
     return pivotIdx;
 }
 
-
-int main()
+template<typename T, typename CompStruct> requires is_comparable<CompStruct>
+void QuickSort(std::vector<T>& _vec, size_t _startIdx, size_t _endIdx)
 {
-    USING_IOSTREAM;
+    using compType = CompStruct::CompareType;
+    static_assert(std::is_same_v<T, compType>, "ºñ±³ÇÏ·Á´Â Å¸ÀÔ ºÒÀÏÄ¡");
 
-    READ_INPUT;
-    WRITE_OUTPUT;
+    //partition È£Ãâ, Á¤·ÄµÈ ÇÇ¹şÀÇ ÀÎµ¦½º¸¦ ¹Ş¾Æ¿Â´Ù.
+    size_t pivotIdx = Partition<T, CompStruct>(_vec, _startIdx, _endIdx);
 
-    size_t N{}, k{};
-    std::cin >> N >> k;
-
-    std::vector<unsigned int> scores{};
-    scores.resize(N);
-    for (size_t i = 0; i < scores.size(); ++i)
+    if (-1 == pivotIdx)
     {
-        std::cin >> scores[i];
+        return;
     }
 
-    //templateì— ì „ë‹¬í•  êµ¬ì¡°ì²´
-    struct Compare_uint
+    if (0 < pivotIdx)
     {
-        using CompareType = unsigned int;
-        inline static bool Compare(const CompareType& _l, const CompareType& _r)
-        {
-            return _l >= _r;
-        }
-    };
-
-    QuickSelect<unsigned int, Compare_uint>(scores, k - 1, 0, scores.size() - 1);
-    std::cout << scores[k - 1];
-
-    return 0;
+        QuickSort<T, CompStruct>(_vec, _startIdx, pivotIdx - 1);
+    }
+    if (pivotIdx < _vec.size())
+    {
+        QuickSort<T, CompStruct>(_vec, pivotIdx + 1, _endIdx);
+    }
 }
