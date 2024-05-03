@@ -12,7 +12,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-//Templatized MergeSort//
+//Templatized QuickSort, QuickSelect
 #include <vector>
 #include <type_traits>
 template <typename CompareStruct, typename T = CompareStruct::Type>
@@ -20,67 +20,108 @@ concept is_comparable = requires(T _a, T _b)
 {
     { CompareStruct::Compare(_a, _b) } -> std::same_as<bool>;
 };
+//리턴값: 정렬된 pivot의 위치
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
+inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size_t _endIdx)
+{
+    //예외 처리
+    if (_startIdx > _endIdx)
+    {
+        return -1;
+    }
+
+    const size_t size = _endIdx - _startIdx + 1;
+    if (size == 1)
+    {
+        return _startIdx;
+    }
+    //////////////////////////////////
+
+    size_t start = _startIdx;
+    size_t end = _endIdx - 1;
+    std::swap(_vec[end], _vec[_endIdx]);
+    T pivot = _vec[_endIdx];
+
+    while (true)
+    {
+        //quick sort 진행
+        //<=인 이유: 가장 뒤쪽에 있는 pivot 인덱스와도 비교를 해야됨
+        while (start <= end && CompareStruct::Compare(_vec[start], pivot))
+        {
+            ++start;
+        }
+        while (start < end && false == CompareStruct::Compare(_vec[end], pivot))
+        {
+            --end;
+        }
+        //left, right 포인터가 교차하면 정렬 완료
+        if (start >= end)
+        {
+            std::swap(_vec[start], _vec[_endIdx]);
+            break;
+        }
+
+        std::swap(_vec[start], _vec[end]);
+    }
+
+    return start;
+}
 
 template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
-void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, const size_t _start, const size_t _end)
+void QuickSelectRecursive(std::vector<T>& _vec, size_t _startIdx, size_t _endIdx, size_t _idxToFind)
 {
-    const size_t size = _end - _start + 1;
-    if (size <= 1)
+    //partition 호출, 정렬된 피벗 인덱스를 받아온다.
+    size_t pivotIdx = Partition<CompareStruct, T>(_vec, _startIdx, _endIdx);
+
+    if (-1 == pivotIdx)
     {
         return;
     }
 
-    const size_t mid = (_start + _end) / 2;
-
-    //Divide, Conquer
-    DivideAndConquerRecursive<CompareStruct, T>(_orig, _temp, _start, mid);
-    DivideAndConquerRecursive<CompareStruct, T>(_orig, _temp, mid + 1, _end);
-
-    size_t lIter = _start;
-    size_t rIter = mid + 1;
-    size_t writeIter = lIter;
-
-    //Merge
-    while (lIter <= mid && rIter <= _end)
+    //찾을 인덱스가 피벗 좌측(재귀)
+    if (_idxToFind < pivotIdx)
     {
-        //번갈아가면서 비교하고, 조건에 부합해서 값을 넣었을 경우 인덱스를 한단계씩 올려준다.
-        if (CompareStruct::Compare(_orig[lIter], _orig[rIter]))
-        {
-            _temp[writeIter] = _orig[lIter];
-            ++lIter;
-            ++writeIter;
-        }
-        else
-        {
-            _temp[writeIter] = _orig[rIter];
-            ++rIter;
-            ++writeIter;
-        }
+        QuickSelectRecursive<CompareStruct, T>(_vec, _startIdx, pivotIdx - 1, _idxToFind);
     }
 
-    //분할 갯수가 불균형하여 한 쪽이 남아있을 수도 있음 -> 남아있는 값들을 복사해준다.
-    for (; lIter <= mid; ++lIter)
+    //찾을 인덱스가 피벗 우측(재귀)
+    else if (pivotIdx < _idxToFind)
     {
-        _temp[writeIter] = _orig[lIter];
-        ++writeIter;
+        QuickSelectRecursive<CompareStruct, T>(_vec, pivotIdx + 1, _endIdx, _idxToFind);
     }
-    for (; rIter <= _end; ++rIter)
-    {
-        _temp[writeIter] = _orig[rIter];
-        ++writeIter;
-    }
-
-    //_temp에 정렬되어있는 데이터를 가져온다.
-    std::copy(_temp.begin() + _start, _temp.begin() + _end + 1, _orig.begin() + _start);
 }
 
 template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
-void MergeSort(std::vector<T>& _vec)
+void QuickSelect(std::vector<T>& _vec, size_t _idxToFind)
 {
-    std::vector<T> temp{};
-    temp.resize(_vec.size());
+    QuickSelectRecursive<CompareStruct, T>(_vec, 0, _vec.size() - 1, _idxToFind);
+}
 
-    DivideAndConquerRecursive<CompareStruct, T>(_vec, temp, 0, temp.size() - 1);
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
+void QuickSortRecursive(std::vector<T>& _vec, size_t _startIdx, size_t _endIdx)
+{
+    //partition 호출, 정렬된 피벗의 인덱스를 받아온다.
+    size_t pivotIdx = Partition<CompareStruct, T>(_vec, _startIdx, _endIdx);
+
+    if (-1 == pivotIdx)
+    {
+        return;
+    }
+
+    if (0 < pivotIdx)
+    {
+        QuickSortRecursive<CompareStruct, T>(_vec, _startIdx, pivotIdx - 1);
+    }
+    if (pivotIdx < _vec.size())
+    {
+        QuickSortRecursive<CompareStruct, T>(_vec, pivotIdx + 1, _endIdx);
+    }
+}
+
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
+void QuickSort(std::vector<T>& _vec)
+{
+    QuickSortRecursive<CompareStruct, T>(_vec, 0, _vec.size() - 1);
 }
 
 int main()
@@ -90,29 +131,26 @@ int main()
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t N{};
-    std::cin >> N;
+    size_t N{}, K{};
+    std::cin >> N >> K;
 
-    std::vector<int> numbers{};
-    numbers.resize(N);
+    std::vector<unsigned int> scores{};
+    scores.resize(N);
 
-    for (size_t i = 0; i < numbers.size(); ++i)
+    for (size_t i = 0; i < scores.size(); ++i)
     {
-        std::cin >> numbers[i];
+        std::cin >> scores[i];
     }
 
-    struct IntAscending
+    struct UintDescending
     {
-        using Type = int;
-        inline static bool Compare(Type a, Type b) { return a <= b; }
+        using Type = unsigned int;
+        inline static bool Compare(Type a, Type b) { return a >= b; }
     };
 
-    MergeSort<IntAscending>(numbers);
+    QuickSelect<UintDescending>(scores, K - 1);
 
-    for (size_t i = 0; i < numbers.size(); ++i)
-    {
-        std::cout << numbers[i] << '\n';
-    }
+    std::cout << scores[K - 1];
 
     return 0;
 }

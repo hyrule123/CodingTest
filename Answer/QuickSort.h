@@ -1,18 +1,16 @@
-#pragma once
-
 #include <vector>
 #include <type_traits>
 #include <functional>
 
 //concept, 템플릿 연습//
-template <typename T>
-concept is_comparable = requires(T::CompareType && _a, T::CompareType && _b)
+template <typename CompareStruct, typename T = CompareStruct::Type>
+concept is_comparable = requires(T _a, T _b)
 {
-    { T::Compare(_a, _b) } -> std::same_as<bool>;
+    { CompareStruct::Compare(_a, _b) } -> std::same_as<bool>;
 };
 
 //리턴값: 정렬된 pivot의 위치
-template<typename T, typename CompStruct> requires is_comparable<CompStruct>
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
 inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size_t _endIdx)
 {
     using compType = CompStruct::CompareType;
@@ -27,20 +25,6 @@ inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size
     if (size == 1)
     {
         return _startIdx;
-    }
-    else if (size == 2)
-    {
-        //똑같이 맨 우측값을 pivot이라고 가정하고 진행.
-        //pivot이 왼쪽에 들어가면 start 반환, 오른쪽에 들어가면 end 반환
-        if (false == CompStruct::Compare(_vec[_startIdx], _vec[_endIdx]))
-        {
-            std::swap(_vec[_startIdx], _vec[_endIdx]);
-            return _startIdx;
-        }
-        else
-        {
-            return _endIdx;
-        }
     }
     //////////////////////////////////
 
@@ -74,7 +58,7 @@ inline size_t Partition(std::vector<T>& _vec, const size_t _startIdx, const size
     return start;
 }
 
-template<typename T, typename CompStruct> requires is_comparable<CompStruct>
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
 size_t QuickSelect(std::vector<T>& _vec, size_t _idxToFind, size_t _startIdx, size_t _endIdx)
 {
     using compType = CompStruct::CompareType;
@@ -104,7 +88,7 @@ size_t QuickSelect(std::vector<T>& _vec, size_t _idxToFind, size_t _startIdx, si
     return pivotIdx;
 }
 
-template<typename T, typename CompStruct> requires is_comparable<CompStruct>
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
 void QuickSort(std::vector<T>& _vec, size_t _startIdx, size_t _endIdx)
 {
     using compType = CompStruct::CompareType;
