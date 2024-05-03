@@ -27,10 +27,10 @@
     <ClInclude Include="local.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="QuickSort.h">
+    <ClInclude Include="Sort\QuickSort.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="MergeSort.h">
+    <ClInclude Include="Sort\MergeSort.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
