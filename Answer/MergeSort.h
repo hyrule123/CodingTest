@@ -1,16 +1,4 @@
-ï»¿#ifndef LOCAL
-#define READ_INPUT (void)0
-#define WRITE_OUTPUT (void)0
-#endif //NDEF LOCAL
-
-#define USING_IOSTREAM \
-std::cin.tie(nullptr);\
-std::ios_base::sync_with_stdio(false)
-
-#include <stdio.h>
-#include <iostream>
-#include <cstring>  //memset
-#include <limits>
+#pragma once
 
 //Templatized MergeSort//
 #include <vector>
@@ -43,7 +31,7 @@ void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, con
     //Merge
     while (lIter <= mid && rIter <= _end)
     {
-        //ë²ˆê°ˆì•„ê°€ë©´ì„œ ë¹„êµí•˜ê³ , ì¡°ê±´ì— ë¶€í•©í•´ì„œ ê°’ì„ ë„£ì—ˆì„ ê²½ìš° ì¸ë±ìŠ¤ë¥¼ í•œë‹¨ê³„ì”© ì˜¬ë ¤ì¤€ë‹¤.
+        //¹ø°¥¾Æ°¡¸é¼­ ºñ±³ÇÏ°í, Á¶°Ç¿¡ ºÎÇÕÇØ¼­ °ªÀ» ³Ö¾úÀ» °æ¿ì ÀÎµ¦½º¸¦ ÇÑ´Ü°è¾¿ ¿Ã·ÁÁØ´Ù.
         if (CompareStruct::Compare(_orig[lIter], _orig[rIter]))
         {
             _temp[writeIter] = _orig[lIter];
@@ -58,7 +46,7 @@ void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, con
         }
     }
 
-    //ë¶„í•  ê°¯ìˆ˜ê°€ ë¶ˆê· í˜•í•˜ì—¬ í•œ ìª½ì´ ë‚¨ì•„ìˆì„ ìˆ˜ë„ ìˆìŒ -> ë‚¨ì•„ìˆëŠ” ê°’ë“¤ì„ ë³µì‚¬í•´ì¤€ë‹¤.
+    //ºĞÇÒ °¹¼ö°¡ ºÒ±ÕÇüÇÏ¿© ÇÑ ÂÊÀÌ ³²¾ÆÀÖÀ» ¼öµµ ÀÖÀ½ -> ³²¾ÆÀÖ´Â °ªµéÀ» º¹»çÇØÁØ´Ù.
     for (; lIter <= mid; ++lIter)
     {
         _temp[writeIter] = _orig[lIter];
@@ -70,7 +58,7 @@ void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, con
         ++writeIter;
     }
 
-    //_tempì— ì •ë ¬ë˜ì–´ìˆëŠ” ë°ì´í„°ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
+    //_temp¿¡ Á¤·ÄµÇ¾îÀÖ´Â µ¥ÀÌÅÍ¸¦ °¡Á®¿Â´Ù.
     std::copy(_temp.begin() + _start, _temp.begin() + _end + 1, _orig.begin() + _start);
 }
 
@@ -81,38 +69,4 @@ void MergeSort(std::vector<T>& _vec)
     temp.resize(_vec.size());
 
     DivideAndConquerRecursive<CompareStruct, T>(_vec, temp, 0, temp.size() - 1);
-}
-
-int main()
-{
-    USING_IOSTREAM;
-
-    READ_INPUT;
-    WRITE_OUTPUT;
-
-    size_t N{};
-    std::cin >> N;
-
-    std::vector<int> numbers{};
-    numbers.resize(N);
-
-    for (size_t i = 0; i < numbers.size(); ++i)
-    {
-        std::cin >> numbers[i];
-    }
-
-    struct IntAscending
-    {
-        using Type = int;
-        inline static bool Compare(Type a, Type b) { return a <= b; }
-    };
-
-    MergeSort<IntAscending>(numbers);
-
-    for (size_t i = 0; i < numbers.size(); ++i)
-    {
-        std::cout << numbers[i] << '\n';
-    }
-
-    return 0;
 }
