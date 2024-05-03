@@ -24,7 +24,7 @@ void DivideAndConquerRecursive(std::vector<int>& _orig, std::vector<int>& _temp,
 
     const size_t mid = (_start + _end) / 2;
 
-    //Divide
+    //Divide, Conquer
     DivideAndConquerRecursive(_orig, _temp, _start, mid);
     DivideAndConquerRecursive(_orig, _temp, mid + 1, _end);
 
@@ -32,7 +32,7 @@ void DivideAndConquerRecursive(std::vector<int>& _orig, std::vector<int>& _temp,
     size_t rIter = mid + 1;
     size_t writeIter = lIter;
 
-    //Conquer
+    //Merge
     while (lIter <= mid && rIter <= _end)
     {
         //번갈아가면서 비교하고, 조건에 부합해서 값을 넣었을 경우 인덱스를 한단계씩 올려준다.
@@ -51,21 +51,15 @@ void DivideAndConquerRecursive(std::vector<int>& _orig, std::vector<int>& _temp,
     }
 
     //분할 갯수가 불균형하여 한 쪽이 남아있을 수도 있음 -> 남아있는 값들을 복사해준다.
-    if (lIter <= mid)
+    for (; lIter <= mid; ++lIter)
     {
-        for (; lIter <= mid; ++lIter)
-        {
-            _temp[writeIter] = _orig[lIter];
-            ++writeIter;
-        }
+        _temp[writeIter] = _orig[lIter];
+        ++writeIter;
     }
-    else
+    for (; rIter <= _end; ++rIter)
     {
-        for (; rIter <= _end; ++rIter)
-        {
-            _temp[writeIter] = _orig[rIter];
-            ++writeIter;
-        }
+        _temp[writeIter] = _orig[rIter];
+        ++writeIter;
     }
 
     //_temp에 정렬되어있는 데이터를 가져온다.
