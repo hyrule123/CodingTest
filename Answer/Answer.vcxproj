@@ -152,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="local.h" />
+    <ClInclude Include="Sort\HeapSort.h" />
     <ClInclude Include="Sort\MergeSort.h" />
     <ClInclude Include="Sort\QuickSort.h" />
   </ItemGroup>

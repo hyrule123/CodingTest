@@ -33,5 +33,8 @@
     <ClInclude Include="Sort\MergeSort.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Sort\HeapSort.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
