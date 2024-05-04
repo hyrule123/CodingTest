@@ -12,9 +12,6 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <string>
-#include <array>
-
 //Templatized MergeSort//
 #include <vector>
 #include <type_traits>
@@ -25,8 +22,7 @@ concept is_comparable = requires(T _a, T _b) {
 
 template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
 void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, const size_t _start, const size_t _end) {
-    const size_t size = _end - _start + 1;
-    if (size <= 1) {
+    if (false == (_start < _end)) {
         return;
     }
 
@@ -70,19 +66,53 @@ void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, con
 }
 
 template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
-void MergeSort(std::vector<T>& _vec) {
+void MergeSortAndRemoveRedundant(std::vector<T>& _vec) {
     std::vector<T> temp{};
     temp.resize(_vec.size());
 
     DivideAndConquerRecursive<CompareStruct, T>(_vec, temp, 0, temp.size() - 1);
+
+    //temp 벡터 만든 김에 이거 써서 중복값 제거하자
+    temp.clear();
+    temp.push_back(_vec[0]);
+
+    for (size_t i = 1; i < _vec.size(); ++i) {
+        if (_vec[i - 1] == _vec[i]) {
+            continue;
+        }
+
+        temp.push_back(_vec[i]);
+    }
+
+    _vec.swap(temp);
 }
 
-//정렬의 대상이 되는 구조체는 string_view만 들고있어준다.
-struct  MemberInfo {
-    std::int64_t Age;
-    std::string_view Name;
-};
+//Param: 정렬된 배열, 찾고자하는 값
+//값을 찾으면 cout
+inline void BinarySearchAndPrint(std::vector<int>& _sorted, int _value)
+{
+    size_t startIdx = 0;
+    size_t endIdx = _sorted.size();
+    size_t midIdx{};
 
+    while (true)
+    {
+        midIdx = (startIdx + endIdx) / 2;
+        //왼쪽
+        if (_value < _sorted[midIdx]) {
+            endIdx = midIdx;
+        }
+        //오른쪽
+        else if (_sorted[midIdx] < _value) {
+            startIdx = midIdx + 1;
+        }
+        else
+        {
+            std::cout << midIdx << ' ';
+            return;
+        }
+    }
+}
 
 int main() {
     USING_IOSTREAM;
@@ -90,36 +120,32 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    struct MemberInfoAscending {
-        using Type = MemberInfo;
-        static inline bool Compare(const Type& _a, const Type& _b) {
-            return _a.Age <= _b.Age;
+    size_t N{};
+    std::cin >> N;
+    std::vector<int> origArr{};
+    std::vector<int> sorted{};
+    origArr.resize(N);
+    sorted.resize(N);
+
+    for (size_t i = 0; i < N; ++i) {
+        std::cin >> origArr[i];
+    }
+    memcpy(sorted.data(), origArr.data(), origArr.size() * sizeof(int));
+
+    struct IntAscending {
+        using Type = int;
+        static inline bool Compare(Type _a, Type _b) {
+            return _a <= _b;
         }
     };
 
-    std::size_t N{};
-    std::cin >> N;
+    //Sort 실행 및 중복값 제거
+    //중복값을 제거하면 인덱스 번호 = 각 숫자별 랭킹이 됨
+    MergeSortAndRemoveRedundant<IntAscending>(sorted);
 
-    std::vector<MemberInfo> members{};
-    members.resize(N);
-
-    //실제 이름은 별도의 배열에 보관(비교 대상이 아니므로 따로 보관해도 상관 없음)
-    std::vector<std::array<char, 128>> arrNames{};
-    arrNames.resize(N);
-    
-    for (size_t i = 0; i < members.size(); ++i) {
-        std::cin >> members[i].Age;
-        std::cin.get();
-        std::cin.getline(arrNames[i].data(), arrNames[i].size());
-        members[i].Name = arrNames[i].data();
-    }
-
-    //참고: Merge sort는 stable sort이므로 정렬 전의 상대 순서가 유지된다는 특성이 있다.
-    //* Heap sort는 stable sort가 아니기에 유지되지 않음.
-    MergeSort<MemberInfoAscending>(members);
-
-    for (size_t i = 0; i < members.size(); ++i) {
-        std::cout << members[i].Age << ' ' << members[i].Name << '\n';
+    //각 원소들을 이진탐색을 통해 순서 확인
+    for (size_t i = 0; i < origArr.size(); ++i) {
+        BinarySearchAndPrint(sorted, origArr[i]);
     }
 
     return 0;
