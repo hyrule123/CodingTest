@@ -8,8 +8,7 @@ concept is_comparable = requires(T _a, T _b) {
 
 template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
 void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, const size_t _start, const size_t _end) {
-    const size_t size = _end - _start + 1;
-    if (size <= 1) {
+    if (false == (_start < _end)) {
         return;
     }
 
