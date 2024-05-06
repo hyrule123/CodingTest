@@ -14,7 +14,8 @@ std::ios_base::sync_with_stdio(false)
 
 #include <array>
 #include <string>
-//chaining이 아닌 linear probing을 사용하고 있으므로 10000개 이상이 되면 에러가 발생
+
+//linear probing 사용, 무조건 전체 집합의 원소수보다 커야 하므로 20000을 넘는 첫번째 소수인 20011로 잡았음
 constexpr const size_t g_maxLen = 504;
 constexpr const size_t g_mod = 20011;
 struct alignas(8) tKey
@@ -28,17 +29,20 @@ std::array<tKey, g_mod> g_hashTable;
 inline size_t HashString(const std::string_view _str)
 {
     constexpr const size_t p = 31;
+    size_t result = -1;
+
+    if (_str.empty()) { return result; }
 
     //라빈-카프 문자열 해싱, 호너의 법칙
     size_t i = _str.size() - 1;
-    size_t result = static_cast<size_t>(_str[i]);
-    for (; i >= 0 && -1 != i; --i)
+    result = static_cast<size_t>(_str[i]);
+    for (; i > 0; --i)
     {
-        result *= p;
-        result += _str[i];
+        result = (result * p + _str[i]) % g_mod;
     }
+    result = (result + _str[0]) % g_mod;
 
-    return (result % g_mod);
+    return result;
 }
 
 
@@ -59,7 +63,6 @@ size_t Insert(const std::string_view _str)
     tKey& key = g_hashTable[hash];
     memcpy(key.Data, _str.data(), _str.size());
     key.Data[_str.size()] = '\0';
-
     key.Str = key.Data;
 
     if (origHash != hash) { key.IsColliding = true; }
@@ -81,11 +84,10 @@ size_t Find(const std::string_view _str)
         if (hash >= g_mod) { hash = 0; }
     }
 
-    if ('\0' != g_hashTable[hash].Data[0]) {
-        return hash;
+    //hash 인덱스에 저장된 문자열과 비교 후 일치하지 않을 경우 -1을 반환
+    if (_str != g_hashTable[hash].Str) {
+        hash = -1;
     }
-    
-    hash = -1;
     return hash;
 }
 
