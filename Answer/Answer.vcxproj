@@ -151,6 +151,7 @@
     <Text Include="output.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HashTable.h" />
     <ClInclude Include="local.h" />
     <ClInclude Include="Sort\HeapSort.h" />
     <ClInclude Include="Sort\MergeSort.h" />
