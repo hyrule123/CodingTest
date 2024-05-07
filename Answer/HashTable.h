@@ -1,3 +1,4 @@
+//Templatized HashTable//
 #include <string>
 #include <vector>
 #include <list>
@@ -94,5 +95,3 @@ public:
 private:
 	std::vector<std::list<Pair>> m_container;
 };
-
-
