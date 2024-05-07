@@ -12,159 +12,162 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
+#include <array>
 
-#include <string>
+//Templatized MergeSort//
 #include <vector>
-#include <list>
-inline bool IsPrime(size_t _num) {
-	if (_num <= 1) { return false; }
-	if (_num <= 3) { return true; }
-	if (_num % 2 == 0 || _num % 3 == 0) { return false; }
+#include <type_traits>
+template <typename CompareStruct, typename T = CompareStruct::Type>
+concept is_comparable = requires(T _a, T _b) {
+    { CompareStruct::Compare(_a, _b) } -> std::same_as<bool>;
+};
 
-	for (size_t i = 5; i * i <= _num; i += 6) {
-		if (_num % i == 0 || _num % (i + 2) == 0) return false;
-	}
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
+void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, const size_t _start, const size_t _end) {
+    if (false == (_start < _end)) {
+        return;
+    }
 
-	return true;
+    const size_t mid = (_start + _end) / 2;
+
+    //Divide, Conquer
+    DivideAndConquerRecursive<CompareStruct, T>(_orig, _temp, _start, mid);
+    DivideAndConquerRecursive<CompareStruct, T>(_orig, _temp, mid + 1, _end);
+
+    size_t lIter = _start;
+    size_t rIter = mid + 1;
+    size_t writeIter = lIter;
+
+    //Merge
+    while (lIter <= mid && rIter <= _end) {
+        //번갈아가면서 비교하고, 조건에 부합해서 값을 넣었을 경우 인덱스를 한단계씩 올려준다.
+        if (CompareStruct::Compare(_orig[lIter], _orig[rIter])) {
+            _temp[writeIter] = _orig[lIter];
+            ++lIter;
+            ++writeIter;
+        }
+        else {
+            _temp[writeIter] = _orig[rIter];
+            ++rIter;
+            ++writeIter;
+        }
+    }
+
+    //분할 갯수가 불균형하여 한 쪽이 남아있을 수도 있음 -> 남아있는 값들을 복사해준다.
+    for (; lIter <= mid; ++lIter) {
+        _temp[writeIter] = _orig[lIter];
+        ++writeIter;
+    }
+    for (; rIter <= _end; ++rIter) {
+        _temp[writeIter] = _orig[rIter];
+        ++writeIter;
+    }
+
+    //_temp에 정렬되어있는 데이터를 가져온다.
+    std::copy(_temp.begin() + _start, _temp.begin() + _end + 1, _orig.begin() + _start);
 }
 
-template <typename K, typename Hasher>
-concept is_hasher_valid = requires (K _key) {
-	{ Hasher::Hash(_key) } -> std::same_as<size_t>;
-};
+template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
+void MergeSort(std::vector<T>& _vec) {
+    if (2 > _vec.size()) {
+        return;
+    }
 
-template <typename K, typename V, typename Hasher> requires is_hasher_valid<K, Hasher>
-class HashTable
-{
-public:
-	struct Pair {
-		K Key;
-		V Value;
-	};
+    std::vector<T> temp{};
+    temp.resize(_vec.size());
+    DivideAndConquerRecursive<CompareStruct, T>(_vec, temp, 0, temp.size() - 1);
+}
 
-	HashTable(size_t _bucketCapacity = 20011) : m_container{} {
-		while (false == IsPrime(_bucketCapacity)) {
-			++_bucketCapacity;
-		}
-		m_container.resize(_bucketCapacity);
-	}
-	~HashTable() {}
+//Endianness 생각하면 memcpy나 union보단 비트연산자가 나을듯
+inline std::uint64_t NameToUint64(const std::string_view _name) {
+    std::uint64_t ret{};
 
-	const V* Insert(Pair&& _pair) {
-		size_t hash = Hasher::Hash(_pair.Key) % m_container.size();
-
-		std::list<Pair>& bucket = m_container[hash];
-
-		//중복 검사 및 chaining
-		auto iterEnd = bucket.end();
-		for (auto iter = bucket.begin(); iter != iterEnd; ++iter) {
-			if (iter->Key == _pair.Key) {
-				return nullptr;
-			}
-		}
-
-		bucket.push_back(std::forward<Pair>(_pair));
-
-		return &(bucket.back().Value);
-	}
-
-	const V* Find(const K& _key) const {
-		size_t hash = Hasher::Hash(_key) % m_container.size();
-
-		const std::list<Pair>& bucket = m_container[hash];
-
-		auto iterEnd = bucket.cend();
-		for (auto iter = bucket.cbegin(); iter != iterEnd; ++iter) {
-			if (_key == iter->Key) {
-				return &(iter->Value);
-			}
-		}
-
-		return nullptr;
-	}
-
-	V& operator[](const K& _key) {
-		size_t hash = Hasher::Hash(_key) % m_container.size();
-
-		std::list<Pair>& bucket = m_container[hash];
-
-		//순회돌면서 검색
-		auto iterEnd = bucket.end();
-		for (auto iter = bucket.begin(); iter != iterEnd; ++iter) {
-			if (_key == iter->Key) {
-				return iter->Value;
-			}
-		}
-
-		//못찾았다면 새로 하나 만들어서 반환
-		bucket.push_back(Pair{ _key, {} });
-		return bucket.back().Value;
-	}
-
-	const std::vector<std::list<Pair>>& GetContainer() const {
-		return m_container;
-	}
-
-private:
-	std::vector<std::list<Pair>> m_container;
-};
-
-
-
-struct StringHasher {
-    inline static size_t Hash(const std::string_view _str)
-    {
-        constexpr const size_t p = 53;//31;
-        constexpr const size_t mod = 1'000'000'007;
-        size_t result = 0;
-
-        if (_str.empty()) { return result; }
-
-        //라빈-카프 문자열 해싱, 호너의 법칙
-        size_t i = _str.size() - 1;
-        result = static_cast<size_t>(_str[i]);
-        for (; i > 0; --i) {
-            result = (result * p + _str[i]) % mod;
+    if (false == _name.empty()) {
+        for (size_t i = 0; i < _name.size(); ++i) {
+            ret += (static_cast<std::uint64_t>(_name[i]) << (4 - i) * 8);
         }
-        result = (result + _str[0]) % mod;
+    }
 
-        return result;
+    return ret;
+}
+
+inline std::array<char, 6> Uint64ToName(const std::uint64_t _name) {
+    std::array<char, 6> ret{};
+    int cursor = 0;
+    for (int i = 4; i >= 0; --i) {
+        char c = static_cast<char>(_name >> i * 8 & 0xff);
+        if ('\0' != c) {
+            ret[cursor] = c;
+            ++cursor;
+        }
+    }
+    ret[cursor] = '\0';
+    return ret;
+}
+
+struct Attendance {
+    //이름의 최대 길이는 5->uint64_t로 변환
+    std::uint64_t NameNum;
+    bool IsEnter;
+};
+struct AttendanceCompare {
+    using Type = Attendance;
+    inline static bool Compare(const Type& _a, const Type& _b) {
+        return _a.NameNum >= _b.NameNum;
     }
 };
 
+
+//로직
+//이름은 5글자 이하라고 했으므로 -> uint64 형태로 변환 가능. "ABC" == 0x00,00,00,'A','B','C',00,00
+//cf)자릿수 유지를 해줘야 사전순 비교 가능
+//MergeSort는 stable sort이므로 정렬을 진행해도 상대적 위치가 그대로임.(시간순 정렬이 깨지지 않음)
+//->MergeSort를 통해서 정렬 후 마지막 기록이 "enter"인 사람만 출력한다.
 int main() {
     USING_IOSTREAM;
 
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t N{}, M{};
-    std::cin >> N >> M;
+    size_t N{};
+    std::cin >> N;
 
-    //버킷사이즈 1.2배로 잡아준다
-    HashTable<std::string, bool, StringHasher> 
-        stringSet((size_t)((float)N * 1.2));
+    std::vector<Attendance> attendLog{};
+    attendLog.resize(N);
 
-    using myPair = HashTable<std::string, bool, StringHasher>::Pair;
+    {
+        constexpr const std::string_view enterMsg = "enter";
+        std::string name{};
+        std::string attend{};
+        for (size_t i = 0; i < N; ++i) {
+            std::cin >> name >> attend;
 
-    std::string input{};
-    input.reserve(500);
-    for (size_t i = 0; i < N; ++i) {
-        std::cin >> input;
-        stringSet[input];
-    }
-
-    size_t foundCount{};
-    for (size_t i = 0; i < M; ++i) {
-        std::cin >> input;
-
-        auto* found = stringSet.Find(input);
-        if (found) {
-            ++foundCount;
+            attendLog[i].NameNum = NameToUint64(name);
+            attendLog[i].IsEnter = (enterMsg == attend);
         }
     }
-    
-    std::cout << foundCount;
+
+    MergeSort<AttendanceCompare>(attendLog);
+
+    if (attendLog.empty()) {
+        return 0;
+    }
+    else if (attendLog.size() == 1) {
+        std::cout << Uint64ToName(attendLog[0].NameNum).data() << '\n';
+    }
+    else {
+        const size_t end = N - 1;
+        for (size_t i = 0; i < end; ++i) {
+            if (attendLog[i].NameNum != attendLog[i + 1].NameNum && attendLog[i].IsEnter) {
+                std::cout << Uint64ToName(attendLog[i].NameNum).data() << '\n';
+            }
+        }
+
+        //마지막 인덱스 별도 처리(비교할 다음 인덱스가 없으므로)
+        if (attendLog[end].IsEnter) {
+            std::cout << Uint64ToName(attendLog[end].NameNum).data() << '\n';
+        }
+    }
 
     return 0;
 }
