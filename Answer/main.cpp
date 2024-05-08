@@ -12,7 +12,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
-#include <vector>
+#include <list>
 constexpr const unsigned int g_tableSize = 700'009;
 
 struct CardInfo {
@@ -20,15 +20,14 @@ struct CardInfo {
     int Count;
 };
 
-std::vector<CardInfo> cardsTable[g_tableSize]{};
-
+std::list<CardInfo> cardsTable[g_tableSize]{};
 inline unsigned int Hash(int _orig) {
     unsigned int ret{};
 
     return (unsigned int)_orig % g_tableSize;
 }
 
-//chaining을 vector로 한 버전: 34136kb, 404ms
+//chaining을 list로 한 버전: 메모리 34136, 시간 384ms
 int main() {
     USING_IOSTREAM;
 
@@ -44,10 +43,10 @@ int main() {
         unsigned int hash = Hash(cardNum);
         
         bool found = false;
-        std::vector<CardInfo>& bucket = cardsTable[hash];
-        for (size_t i = 0; i < bucket.size(); ++i) {
-            if (bucket[i].Num == cardNum) {
-                ++(bucket[i].Count);
+        std::list<CardInfo>& bucket = cardsTable[hash];
+        for (auto& iter : bucket) {
+            if (iter.Num == cardNum) {
+                ++(iter.Count);
                 found = true;
                 break;
             }
@@ -66,16 +65,15 @@ int main() {
         unsigned int hash = Hash(cardNum);
 
         int count = 0;
-        std::vector<CardInfo>& bucket = cardsTable[hash];
-        for (size_t i = 0; i < bucket.size(); ++i) {
-            if (bucket[i].Num == cardNum) {
-                count = bucket[i].Count;
+        std::list<CardInfo>& bucket = cardsTable[hash];
+        for (auto& iter : bucket) {
+            if (iter.Num == cardNum) {
+                count = iter.Count;
                 break;
             }
         }
         std::cout << count << ' ';
     }
-    
 
     return 0;
 }
