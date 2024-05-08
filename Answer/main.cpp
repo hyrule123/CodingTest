@@ -12,160 +12,134 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 #include <limits>
 
+#include <vector>
 #include <array>
 
-//Templatized MergeSort//
-#include <vector>
-#include <type_traits>
-template <typename CompareStruct, typename T = CompareStruct::Type>
-concept is_comparable = requires(T _a, T _b) {
-    { CompareStruct::Compare(_a, _b) } -> std::same_as<bool>;
-};
-
-template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
-void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, const size_t _start, const size_t _end) {
-    if (false == (_start < _end)) {
-        return;
+inline size_t Hash(const std::array<char, 21>& _str) {
+    size_t ret = _str[0];
+    if (ret == 0) {
+        return ret;
     }
 
-    const size_t mid = (_start + _end) / 2;
+    constexpr const size_t prime = 31;
+    constexpr const size_t mod = static_cast<size_t>(1e9 + 9);
 
-    //Divide, Conquer
-    DivideAndConquerRecursive<CompareStruct, T>(_orig, _temp, _start, mid);
-    DivideAndConquerRecursive<CompareStruct, T>(_orig, _temp, mid + 1, _end);
-
-    size_t lIter = _start;
-    size_t rIter = mid + 1;
-    size_t writeIter = lIter;
-
-    //Merge
-    while (lIter <= mid && rIter <= _end) {
-        //번갈아가면서 비교하고, 조건에 부합해서 값을 넣었을 경우 인덱스를 한단계씩 올려준다.
-        if (CompareStruct::Compare(_orig[lIter], _orig[rIter])) {
-            _temp[writeIter] = _orig[lIter];
-            ++lIter;
-            ++writeIter;
-        }
-        else {
-            _temp[writeIter] = _orig[rIter];
-            ++rIter;
-            ++writeIter;
-        }
-    }
-
-    //분할 갯수가 불균형하여 한 쪽이 남아있을 수도 있음 -> 남아있는 값들을 복사해준다.
-    for (; lIter <= mid; ++lIter) {
-        _temp[writeIter] = _orig[lIter];
-        ++writeIter;
-    }
-    for (; rIter <= _end; ++rIter) {
-        _temp[writeIter] = _orig[rIter];
-        ++writeIter;
-    }
-
-    //_temp에 정렬되어있는 데이터를 가져온다.
-    std::copy(_temp.begin() + _start, _temp.begin() + _end + 1, _orig.begin() + _start);
-}
-
-template <typename CompareStruct, typename T = CompareStruct::Type> requires is_comparable<CompareStruct>
-void MergeSort(std::vector<T>& _vec) {
-    if (2 > _vec.size()) {
-        return;
-    }
-
-    std::vector<T> temp{};
-    temp.resize(_vec.size());
-    DivideAndConquerRecursive<CompareStruct, T>(_vec, temp, 0, temp.size() - 1);
-}
-
-//Endianness 생각하면 memcpy나 union보단 비트연산자가 나을듯
-inline std::uint64_t NameToUint64(const std::string_view _name) {
-    std::uint64_t ret{};
-
-    if (false == _name.empty()) {
-        for (size_t i = 0; i < _name.size(); ++i) {
-            ret += (static_cast<std::uint64_t>(_name[i]) << (4 - i) * 8);
-        }
+    for (size_t i = 1; _str[i] != '\0'; ++i) {
+        ret = ((ret * prime) + _str[i]) % mod;
     }
 
     return ret;
 }
 
-inline std::array<char, 6> Uint64ToName(const std::uint64_t _name) {
-    std::array<char, 6> ret{};
-    int cursor = 0;
-    for (int i = 4; i >= 0; --i) {
-        char c = static_cast<char>(_name >> i * 8 & 0xff);
-        if ('\0' != c) {
-            ret[cursor] = c;
-            ++cursor;
+
+inline bool IsPrime(size_t _n) {
+    if (_n <= 1) {
+        return false;
+    }
+    for (size_t i = 2; i * i <= _n; ++i) {
+        if (_n % i == 0) {
+            return false;
         }
     }
-    ret[cursor] = '\0';
+    return true;
+}
+
+inline int GetNumberIfInt(const std::array<char, 21>& _str) {
+    int ret = -1;
+
+    if (_str[0] == '\0') {
+        return ret;
+    }
+    //첫번째 자리만 검사(포켓몬 이름에 숫자는 없다고 했음)
+    else if (_str[0] < '0' || '9' < _str[0]) {
+        return ret;
+    }
+
+    int end = 0;
+    while (_str[end] != '\0') {
+        ++end;
+    }
+
+    ret = _str[0] - '0';
+    for (int i = 1; i < end; ++i) {
+        ret = ret * 10 + (_str[i] - '0');
+    }
+
     return ret;
 }
 
-struct Attendance {
-    //이름의 최대 길이는 5->uint64_t로 변환
-    std::uint64_t NameNum;
-    bool IsEnter;
-};
-struct AttendanceCompare {
-    using Type = Attendance;
-    inline static bool Compare(const Type& _a, const Type& _b) {
-        return _a.NameNum >= _b.NameNum;
-    }
-};
-
-
-//로직
-//이름은 5글자 이하라고 했으므로 -> uint64 형태로 변환 가능. "ABC" == 0x00,00,00,'A','B','C',00,00
-//cf)자릿수 유지를 해줘야 사전순 비교 가능
-//MergeSort는 stable sort이므로 정렬을 진행해도 상대적 위치가 그대로임.(시간순 정렬이 깨지지 않음)
-//->MergeSort를 통해서 정렬 후 마지막 기록이 "enter"인 사람만 출력한다.
 int main() {
     USING_IOSTREAM;
 
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t N{};
-    std::cin >> N;
+    size_t N{}, M{};
+    std::cin >> N >> M;
 
-    std::vector<Attendance> attendLog{};
-    attendLog.resize(N);
+    std::vector<std::array<char, 21>> arrNames{};
+    arrNames.resize(N);
+
+    //Key: 문자열, Value: 도감 번호
+    std::vector<int>    hashTable{};
+
+    //버킷 사이즈를 전체 갯수의 1.2배 정도로 잡아준다.
+    size_t hashTableSize = (size_t)((float)N * 1.2f);
+    while (false == IsPrime(hashTableSize)) {
+        ++hashTableSize;
+    }
+    hashTable.resize(hashTableSize, -1);
 
     {
-        constexpr const std::string_view enterMsg = "enter";
-        std::string name{};
-        std::string attend{};
-        for (size_t i = 0; i < N; ++i) {
-            std::cin >> name >> attend;
-
-            attendLog[i].NameNum = NameToUint64(name);
-            attendLog[i].IsEnter = (enterMsg == attend);
-        }
+        std::array<char, 21> temp{};
+        std::cin.getline(temp.data(), 21);
     }
 
-    MergeSort<AttendanceCompare>(attendLog);
+    //데이터 입력 및 저장
+    for (size_t i = 0; i < N; ++i) {
+        std::cin.getline(arrNames[i].data(), 21);
 
-    if (attendLog.empty()) {
-        return 0;
-    }
-    else if (attendLog.size() == 1) {
-        std::cout << Uint64ToName(attendLog[0].NameNum).data() << '\n';
-    }
-    else {
-        const size_t end = N - 1;
-        for (size_t i = 0; i < end; ++i) {
-            if (attendLog[i].NameNum != attendLog[i + 1].NameNum && attendLog[i].IsEnter) {
-                std::cout << Uint64ToName(attendLog[i].NameNum).data() << '\n';
+        size_t hash = Hash(arrNames[i]) % hashTableSize;
+        //linear probing
+        while (hashTable[hash] != -1) {
+            ++hash;
+            if (hash >= hashTableSize) {
+                hash = 0;
             }
         }
 
-        //마지막 인덱스 별도 처리(비교할 다음 인덱스가 없으므로)
-        if (attendLog[end].IsEnter) {
-            std::cout << Uint64ToName(attendLog[end].NameNum).data() << '\n';
+        hashTable[hash] = (int)i;
+    }
+
+    //검사용 데이터 입력 및 출력
+    std::array<char, 21> input{};
+    for (size_t i = 0; i < M; ++i) {
+        input[0] = '\0';
+        std::cin.getline(input.data(), 21);
+
+        //정수인지 문자열인지 확인
+        int result = GetNumberIfInt(input);
+
+        //문자열이라면
+        if (-1 == result) {
+            size_t hash = Hash(input) % hashTableSize;
+
+            //linear probing
+            while (0 != strcmp(input.data(), arrNames[hashTable[hash]].data())) {
+                ++hash;
+                if (hash >= hashTableSize) {
+                    hash = 0;
+                }
+            }
+
+            //도감번호를 출력
+            std::cout << hashTable[hash] + 1 << '\n';
+        }
+
+        //도감 번호라면
+        else {
+            //문자열을 출력
+            std::cout << arrNames[result - 1].data() << '\n';
         }
     }
 
