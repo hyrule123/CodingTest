@@ -1,5 +1,1 @@
-Pikachu
-26
-Venusaur
-16
-14
+3 0 0 1 2 0 0 2 
