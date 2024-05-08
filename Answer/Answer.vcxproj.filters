@@ -27,16 +27,16 @@
     <ClInclude Include="local.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Sort\QuickSort.h">
+    <ClInclude Include="Reference\QuickSort.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Sort\MergeSort.h">
+    <ClInclude Include="Reference\MergeSort.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Sort\HeapSort.h">
+    <ClInclude Include="Reference\HeapSort.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="HashTable.h">
+    <ClInclude Include="Reference\HashTable.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

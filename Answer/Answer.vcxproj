@@ -151,11 +151,11 @@
     <Text Include="output.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HashTable.h" />
+    <ClInclude Include="Reference\HashTable.h" />
     <ClInclude Include="local.h" />
-    <ClInclude Include="Sort\HeapSort.h" />
-    <ClInclude Include="Sort\MergeSort.h" />
-    <ClInclude Include="Sort\QuickSort.h" />
+    <ClInclude Include="Reference\HeapSort.h" />
+    <ClInclude Include="Reference\MergeSort.h" />
+    <ClInclude Include="Reference\QuickSort.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
