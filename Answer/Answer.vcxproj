@@ -159,6 +159,7 @@
     <ClInclude Include="Reference\HashTable.h" />
     <ClInclude Include="local.h" />
     <ClInclude Include="Reference\HeapSort.h" />
+    <ClInclude Include="Reference\IsPrime.h" />
     <ClInclude Include="Reference\MergeSort.h" />
     <ClInclude Include="Reference\QuickSort.h" />
   </ItemGroup>
