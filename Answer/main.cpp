@@ -13,65 +13,7 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-constexpr bool IsPrime(size_t _num) {
-    if (_num <= 1) {
-        return false;
-    }
-
-    for (size_t i = 2; i <= _num / 2; ++i) {
-        if (_num % i == 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
-constexpr size_t NextPrime(size_t _num) {
-    while (false == IsPrime(_num)) {
-        ++_num;
-    }
-    return _num;
-}
-
-#include <vector>
-
-
-class HashTable {
-    static constexpr const size_t bucketCount = 250007;
-public:
-    HashTable() 
-        : m_table{}
-    { m_table.resize(bucketCount); }
-    ~HashTable() {};
-
-    inline size_t Hash(int _num) {
-        return (size_t)_num % bucketCount;
-    }
-
-    inline void Insert(int _key) {
-        size_t hash = Hash(_key) % m_table.size();
-        m_table[hash].push_back(_key);
-    }
-
-    inline int* Find(int _key) {
-        size_t hash = Hash(_key) % m_table.size();
-
-        std::vector<int>& bucket = m_table[hash];
-
-        if (false == m_table.empty()) {
-            for (size_t i = 0; i < bucket.size(); ++i) {
-                if (bucket[i] == _key) {
-                    return &(bucket[i]);
-                }
-            }
-        }
-
-        return nullptr;
-    }
-
-private:
-    std::vector<std::vector<int>> m_table;
-};
+#include <string>
 
 int main() {
     USING_IOSTREAM;
@@ -79,28 +21,30 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t numA{}, numB{};
-    std::cin >> numA >> numB;
+    std::string input{};
+    input.reserve(1000);
+    std::cin >> input;
 
-    HashTable setA{};
-    for (size_t i = 0; i < numA; ++i) {
-        int input{};
-        std::cin >> input;
-        setA.Insert(input);
-    }
+    //문자열에서 가능한 전체 케이스(sum 1 + 2 + ... + n)
+    //문자열 1000개일 때 500500개 가능
+    size_t cases = (1 + input.size()) * input.size() / 2;
+    constexpr size_t c = (1 + 1000) * 1000 / 2;
+    
+    //'%' 연산자는 *, /와 동일한 우선순위로 우측으로 진행된다.
+    int test = 100 * 2 % 7;
 
-    size_t intersectionCount{};
-    for (size_t i = 0; i < numB; ++i) {
-        int input{};
-        std::cin >> input;
-        int* found = setA.Find(input);
-        if (found) {
-            ++intersectionCount;
-        }
-    }
+    //'abrac'의 일부 문자열에 대한 테스트
 
-    //합집합 갯수 - 교집합 갯수
-    std::cout << numA + numB - 2 * intersectionCount;
+    //'abra'
+    size_t hashabra = ((('a' * 2 % 7 + 'b') * 2 % 7 + 'r') * 2 % 7) + 'a';
+
+    //roll hash
+    size_t hashbrac = (hashabra - ((('a' * 2 % 7) * 2 % 7) * 2 % 7)) * 2 % 7 + 'c';
+
+    //'brac'
+    size_t hashbrac2 = ((('b' * 2 % 7 + 'r') * 2 % 7 + 'a') * 2 % 7) + 'c';
+
+    //hashbrac == hashbrac2
 
     return 0;
 }
