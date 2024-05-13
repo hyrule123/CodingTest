@@ -14,8 +14,8 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 //Euclidean algorithm
-inline std::uint32_t GCD(std::uint32_t _a, std::uint32_t _b) {
-    std::uint32_t r{};
+inline std::uint64_t GCD(std::uint64_t _a, std::uint64_t _b) {
+    std::uint64_t r{};
     while (_b != 0) {
         r = _a % _b;
         _a = _b;
@@ -29,17 +29,12 @@ int main() {
 
     READ_INPUT;
     WRITE_OUTPUT;
-
-    size_t T{};
-    std::cin >> T;
     
-    for (size_t i = 0; i < T; ++i) {
-        std::uint32_t A{}, B{};
-        std::cin >> A >> B;
+    std::uint64_t A{}, B{};
+    std::cin >> A >> B;
 
-        std::uint32_t gcd = GCD(A, B);
-        std::cout << A * B / gcd << '\n';
-    }
+    std::uint64_t gcd = GCD(A, B);
+    std::cout << A * B / gcd << '\n';
 
     return 0;
 }
