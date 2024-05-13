@@ -156,6 +156,7 @@
     <Text Include="output.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Reference\GCD.h" />
     <ClInclude Include="Reference\HashTable.h" />
     <ClInclude Include="local.h" />
     <ClInclude Include="Reference\HeapSort.h" />
