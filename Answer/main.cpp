@@ -13,15 +13,39 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-inline std::uint32_t GCD(std::uint32_t _a, std::uint32_t _b) {
-    std::uint32_t r{};
-    while (_b != 0) {
-        r = _a % _b;
-        _a = _b;
-        _b = r;
+#include <cmath>
+using uint64 = std::uint64_t;
+inline uint64 NextPrime(uint64 _num) {
+    if (_num <= 1) { return 2; }
+    if (_num <= 3) { return _num; }
+    
+    while (true) {
+        if (_num % 2 == 0 || _num % 3 == 0) {
+            ++_num;
+            continue;
+        }
+
+        //The rounding error is at most one part in 2^53. 
+        // This causes an error in the square root of at most one part in 2^54. 
+        // The sqrt itself has a rounding error of less than one part in 2^53, due to rounding the mathematical result to the double format. 
+        // The sum of these errors is tiny; the largest possible square root of a 64-bit integer (rounded to 53 bits) is 2^32, so an error of three parts in 2^54 is less than .00000072.
+        //double 오차 가능성이 있으므로 1 더해줬음
+        uint64 end = (uint64)std::sqrt((double)_num) + 1;
+
+        bool isP = true;
+        for (uint64 i = 5; i <= end; i += 6) {
+            if (_num % i == 0 || _num % (i + 2) == 0) {
+                ++_num;
+                isP = false;
+                break;
+            }
+        }
+
+        if(isP){ break; }
     }
-    return _a;
+    return _num;
 }
+
 
 int main() {
     USING_IOSTREAM;
@@ -29,32 +53,15 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    std::uint32_t N{};
-    std::cin >> N;
+    size_t tc{};
+    std::cin >> tc;
 
-    std::uint32_t first{};
+    for (size_t i = 0; i < tc; ++i) {
+        uint64 input{};
+        std::cin >> input;
 
-    std::uint32_t prev{}, cur{};
-    std::cin >> prev >> cur;
-
-    first = prev;
-
-    std::uint32_t gcd = cur - prev;
-    prev = cur;
-
-    //매 순회마다 간격을 해서 계속 최소공약수를 구해준다.
-    for (std::uint32_t i = 2; i < N; ++i) {
-        std::cin >> cur;
-        gcd = GCD(gcd, cur - prev);
-        prev = cur;
+        std::cout << NextPrime(input) << '\n';
     }
-    std::uint32_t last = cur;
-
-    //last - first = 전체 거리
-    //gcd = 심어야하는 간격
-    //(전체 거리 / 심어야하는 간격) + 1 = 규칙적으로 심었을때 나오는 나무의 수
-    //N: 현재 심어져있는 나무의 수
-    std::cout << (last - first) / gcd + 1 - N;
 
     return 0;
 }
