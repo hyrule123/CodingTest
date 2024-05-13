@@ -13,39 +13,33 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-#include <cmath>
+#include <vector>
 using uint64 = std::uint64_t;
-inline uint64 NextPrime(uint64 _num) {
-    if (_num <= 1) { return 2; }
-    if (_num <= 3) { return _num; }
-    
-    while (true) {
-        if (_num % 2 == 0 || _num % 3 == 0) {
-            ++_num;
-            continue;
-        }
+inline std::vector<bool> RangedErastothenes(uint64 _start, uint64 _end) {
+    std::vector<bool> sieve{};
+    sieve.reserve(_end + 1);
+    sieve.resize(_start, false); //start까지는 측정 x
+    sieve.resize(_end + 1, true);
 
-        //The rounding error is at most one part in 2^53. 
-        // This causes an error in the square root of at most one part in 2^54. 
-        // The sqrt itself has a rounding error of less than one part in 2^53, due to rounding the mathematical result to the double format. 
-        // The sum of these errors is tiny; the largest possible square root of a 64-bit integer (rounded to 53 bits) is 2^32, so an error of three parts in 2^54 is less than .00000072.
-        //double 오차 가능성이 있으므로 1 더해줬음
-        uint64 end = (uint64)std::sqrt((double)_num) + 1;
-
-        bool isP = true;
-        for (uint64 i = 5; i <= end; i += 6) {
-            if (_num % i == 0 || _num % (i + 2) == 0) {
-                ++_num;
-                isP = false;
-                break;
-            }
-        }
-
-        if(isP){ break; }
+    if (sieve.size() >= 2) {
+        sieve[0] = false;
+        sieve[1] = false;
     }
-    return _num;
-}
+    
+    for (size_t p = 2, pPow2{}; (pPow2 = p * p) <= _end; ++p) {
+        //시작점 = start 이후의 최초 p의 배수 또는 p의 제곱
+        //start + p - 1 : p를 더해주고, p를 더해줬을 때 나눠떨어지면 안되니까 1을 빼줌 -> 몫이 1 더 늘어나는걸 방지
+        //p로 나눠준 뒤 다시 p를 곱해주면 최초 p의 배수가 된다.
+        uint64 current = std::max((_start + p - 1) / p * p, pPow2);
 
+        //p의 배수들을 모조리 false 처리한다.
+        for (size_t i = current; i <= _end; i += p) {
+            sieve[i] = false;
+        }
+    }
+
+    return sieve;
+}
 
 int main() {
     USING_IOSTREAM;
@@ -53,14 +47,15 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t tc{};
-    std::cin >> tc;
+    uint64 begin{}, end{};
+    std::cin >> begin >> end;
 
-    for (size_t i = 0; i < tc; ++i) {
-        uint64 input{};
-        std::cin >> input;
+    auto vec = RangedErastothenes(begin, end);
 
-        std::cout << NextPrime(input) << '\n';
+    for (size_t i = begin; i <= end; ++i) {
+        if (vec[i]) {
+            std::cout << i << '\n';
+        }
     }
 
     return 0;
