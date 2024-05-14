@@ -14,25 +14,22 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
+template <typename T>
+struct stack {
+    stack(size_t _capacity) : cont(_capacity), stackPos(-1) {}
 
-inline double ABS(double _in) {
-    return (_in < 0.0 ? -_in : _in);
-}
+    template <typename U>
+    void Insert(const U& _t) { ++stackPos; cont[stackPos] = _t; }
+    T* Back() { if (0 <= stackPos) { return &(cont[stackPos]); } return nullptr; };
+    void Pop() { if (0 <= stackPos) { --stackPos; } }
 
-//babylonian algorithm
-using uint = unsigned int;
-uint SQRT(uint _num) {
-    if (_num <= 1) { return _num; }
+    std::vector<T> cont;
+    std::int64_t stackPos = -1;
+};
 
-    double n = (double)_num;
-    double a = n / 2.0;
-    constexpr double precision = 0.000001;
-    while (ABS(a * a - n) > precision) {
-        a = (a + n / a) / 2.0;
-    }
-
-    return (uint)a;
-}
+struct command {
+    enum e : int { Insert = 1, PrintBackAndPop, PrintSize, PrintIsEmpty, PrintBack };
+};
 
 int main() {
     USING_IOSTREAM;
@@ -40,21 +37,54 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    
-    uint N{}; std::cin >> N;
-    
-    //2: 1 2 열 닫
-    //3: 1 3 -> 열 닫
-    //4: 1 2 4 -> 열 닫 열
-    //5: 1 5 닫
-    //6: 1 2 3 6 닫
-    //7: 1 7 닫
-    //8: 1 2 4 8 닫
-    //약수 개수가 짝수->닫힘
-    //약수 개수가 홀수->열림
-    //약수 개수가 짝수이려면->제곱수여야 함
-    //범위 1 ~ N 사이의 제곱수의 갯수
-    std::cout << SQRT(N);
+    stack<int> iStack(1000000);
+    int N{}; std::cin >> N;
+
+    for (int i = 0; i < N; ++i) {
+        command::e com{};
+        std::cin >> reinterpret_cast<int&>(com);
+
+        switch (com)
+        {
+        case command::Insert: {
+            int input{}; std::cin >> input;
+            iStack.Insert(input);
+            break;
+        }
+        case command::PrintBackAndPop: {
+            int* elem = iStack.Back();
+            if (elem) {
+                std::cout << *elem << '\n';
+            }
+            else { 
+                std::cout << -1 << '\n'; 
+            }
+            iStack.Pop();
+            break;
+        }
+        case command::PrintSize: {
+            std::cout << iStack.stackPos + 1 << '\n';
+            break;
+        }
+        case command::PrintIsEmpty: {
+            std::cout << (int)(-1 == iStack.stackPos ? 1 : 0) << '\n';
+            break;
+        }
+        case command::PrintBack: {
+            int* elem = iStack.Back();
+            if (elem) {
+                std::cout << *elem << '\n';
+            }
+            else { 
+                std::cout << -1 << '\n'; 
+            }
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
 
     return 0;
 }
