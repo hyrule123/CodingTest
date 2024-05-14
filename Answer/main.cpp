@@ -19,13 +19,13 @@ struct queue
 {
     queue(size_t _size) : queuePos() { cont.reserve(_size); }
 
-    bool empty() { return (queuePos == cont.size()); }
-    size_t size() { return (cont.size() - queuePos); };
-    void push(int _i) { cont.push_back(_i); };
-    void pop() { if (false == empty()) { ++queuePos; } }
+    inline bool empty() { return (queuePos == cont.size()); }
+    inline size_t size() { return (cont.size() - queuePos); }
+    inline void push(int _i) { cont.push_back(_i); };
+    inline void pop() { if (false == empty()) { ++queuePos; } }
     
-    int* front() { if (false == empty()) { return &(cont[queuePos]); } return nullptr; };
-    int* back() { if (false == empty()) { return &(cont.back()); } return nullptr; };
+    inline int front() { return cont[queuePos]; }
+    inline int back() { return cont.back(); }
 
     std::vector<int> cont;
     size_t queuePos;
@@ -40,12 +40,10 @@ int main() {
     int N{}; std::cin >> N;
     queue q((size_t)N);
 
-    char input[8]{};
-    std::string_view command{};
+    std::string command{};
     for (int i = 0; i < N; ++i) {
-        input[0] = '\0';
-        std::cin >> input;
-        command = input;
+        command.clear();
+        std::cin >> command;
 
         constexpr const std::string_view commands[] = { "push", "pop", "size", "empty", "front", "back" };
         if (command == commands[0]) {
@@ -57,7 +55,7 @@ int main() {
                 std::cout << -1 << '\n';
             }
             else {
-                std::cout << *q.front() << '\n';
+                std::cout << q.front() << '\n';
                 q.pop();
             }
         }
@@ -72,7 +70,7 @@ int main() {
                 std::cout << -1 << '\n';
             }
             else {
-                std::cout << *q.front() << '\n';
+                std::cout << q.front() << '\n';
             }
         }
         else if (command == commands[5]) {
@@ -80,7 +78,7 @@ int main() {
                 std::cout << -1 << '\n';
             }
             else {
-                std::cout << *q.back() << '\n';
+                std::cout << q.back() << '\n';
             }
         }
     }
