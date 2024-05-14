@@ -40,9 +40,12 @@ int main() {
     int N{}; std::cin >> N;
     queue q((size_t)N);
 
-    std::string command{};
+    char input[8]{};
+    std::string_view command{};
     for (int i = 0; i < N; ++i) {
-        std::cin >> command;
+        input[0] = '\0';
+        std::cin >> input;
+        command = input;
 
         constexpr const std::string_view commands[] = { "push", "pop", "size", "empty", "front", "back" };
         if (command == commands[0]) {
