@@ -14,18 +14,27 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-#include <string_view>
 struct stack {
-    stack() { Reset(); }
+    stack(size_t _size) { cont.resize(_size); stackPos = -1; }
+    bool Empty() { return (stackPos < 0); }
+    void Insert(int _num) { ++stackPos; cont[stackPos] = _num; }
+    int* Last() { if (false == Empty()) { return &(cont[stackPos]); } return nullptr; }
+    void Pop() { if (false == Empty()) { --stackPos; } }
 
-    inline bool NotEmpty() { return (0 <= stackPos); }
-    inline void Insert(char _c) { ++stackPos; cont[stackPos] = _c; }
-    inline char* Back() { if (NotEmpty()) { return &(cont[stackPos]); } return nullptr; }
-    inline void Pop() { if (NotEmpty()) { --stackPos; }; }
-    inline void Reset() { cont.resize(104, '\0'); stackPos = -1; }
-
-    std::vector<char> cont;
+    std::vector<int> cont;
     int stackPos;
+};
+
+struct queue {
+    queue(size_t _size) { cont.reserve(_size); queuePos = 0; }
+
+    bool Empty() { return (queuePos == cont.size()); }
+    void Insert(int _num) { cont.push_back(_num); }
+    int* First() { if (false == Empty()) { return &(cont[queuePos]); } return nullptr; }
+    void Pop() { if (false == Empty()) { ++queuePos; } }
+
+    std::vector<int> cont;
+    size_t queuePos;
 };
 
 int main() {
@@ -34,61 +43,69 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    
-    char str[104]{};
-    stack pairs{};
-    while(true) {
-        str[0] = '\0';
-        std::cin.getline(str, 104);
-        if (str[0] == '.') { break; }
+    queue origLine(1000);
+    stack tempLine(1000);
 
-        pairs.Reset();
+    bool found1 = false;
+    int N{}; std::cin >> N;
+    for (int i = 0; i < N; ++i) {
+        int input; std::cin >> input;
 
-        bool isValid = true;
-        for (int i = 0; i < 104 && str[i] != '.'; ++i) {
-
-            if (str[i] == '(') {
-                pairs.Insert('(');
-            }
-            else if (str[i] == ')') {
-                char* back = pairs.Back();
-                if (nullptr == back || '(' != *back) {
-                    isValid = false;
-                    break;
-                }
-                else {
-                    pairs.Pop();
-                }
-            }
-            else if (str[i] == '[') {
-                pairs.Insert('[');
-            }
-            else if (str[i] == ']') {
-                char* back = pairs.Back();
-                if (nullptr == back || '[' != *back) {
-                    isValid = false;
-                    break;
-                }
-                else {
-                    pairs.Pop();
-                }
-            }
+        if (1 == input) {
+            found1 = true;
         }
 
-        constexpr const std::string_view yes = "yes\n";
-        constexpr const std::string_view no = "no\n";
-        if (isValid) {
-            if (pairs.NotEmpty()) {
-                std::cout << no;
-            }
-            //스택이 정리되었을 경우 yes
-            else {
-                std::cout << yes;
-            }
+        if (false == found1) {
+            tempLine.Insert(input);
         }
         else {
-            std::cout << no;
+            origLine.Insert(input);
         }
+    }
+
+    int prevNumber = 0;
+    int nextNumber = 1;
+    while (true) {
+        //원래 줄에서 nextNumber 나오는동안 계속 입장
+        while (false == origLine.Empty() && nextNumber == *(origLine.First())) {
+            origLine.Pop();
+            ++nextNumber;
+        }
+
+        //임시 줄에서 nextNumber 나오는동안 계속 입장
+        while (false == tempLine.Empty() && nextNumber == *(tempLine.Last())) {
+            tempLine.Pop();
+            ++nextNumber;
+        }
+
+        //둘 중 하나도 입장 못했을 경우(nextNumber 진전 없을경우)
+        if (prevNumber == nextNumber) {
+            while (true) {
+                //원래 줄에서 nextNumber 찾을때까지 임시줄로 옮겨준다
+                if (false == origLine.Empty()) {
+                    if (nextNumber == *(origLine.First())) {
+                        break;
+                    }
+
+                    tempLine.Insert(*(origLine.First()));
+                    origLine.Pop();
+                }
+                //다 옮길때까지 못찾았으면 도저히 방법이 없는것
+                else {
+                    std::cout << "Sad";
+                    return 0;
+                }
+            }
+
+        }
+
+        //마지막 번호까지 다 들어갔을 경우 성공한 것
+        if (N < nextNumber) {
+            std::cout << "Nice";
+            return 0;
+        }
+
+        prevNumber = nextNumber;
     }
 
     return 0;
