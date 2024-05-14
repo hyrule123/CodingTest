@@ -13,22 +13,20 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-using uint = unsigned int;
-struct stack {
-    constexpr stack(uint _capacity) : arrCont{}, capacity{ _capacity }, stackPos{-1} { arrCont = new uint[_capacity]; }
-    ~stack() { delete[] arrCont; }
+#include <vector>
+#include <string_view>
+struct VPS_Checker {
+    VPS_Checker() : left_P_Count(0) {}
 
-    inline void Insert(uint _num) { ++stackPos; arrCont[stackPos] = _num; }
-    inline uint* Back() { if (0 <= stackPos) { return &(arrCont[stackPos]); } return nullptr; }
-    inline void Pop() { if (0 <= stackPos) { --stackPos; } }
-    inline bool NotEmpty() { return (0 <= stackPos); }
+    inline bool Add(const char _c) { 
+        if (_c == '(') { ++left_P_Count; } 
+        else if (_c == ')') { --left_P_Count; }
+        return (0 <= left_P_Count);
+    }
+    inline bool FinalCheck() { return 0 == left_P_Count; }
 
-    uint* arrCont;
-    uint capacity;
-    int stackPos;
+    int left_P_Count;
 };
-
-stack moneyLog(100000);
 
 int main() {
     USING_IOSTREAM;
@@ -36,23 +34,39 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    uint K{}; std::cin >> K;
-    for (uint i = 0; i < K; ++i) {
-        uint n{}; std::cin >> n;
-        if (n) {
-            moneyLog.Insert(n);
-        }
-        else {
-            moneyLog.Pop();
-        }
-    }
+    size_t T{}; std::cin >> T;
 
-    //for문 사용 버전
-    uint sum = 0;
-    for (int i = 0; i <= moneyLog.stackPos; ++i) {
-        sum += moneyLog.arrCont[i];
+    
+    char str[51]{};
+    std::cin.getline(str, 51);
+    for (size_t i = 0; i < T; ++i) {
+        str[0] = '\0';
+
+        VPS_Checker checker{};
+        std::cin >> str;
+
+        bool isValid = true;
+        constexpr const std::string_view yes = "YES\n";
+        constexpr const std::string_view no = "NO\n";
+        for (int i = 0; i < 51; ++i) {
+            if (str[i] == '\0') { break; }
+
+            if (false == checker.Add(str[i])) {
+                isValid = false;
+                std::cout << no;
+                break;
+            }
+        }
+
+        if (isValid) {
+            if (checker.FinalCheck()) {
+                std::cout << yes;
+            }
+            else {
+                std::cout << no;
+            }
+        }
     }
-    std::cout << sum;
 
     return 0;
 }
