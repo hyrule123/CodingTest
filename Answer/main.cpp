@@ -14,22 +14,24 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-#include <cmath>
-inline std::vector<bool> ErastothensSieve(const size_t _end) {
-    std::vector<bool> sieve{};
-    sieve.resize(_end + 1, true);
-    if (sieve.size() >= 1) { sieve[0] = false; }
-    if (sieve.size() >= 2) { sieve[1] = false; }
 
-    for (size_t p = 2, pPow2{}; (pPow2 = p * p) <= _end; ++p) {
-        if (sieve[p]) {
-            for (size_t i = pPow2; i <= _end; i += p) {
-                sieve[i] = false;
-            }
-        }
+inline double ABS(double _in) {
+    return (_in < 0.0 ? -_in : _in);
+}
+
+//babylonian algorithm
+using uint = unsigned int;
+uint SQRT(uint _num) {
+    if (_num <= 1) { return _num; }
+
+    double n = (double)_num;
+    double a = n / 2.0;
+    constexpr double precision = 0.000001;
+    while (ABS(a * a - n) > precision) {
+        a = (a + n / a) / 2.0;
     }
-    
-    return sieve;
+
+    return (uint)a;
 }
 
 int main() {
@@ -38,47 +40,21 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    using uint = unsigned int;
-    std::vector<uint> inputs{};
-    size_t N{};
-    std::cin >> N;
-    inputs.resize(N);
-
-    uint biggest{};
-    for (size_t i = 0; i < N; ++i) {
-        std::cin >> inputs[i];
-        if (biggest < inputs[i]) { biggest = inputs[i]; }
-    }
-
-    std::vector<uint> primes{};
-    //대략적인 소수 개수 추측해서 reserve
-    size_t logn = (size_t)std::log((double)biggest);
-    if (logn == 0) { logn = 1; }
-    primes.reserve(biggest / logn + 100);
-    //에라스토테네스 체에서 판별된 소수들 집어넣는다.
-    std::vector<bool> sieve = ErastothensSieve((size_t)biggest);
-    for (size_t i = 0; i < sieve.size(); ++i) {
-        if (sieve[i]) {
-            primes.push_back((uint)i);
-        }
-    }
-
-    for (size_t i = 0; i < inputs.size(); ++i) {
-        size_t goldBachCounts{};
-
-        //조건: input값의 반 이하인 소수
-        for (size_t p1Idx = 0; 
-            p1Idx < primes.size() && primes[p1Idx] * 2 <= inputs[i]; 
-            ++p1Idx) {
-            //input에서 소수를 뺴고, 남은 값이 소수인지 확인한다.
-            //sieve의 인덱스로 넣으면 바로 알 수 있음.
-            size_t p2 = inputs[i] - primes[p1Idx];
-            if (sieve[p2]) {
-                ++goldBachCounts;
-            }
-        }
-        std::cout << goldBachCounts << '\n';
-    }
+    
+    uint N{}; std::cin >> N;
+    
+    //2: 1 2 열 닫
+    //3: 1 3 -> 열 닫
+    //4: 1 2 4 -> 열 닫 열
+    //5: 1 5 닫
+    //6: 1 2 3 6 닫
+    //7: 1 7 닫
+    //8: 1 2 4 8 닫
+    //약수 개수가 짝수->닫힘
+    //약수 개수가 홀수->열림
+    //약수 개수가 짝수이려면->제곱수여야 함
+    //범위 1 ~ N 사이의 제곱수의 갯수
+    std::cout << SQRT(N);
 
     return 0;
 }
