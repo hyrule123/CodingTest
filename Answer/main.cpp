@@ -14,24 +14,18 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-struct stack {
-    stack(size_t _size) { cont.resize(_size); stackPos = -1; }
-    bool Empty() { return (stackPos < 0); }
-    void Insert(int _num) { ++stackPos; cont[stackPos] = _num; }
-    int* Last() { if (false == Empty()) { return &(cont[stackPos]); } return nullptr; }
-    void Pop() { if (false == Empty()) { --stackPos; } }
+#include <string>
+struct queue
+{
+    queue(size_t _size) : queuePos() { cont.reserve(_size); }
 
-    std::vector<int> cont;
-    int stackPos;
-};
-
-struct queue {
-    queue(size_t _size) { cont.reserve(_size); queuePos = 0; }
-
-    bool Empty() { return (queuePos == cont.size()); }
-    void Insert(int _num) { cont.push_back(_num); }
-    int* First() { if (false == Empty()) { return &(cont[queuePos]); } return nullptr; }
-    void Pop() { if (false == Empty()) { ++queuePos; } }
+    bool empty() { return (queuePos == cont.size()); }
+    size_t size() { return (cont.size() - queuePos); };
+    void push(int _i) { cont.push_back(_i); };
+    void pop() { if (false == empty()) { ++queuePos; } }
+    
+    int* front() { if (false == empty()) { return &(cont[queuePos]); } return nullptr; };
+    int* back() { if (false == empty()) { return &(cont.back()); } return nullptr; };
 
     std::vector<int> cont;
     size_t queuePos;
@@ -43,69 +37,49 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    queue origLine(1000);
-    stack tempLine(1000);
-
-    bool found1 = false;
     int N{}; std::cin >> N;
+    queue q((size_t)N);
+
+    std::string command{};
     for (int i = 0; i < N; ++i) {
-        int input; std::cin >> input;
+        command.clear();
+        std::cin >> command;
 
-        if (1 == input) {
-            found1 = true;
+        if (command == "push") {
+            int input{}; std::cin >> input;
+            q.push(input);
         }
-
-        if (false == found1) {
-            tempLine.Insert(input);
-        }
-        else {
-            origLine.Insert(input);
-        }
-    }
-
-    int prevNumber = 0;
-    int nextNumber = 1;
-    while (true) {
-        //원래 줄에서 nextNumber 나오는동안 계속 입장
-        while (false == origLine.Empty() && nextNumber == *(origLine.First())) {
-            origLine.Pop();
-            ++nextNumber;
-        }
-
-        //임시 줄에서 nextNumber 나오는동안 계속 입장
-        while (false == tempLine.Empty() && nextNumber == *(tempLine.Last())) {
-            tempLine.Pop();
-            ++nextNumber;
-        }
-
-        //둘 중 하나도 입장 못했을 경우(nextNumber 진전 없을경우)
-        if (prevNumber == nextNumber) {
-            while (true) {
-                //원래 줄에서 nextNumber 찾을때까지 임시줄로 옮겨준다
-                if (false == origLine.Empty()) {
-                    if (nextNumber == *(origLine.First())) {
-                        break;
-                    }
-
-                    tempLine.Insert(*(origLine.First()));
-                    origLine.Pop();
-                }
-                //다 옮길때까지 못찾았으면 도저히 방법이 없는것
-                else {
-                    std::cout << "Sad";
-                    return 0;
-                }
+        else if (command == "pop") {
+            if (q.empty()) {
+                std::cout << -1 << '\n';
             }
-
+            else {
+                std::cout << *q.front() << '\n';
+                q.pop();
+            }
         }
-
-        //마지막 번호까지 다 들어갔을 경우 성공한 것
-        if (N < nextNumber) {
-            std::cout << "Nice";
-            return 0;
+        else if (command == "size") {
+            std::cout << q.size() << '\n';
         }
-
-        prevNumber = nextNumber;
+        else if (command == "empty") {
+            std::cout << (int)q.empty() << '\n';
+        }
+        else if (command == "front") {
+            if (q.empty()) {
+                std::cout << -1 << '\n';
+            }
+            else {
+                std::cout << *q.front() << '\n';
+            }
+        }
+        else if (command == "back") {
+            if (q.empty()) {
+                std::cout << -1 << '\n';
+            }
+            else {
+                std::cout << *q.back() << '\n';
+            }
+        }
     }
 
     return 0;
