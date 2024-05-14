@@ -15,17 +15,17 @@ std::ios_base::sync_with_stdio(false)
 
 #include <vector>
 #include <string_view>
-struct VPS_Checker {
-    VPS_Checker() : left_P_Count(0) {}
+struct stack {
+    stack() { Reset(); }
 
-    inline bool Add(const char _c) { 
-        if (_c == '(') { ++left_P_Count; } 
-        else if (_c == ')') { --left_P_Count; }
-        return (0 <= left_P_Count);
-    }
-    inline bool FinalCheck() { return 0 == left_P_Count; }
+    inline bool NotEmpty() { return (0 <= stackPos); }
+    inline void Insert(char _c) { ++stackPos; cont[stackPos] = _c; }
+    inline char* Back() { if (NotEmpty()) { return &(cont[stackPos]); } return nullptr; }
+    inline void Pop() { if (NotEmpty()) { --stackPos; }; }
+    inline void Reset() { cont.resize(104, '\0'); stackPos = -1; }
 
-    int left_P_Count;
+    std::vector<char> cont;
+    int stackPos;
 };
 
 int main() {
@@ -34,37 +34,60 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t T{}; std::cin >> T;
-
     
-    char str[51]{};
-    std::cin.getline(str, 51);
-    for (size_t i = 0; i < T; ++i) {
+    char str[104]{};
+    stack pairs{};
+    while(true) {
         str[0] = '\0';
+        std::cin.getline(str, 104);
+        if (str[0] == '.') { break; }
 
-        VPS_Checker checker{};
-        std::cin >> str;
+        pairs.Reset();
 
         bool isValid = true;
-        constexpr const std::string_view yes = "YES\n";
-        constexpr const std::string_view no = "NO\n";
-        for (int i = 0; i < 51; ++i) {
-            if (str[i] == '\0') { break; }
+        for (int i = 0; i < 104 && str[i] != '.'; ++i) {
 
-            if (false == checker.Add(str[i])) {
-                isValid = false;
-                std::cout << no;
-                break;
+            if (str[i] == '(') {
+                pairs.Insert('(');
+            }
+            else if (str[i] == ')') {
+                char* back = pairs.Back();
+                if (nullptr == back || '(' != *back) {
+                    isValid = false;
+                    break;
+                }
+                else {
+                    pairs.Pop();
+                }
+            }
+            else if (str[i] == '[') {
+                pairs.Insert('[');
+            }
+            else if (str[i] == ']') {
+                char* back = pairs.Back();
+                if (nullptr == back || '[' != *back) {
+                    isValid = false;
+                    break;
+                }
+                else {
+                    pairs.Pop();
+                }
             }
         }
 
+        constexpr const std::string_view yes = "yes\n";
+        constexpr const std::string_view no = "no\n";
         if (isValid) {
-            if (checker.FinalCheck()) {
-                std::cout << yes;
-            }
-            else {
+            if (pairs.NotEmpty()) {
                 std::cout << no;
             }
+            //스택이 정리되었을 경우 yes
+            else {
+                std::cout << yes;
+            }
+        }
+        else {
+            std::cout << no;
         }
     }
 
