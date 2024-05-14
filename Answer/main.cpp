@@ -14,7 +14,7 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-#include <string>
+#include <string_view>
 struct queue
 {
     queue(size_t _size) : queuePos() { cont.reserve(_size); }
@@ -42,14 +42,14 @@ int main() {
 
     std::string command{};
     for (int i = 0; i < N; ++i) {
-        command.clear();
         std::cin >> command;
 
-        if (command == "push") {
+        constexpr const std::string_view commands[] = { "push", "pop", "size", "empty", "front", "back" };
+        if (command == commands[0]) {
             int input{}; std::cin >> input;
             q.push(input);
         }
-        else if (command == "pop") {
+        else if (command == commands[1]) {
             if (q.empty()) {
                 std::cout << -1 << '\n';
             }
@@ -58,13 +58,13 @@ int main() {
                 q.pop();
             }
         }
-        else if (command == "size") {
+        else if (command == commands[2]) {
             std::cout << q.size() << '\n';
         }
-        else if (command == "empty") {
+        else if (command == commands[3]) {
             std::cout << (int)q.empty() << '\n';
         }
-        else if (command == "front") {
+        else if (command == commands[4]) {
             if (q.empty()) {
                 std::cout << -1 << '\n';
             }
@@ -72,7 +72,7 @@ int main() {
                 std::cout << *q.front() << '\n';
             }
         }
-        else if (command == "back") {
+        else if (command == commands[5]) {
             if (q.empty()) {
                 std::cout << -1 << '\n';
             }
