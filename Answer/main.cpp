@@ -47,11 +47,10 @@ int main() {
         }
     }
 
-    //inline 포인터 함수 사용 버전
-    uint sum{};
-    while (moneyLog.NotEmpty()) {
-        sum += *(moneyLog.Back());
-        moneyLog.Pop();
+    //for문 사용 버전
+    uint sum = 0;
+    for (int i = 0; i <= moneyLog.stackPos; ++i) {
+        sum += moneyLog.arrCont[i];
     }
     std::cout << sum;
 
