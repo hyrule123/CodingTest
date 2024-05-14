@@ -13,23 +13,22 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-#include <vector>
-template <typename T>
+using uint = unsigned int;
 struct stack {
-    stack(size_t _capacity) : cont(_capacity), stackPos(-1) {}
+    constexpr stack(uint _capacity) : arrCont{}, capacity{ _capacity }, stackPos{-1} { arrCont = new uint[_capacity]; }
+    ~stack() { delete[] arrCont; }
 
-    template <typename U>
-    void Insert(const U& _t) { ++stackPos; cont[stackPos] = _t; }
-    T* Back() { if (0 <= stackPos) { return &(cont[stackPos]); } return nullptr; };
-    void Pop() { if (0 <= stackPos) { --stackPos; } }
+    inline void Insert(uint _num) { ++stackPos; arrCont[stackPos] = _num; }
+    inline uint* Back() { if (0 <= stackPos) { return &(arrCont[stackPos]); } return nullptr; }
+    inline void Pop() { if (0 <= stackPos) { --stackPos; } }
+    inline bool NotEmpty() { return (0 <= stackPos); }
 
-    std::vector<T> cont;
-    std::int64_t stackPos = -1;
+    uint* arrCont;
+    uint capacity;
+    int stackPos;
 };
 
-struct command {
-    enum e : int { Insert = 1, PrintBackAndPop, PrintSize, PrintIsEmpty, PrintBack };
-};
+stack moneyLog(100000);
 
 int main() {
     USING_IOSTREAM;
@@ -37,54 +36,24 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    stack<int> iStack(1000000);
-    int N{}; std::cin >> N;
-
-    for (int i = 0; i < N; ++i) {
-        command::e com{};
-        std::cin >> reinterpret_cast<int&>(com);
-
-        switch (com)
-        {
-        case command::Insert: {
-            int input{}; std::cin >> input;
-            iStack.Insert(input);
-            break;
+    uint K{}; std::cin >> K;
+    for (uint i = 0; i < K; ++i) {
+        uint n{}; std::cin >> n;
+        if (n) {
+            moneyLog.Insert(n);
         }
-        case command::PrintBackAndPop: {
-            int* elem = iStack.Back();
-            if (elem) {
-                std::cout << *elem << '\n';
-            }
-            else { 
-                std::cout << -1 << '\n'; 
-            }
-            iStack.Pop();
-            break;
-        }
-        case command::PrintSize: {
-            std::cout << iStack.stackPos + 1 << '\n';
-            break;
-        }
-        case command::PrintIsEmpty: {
-            std::cout << (int)(-1 == iStack.stackPos ? 1 : 0) << '\n';
-            break;
-        }
-        case command::PrintBack: {
-            int* elem = iStack.Back();
-            if (elem) {
-                std::cout << *elem << '\n';
-            }
-            else { 
-                std::cout << -1 << '\n'; 
-            }
-            break;
-        }
-
-        default:
-            break;
+        else {
+            moneyLog.Pop();
         }
     }
+
+    //inline 포인터 함수 사용 버전
+    uint sum{};
+    while (moneyLog.NotEmpty()) {
+        sum += *(moneyLog.Back());
+        moneyLog.Pop();
+    }
+    std::cout << sum;
 
     return 0;
 }
