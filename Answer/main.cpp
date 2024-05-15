@@ -14,21 +14,32 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-#include <string_view>
-struct queue
-{
-    queue(size_t _size) : queuePos() { cont.reserve(_size); }
+//규칙: frontCursor은 endCursor 위치까지 이동가능.
+//endCursor은 frontCursor 하나 전까지만 이동가능.()
+//실제 capacity == cont.size() - 1
+struct CircleQueue {
+    CircleQueue(size_t _size) : cont(_size + 1), frontCursor(0), endCursor(0), queueCapacity(_size) {}
 
-    inline bool empty() { return (queuePos == cont.size()); }
-    inline size_t size() { return (cont.size() - queuePos); }
-    inline void push(int _i) { cont.push_back(_i); };
-    inline void pop() { if (false == empty()) { ++queuePos; } }
-    
-    inline int front() { return cont[queuePos]; }
-    inline int back() { return cont.back(); }
+    inline size_t NextCursor(size_t _cursor) { if ((++_cursor) == cont.size()) { _cursor = 0; } return _cursor; }
+    inline bool Empty() { return (frontCursor == endCursor); }
+    inline bool Full() { return frontCursor == NextCursor(endCursor); }
+    inline size_t Size() { return (endCursor + (frontCursor > endCursor ? queueCapacity : 0) - frontCursor); }
+
+    inline void Insert(int _i) {
+        size_t nextEnd = NextCursor(endCursor);
+        if (frontCursor != nextEnd) //if full 
+        {
+            cont[endCursor] = _i; endCursor = nextEnd; 
+        }
+    }
+
+    inline void Pop() { if (false == Empty()) { frontCursor = NextCursor(frontCursor); } }
+    inline int Front() { return cont[frontCursor]; }
 
     std::vector<int> cont;
-    size_t queuePos;
+    size_t frontCursor;
+    size_t endCursor;
+    size_t queueCapacity;
 };
 
 int main() {
@@ -38,50 +49,26 @@ int main() {
     WRITE_OUTPUT;
 
     int N{}; std::cin >> N;
-    queue q((size_t)N);
 
-    std::string command{};
-    for (int i = 0; i < N; ++i) {
-        command.clear();
-        std::cin >> command;
-
-        constexpr const std::string_view commands[] = { "push", "pop", "size", "empty", "front", "back" };
-        if (command == commands[0]) {
-            int input{}; std::cin >> input;
-            q.push(input);
-        }
-        else if (command == commands[1]) {
-            if (q.empty()) {
-                std::cout << -1 << '\n';
-            }
-            else {
-                std::cout << q.front() << '\n';
-                q.pop();
-            }
-        }
-        else if (command == commands[2]) {
-            std::cout << q.size() << '\n';
-        }
-        else if (command == commands[3]) {
-            std::cout << (int)q.empty() << '\n';
-        }
-        else if (command == commands[4]) {
-            if (q.empty()) {
-                std::cout << -1 << '\n';
-            }
-            else {
-                std::cout << q.front() << '\n';
-            }
-        }
-        else if (command == commands[5]) {
-            if (q.empty()) {
-                std::cout << -1 << '\n';
-            }
-            else {
-                std::cout << q.back() << '\n';
-            }
-        }
+    CircleQueue cq((size_t)N);
+    for (int i = 1; i <= N; ++i) {
+        cq.Insert(i);
     }
+    
+    int last = cq.Front();
+    while (true) {
+        cq.Pop();
+
+        if (cq.Empty()) {
+            break;
+        }
+
+        last = cq.Front();
+        cq.Insert(last);
+        cq.Pop();
+    }
+
+    std::cout << last;
 
     return 0;
 }
