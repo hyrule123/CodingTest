@@ -1,10 +1,11 @@
-//babylonian algorithm
+//basic babylonian algorithm
+#include <cmath>
 double SQRT(double _num) {
     if (_num <= 1) { return _num; }
 
     double a = _num / 2.0;
     constexpr double precision = 0.000001;
-    while (a * a > _num + precision) {
+    while (std::abs(a * a - _num) > precision) {
         a = (a + _num / a) / 2.0;
     }
 
