@@ -23,13 +23,13 @@ struct balloon {
 struct deque {
     deque(size_t _capacity) : cont(), capacity(_capacity), size(), begin(), end() { cont.resize(capacity + 1); }
 
-    size_t PrevCursor(size_t _cursor) { return (_cursor + capacity - 1) % capacity; }
-    size_t NextCursor(size_t _cursor) { return (_cursor + 1) % capacity; }
+    size_t PrevCursor(size_t _cursor) { if (_cursor == 0) { _cursor = cont.size(); } return --_cursor; }
+    size_t NextCursor(size_t _cursor) { if (++_cursor == cont.size()) { _cursor = 0; } return _cursor; }
     bool Empty() { return (size == 0); }
     bool Full() { return (size == capacity); }
 
     size_t Size() { return size; }
-    
+
     void PushFront(balloon _b) {
         if (Full()) { return; }
 
@@ -78,7 +78,7 @@ int main() {
 
     for (int i = 1; i <= N; ++i) {
         int input{}; std::cin >> input;
-        dq.PushBack(balloon{i, input});
+        dq.PushBack(balloon{ i, input });
     }
 
     balloon move = dq.Front();
@@ -108,6 +108,5 @@ int main() {
             dq.PopBack();
         }
     }
-
     return 0;
 }
