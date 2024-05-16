@@ -13,76 +13,59 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-struct Node {
-    Node* prev = nullptr;
-    Node* next = nullptr;
-    int data = 0;
+#include <vector>
+
+struct balloon {
+    int idx;
+    int moveDist;
 };
 
-//doubly linked list로 구현해봄
 struct deque {
-    deque() : size(0) { begin.next = &end; end.prev = &begin; begin.data = -1; end.data = -1; }
-    ~deque() {
-        Node* todelete = begin.next;
-        while (todelete != &end) {
-            Node* temp = todelete;
-            todelete = todelete->next;
-            delete temp;
-        }
-    }
+    deque(size_t _capacity) : cont(), capacity(_capacity), size(), begin(), end() { cont.resize(capacity + 1); }
 
-    inline bool Empty() { return (size == 0); }
-    inline int Size() { return size; }
+    size_t PrevCursor(size_t _cursor) { return (_cursor + capacity - 1) % capacity; }
+    size_t NextCursor(size_t _cursor) { return (_cursor + 1) % capacity; }
+    bool Empty() { return (size == 0); }
+    bool Full() { return (size == capacity); }
 
-    inline void PushFront(int _u) {
-        Node* temp = begin.next;
+    size_t Size() { return size; }
+    
+    void PushFront(balloon _b) {
+        if (Full()) { return; }
 
-        begin.next = new Node;
-        begin.next->data = _u;
-        begin.next->next = temp;
-        begin.next->prev = &begin;
-
-        temp->prev = begin.next;
+        begin = PrevCursor(begin);
+        cont[begin] = _b;
         ++size;
     }
-    inline void PushBack(int _u) {
-        Node* temp = end.prev;
+    void PushBack(balloon _b) {
+        if (Full()) { return; }
 
-        end.prev = new Node;
-        end.prev->data = _u;
-        end.prev->prev = temp;
-        end.prev->next = &end;
-
-        temp->next = end.prev;
+        cont[end] = _b;
+        end = NextCursor(end);
         ++size;
     }
-    inline void PopFront() {
+    void PopFront() {
         if (false == Empty()) {
-            Node* temp = begin.next;
-
-            begin.next = temp->next;
-            begin.next->prev = &begin;
-            delete temp;
+            begin = NextCursor(begin);
             --size;
         }
     }
-    inline void PopBack() {
+    void PopBack() {
         if (false == Empty()) {
-            Node* temp = end.prev;
-
-            end.prev = temp->prev;
-            end.prev->next = &end;
-            delete temp;
+            end = PrevCursor(end);
             --size;
         }
     }
-    inline int Front() { return begin.next->data; }
-    inline int Back() { return end.prev->data; }
+    balloon Front() { return cont[begin]; }
+    balloon Back() { return cont[PrevCursor(end)]; }
 
-    Node begin;
-    Node end;
-    int size;
+    std::vector<balloon> cont;
+    size_t capacity;
+    size_t size;
+    size_t begin;
+    size_t end;
 };
+
 
 int main() {
     USING_IOSTREAM;
@@ -90,61 +73,39 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
-    /* TC Generation Code */
-    //{
-    //    srand(time(0));
-    //    int gen = 1000000;
-    //    int inserts = 0;
-    //    std::cout << gen << '\n';
-    //    for (int i = 0; i < gen; ++i) {
-    //        int com = 1 + rand() % 8;
-    //        std::cout << com;
-    //        if (com == 1 || com == 2) {
-    //            std::cout << ' ' << (1 + rand() % 10000);
-    //            ++inserts;
-    //        }
-    //        std::cout << '\n';
-    //    }
-    //    std::cout << "Inserts: " << inserts;
-
-    //    return 0;
-    //}
-
-    deque dq{};
-
     int N{}; std::cin >> N;
-    for (int i = 0; i < N; ++i) {
-        int command{}; std::cin >> command;
-        
-        if (command == 1) {
-            int input{}; std::cin >> input;
-            dq.PushFront(input);
-        }
-        else if (command == 2) {
-            int input{}; std::cin >> input;
-            dq.PushBack(input);
-        }
-        else if (command == 3) {
-            std::cout << dq.Front() << '\n';
+    deque dq{ (size_t)N };
+
+    for (int i = 1; i <= N; ++i) {
+        int input{}; std::cin >> input;
+        dq.PushBack(balloon{i, input});
+    }
+
+    balloon move = dq.Front();
+    dq.PopFront();
+    std::cout << 1 << ' ';
+    for (int i = 1; i < N; ++i) {
+        if (move.moveDist > 0) {
+            --move.moveDist;
+            for (int i = 0; i < move.moveDist; ++i) {
+                balloon temp = dq.Front();
+                dq.PopFront();
+                dq.PushBack(temp);
+            }
+            move = dq.Front();
+            std::cout << move.idx << ' ';
             dq.PopFront();
         }
-        else if (command == 4) {
-            std::cout << dq.Back() << '\n';
+        else {
+            ++move.moveDist;
+            for (int i = move.moveDist; i < 0; ++i) {
+                balloon temp = dq.Back();
+                dq.PopBack();
+                dq.PushFront(temp);
+            }
+            move = dq.Back();
+            std::cout << move.idx << ' ';
             dq.PopBack();
-        }
-        else if (command == 5) {
-            std::cout << dq.Size() << '\n';
-        }
-        else if (command == 6) {
-            std::cout << (int)dq.Empty() << '\n';
-        }
-        else if (command == 7) {
-            std::cout << dq.Front() << '\n';
-        }
-        else if (command == 8) {
-            std::cout << dq.Back() << '\n';
         }
     }
 
