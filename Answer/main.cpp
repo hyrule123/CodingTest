@@ -13,14 +13,25 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
+using uint64 = std::uint64_t;
+inline uint64 Pow(uint64 _base, uint64 _exp) {
+    uint64 ret = 1;
+    
+    for (uint64 i = 0; i < _exp; ++i) {
+        ret *= _base;
+    }
+
+    return ret;
+}
+
 int main() {
     USING_IOSTREAM;
 
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int N{}; std::cin >> N;
-    std::cout << N * (N - 1);
+    uint64 N{}; std::cin >> N;
+    std::cout << Pow(2ull , N);
 
     return 0;
 }
