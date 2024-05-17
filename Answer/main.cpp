@@ -14,14 +14,13 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 using uint64 = std::uint64_t;
-inline uint64 Pow(uint64 _base, uint64 _exp) {
-    uint64 ret = 1;
-    
-    for (uint64 i = 0; i < _exp; ++i) {
-        ret *= _base;
+uint64 Factorial(uint64 _num) {
+    //!!중요!! 0! == 1
+    if (_num <= 1) {
+        return 1ull;
     }
 
-    return ret;
+    return _num * Factorial(_num - 1ull);
 }
 
 int main() {
@@ -31,7 +30,7 @@ int main() {
     WRITE_OUTPUT;
 
     uint64 N{}; std::cin >> N;
-    std::cout << Pow(2ull , N);
+    std::cout << Factorial(N);
 
     return 0;
 }
