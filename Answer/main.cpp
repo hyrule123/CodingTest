@@ -14,13 +14,20 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 using uint64 = std::uint64_t;
-uint64 Factorial(uint64 _num) {
-    //!!중요!! 0! == 1
-    if (_num <= 1) {
-        return 1ull;
+uint64 Factorial(uint64 _num, uint64 _range) {
+    uint64 ret = 1;
+
+    for (uint64 i = 0; i < _range; ++i) {
+        ret *= _num;
+        --_num;
     }
 
-    return _num * Factorial(_num - 1ull);
+    return ret;
+}
+
+uint64 Combination(uint64 _items, uint64 _selections) {
+    uint64 range = std::min(_selections, _items - _selections);
+    return Factorial(_items, range) / Factorial(range, range);
 }
 
 int main() {
@@ -29,9 +36,11 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    uint64 N{}, K{}; std::cin >> N >> K;
-    //N C K -> N! / ( K!(N - K)! )
-    std::cout << Factorial(N) / (Factorial(K) * Factorial(N - K));
+    int T{}; std::cin >> T;
+    for (int i = 0; i < T; ++i) {
+        uint64 N{}, M{}; std::cin >> N >> M;
+        std::cout << Combination(M, N) << '\n';
+    }
 
     return 0;
 }
