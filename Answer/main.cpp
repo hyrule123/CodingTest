@@ -46,18 +46,16 @@ int main() {
         std::cout << input * input;
     }
     else {
-        uint lcm{}; std::cin >> lcm;
-        uint biggest = lcm;
-        uint smallest = lcm;
+        uint biggest{};
+        std::cin >> biggest;
+        uint smallest = biggest;
         for (uint i = 1; i < divisorCount; ++i) {
             uint input{}; std::cin >> input;
-            lcm = LCM(lcm, input);
-            if (biggest < input) { biggest = input; }
+            biggest = std::max(biggest, input);
+            smallest = std::min(smallest, input);
         }
-        //제일 큰 숫자도 N이 아닌 약수이므로
-        lcm = LCM(lcm, biggest * 2);
 
-        std::cout << lcm;
+        std::cout << biggest * smallest;
     }
 
     return 0;
