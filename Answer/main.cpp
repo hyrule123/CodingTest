@@ -14,14 +14,11 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-#include <string>
-constexpr size_t bucketSize = 120001;
-
 struct str {
     char cont[24]{};
     size_t strLen{};
-    bool Empty() const { return (0 == strLen); }
 
+    bool Empty() const { return (strLen == 0); }
     bool operator == (const str& _other) const {
         if (strLen != _other.strLen) { return false; }
 
@@ -32,31 +29,48 @@ struct str {
                 }
             }
         }
-
         return true;
     }
 };
+
+constexpr size_t bucketSize = 3001;
+constexpr size_t p = 31;
 size_t Hash(const str& _str) {
     size_t ret{};
-
-    constexpr size_t p = 31;
-
     if (false == _str.Empty()) {
         ret = (size_t)_str.cont[0];
         for (size_t i = 1; i < _str.strLen; ++i) {
-            ret = (ret * p + (size_t)_str.cont[i]) % bucketSize;
+            ret = (ret * p + _str.cont[i]) % bucketSize;
         }
     }
-
     return ret;
 }
 
-constexpr str ENTER = { "ENTER", 5 };
-
-struct userLog {
-    str name;
-    int welcomeCount{};
+struct infectData {
+    str name{};
+    bool infected{};
 };
+std::string_view name("hi");
+constexpr str ChongChong = { "ChongChong", sizeof("ChongChong") - 1 };
+
+#include <array>
+std::array <infectData, bucketSize> infectTable{};
+
+infectData& GetData(const str& _str) {
+    size_t hash = Hash(_str);
+
+    while (false == infectTable[hash].name.Empty()) {
+        if (infectTable[hash].name == _str) {
+            return infectTable[hash];
+        }
+        ++hash;
+        hash %= infectTable.size();
+    }
+
+    infectTable[hash].name = _str;
+    
+    return infectTable[hash];
+}
 
 int main() {
     USING_IOSTREAM;
@@ -65,54 +79,27 @@ int main() {
     WRITE_OUTPUT;
 
     int N{}; std::cin >> N;
-
-    std::vector<userLog> chatLog{};
-    chatLog.resize(bucketSize);
-
-    int enterCount{};   //들어온 사람 숫자
-    int gomgomCount{};  //곰곰티콘 쓴 사람 숫자
-    str input{};
+    str a{}; str b{};
+    int InfectedCount = 1; //ChongChong
     for (int i = 0; i < N; ++i) {
-        input.cont[0] = '\0';
-        std::cin >> input.cont;
-        input.strLen = std::strlen(input.cont);
+        std::cin >> a.cont >> b.cont;
+        a.strLen = std::strlen(a.cont);
+        b.strLen = std::strlen(b.cont);
 
-        if (input == ENTER) {
-            ++enterCount;
-            continue;
-        }
+        infectData& dataA = GetData(a);
+        infectData& dataB = GetData(b);
 
-        size_t hash = Hash(input);
+        if (dataA.name == ChongChong) { dataA.infected = true; }
+        else if (dataB.name == ChongChong) { dataB.infected = true; }
 
-        bool found = false;
-        while (false == chatLog[hash].name.Empty()) {
-            if (chatLog[hash].name == input) {
-                found = true;
-                
-                //인사한횟수가 들어온 사람수보다 적다면, 인사를 한것임
-                if (enterCount > chatLog[hash].welcomeCount) {
-                    ++gomgomCount;
-
-                    //인사횟수 갱신
-                    chatLog[hash].welcomeCount = enterCount;
-                }
-
-                break;
-            }
-
-            ++hash;
-            hash %= chatLog.size();
-        }
-
-        //못찾았다면, 즉 처음 메시지를 보낸사람이라면 등록후 gomgomCount 사용처리
-        if (false == found) {
-            chatLog[hash].name = input;
-            chatLog[hash].welcomeCount = enterCount;
-            ++gomgomCount;
+        if (dataA.infected != dataB.infected) {
+            dataA.infected = true;
+            dataB.infected = true;
+            ++InfectedCount;
         }
     }
 
-    std::cout << gomgomCount;
+    std::cout << InfectedCount;
 
     return 0;
 }
