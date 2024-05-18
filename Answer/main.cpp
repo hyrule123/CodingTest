@@ -13,64 +13,41 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
+#include <array>
 #include <vector>
-struct str {
-    char cont[24]{};
-    size_t strLen{};
+using uint = unsigned int;
+constexpr uint bucketSize = 10007;
+struct pair {
+    int val;
+    int count;
+};
 
-    bool Empty() const { return (strLen == 0); }
-    bool operator == (const str& _other) const {
-        if (strLen != _other.strLen) { return false; }
 
-        if (false == Empty()) {
-            for (size_t i = 0; i < strLen; ++i) {
-                if (cont[i] != _other.cont[i]) {
-                    return false;
+std::array<std::vector<pair>, bucketSize> table;
+struct HashTable {
+    uint Hash(int _key) {
+        return ((uint)_key / bucketSize);
+    }
+    pair& operator[] (int _key) {
+        std::vector<pair>& bucket = table[Hash(_key)];
+        if (false == bucket.empty()) {
+            for (size_t i = 0; i < bucket.size(); ++i) {
+                if (bucket[i].val == _key) {
+                    return bucket[i];
                 }
             }
         }
-        return true;
+        bucket.push_back(pair{ _key, 0 });
+        return bucket.back();
     }
 };
 
-constexpr size_t bucketSize = 3001;
-constexpr size_t p = 31;
-size_t Hash(const str& _str) {
-    size_t ret{};
-    if (false == _str.Empty()) {
-        ret = (size_t)_str.cont[0];
-        for (size_t i = 1; i < _str.strLen; ++i) {
-            ret = (ret * p + _str.cont[i]) % bucketSize;
-        }
-    }
-    return ret;
-}
 
-struct infectData {
-    str name{};
-    bool infected{};
-};
-std::string_view name("hi");
-constexpr str ChongChong = { "ChongChong", sizeof("ChongChong") - 1 };
-
-#include <array>
-std::array <infectData, bucketSize> infectTable{};
-
-infectData& GetData(const str& _str) {
-    size_t hash = Hash(_str);
-
-    while (false == infectTable[hash].name.Empty()) {
-        if (infectTable[hash].name == _str) {
-            return infectTable[hash];
-        }
-        ++hash;
-        hash %= infectTable.size();
-    }
-
-    infectTable[hash].name = _str;
-    
-    return infectTable[hash];
-}
+//참고: N은 홀수
+//1. arithMean: 입력받는 동안 sum값을 기록, 마지막에 (float)N으로 나눠주고 round(모든값의 합 <= 2억 -> int로 처리 가능)
+//2. median: 입력받은 후 처리해야 함
+//3. mode: 입력받는동안 해시테이블에 기록
+//4. range: 입력받으면서 최댓값, 최솟값 
 
 int main() {
     USING_IOSTREAM;
@@ -78,28 +55,38 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
+    int arithMean{};
+    int max = std::numeric_limits<int>::min();
+    int min = std::numeric_limits<int>::max();
+
+    HashTable modeTable{};
+
     int N{}; std::cin >> N;
-    str a{}; str b{};
-    int InfectedCount = 1; //ChongChong
     for (int i = 0; i < N; ++i) {
-        std::cin >> a.cont >> b.cont;
-        a.strLen = std::strlen(a.cont);
-        b.strLen = std::strlen(b.cont);
+        int input{}; std::cin >> input;
 
-        infectData& dataA = GetData(a);
-        infectData& dataB = GetData(b);
+        arithMean += input;
+        if (max < input) { max = input; }
+        if (min > input) { min = input; }
 
-        if (dataA.name == ChongChong) { dataA.infected = true; }
-        else if (dataB.name == ChongChong) { dataB.infected = true; }
+        ++(modeTable[input].count);
+    }
+    arithMean /= N;
+    std::cout << arithMean << '\n';
 
-        if (dataA.infected != dataB.infected) {
-            dataA.infected = true;
-            dataB.infected = true;
-            ++InfectedCount;
+    
+    pair mode{};
+    for (uint i = 1; i < bucketSize; ++i) {
+        std::vector<pair>& bucket = table[i];
+        if (false == bucket.empty()) {
+            for (size_t j = 0; j < bucket.size(); ++j) {
+                if (bucket[j].count > mode.count) {
+                    mode = bucket[j];
+                }
+            }
         }
     }
 
-    std::cout << InfectedCount;
-
+    
     return 0;
 }
