@@ -15,35 +15,48 @@ std::ios_base::sync_with_stdio(false)
 
 #include <vector>
 #include <cmath>
-void Heapify(std::vector<int>& _arr, const size_t _size, const size_t _idx) {
-    size_t largestIdx = _idx;
-    size_t left = _idx * 2 + 1;
-    size_t right = left + 1;
 
-    if (left < _size && _arr[largestIdx] < _arr[left]) {
-        largestIdx = left;
-    }
-    if (right < _size && _arr[largestIdx] < _arr[right]) {
-        largestIdx = right;
+void DivideAndConquer(std::vector<int>& _arr, std::vector<int>& _temp, size_t _begin, size_t _end) {
+    if (_begin >= _end) { return; }
+
+    const size_t mid = _begin + (_end - _begin) / 2;
+    DivideAndConquer(_arr, _temp, _begin, mid);
+    DivideAndConquer(_arr, _temp, mid + 1, _end);
+
+    size_t l = _begin;
+    size_t r = mid + 1;
+    size_t cursor = _begin;
+    while (l <= mid && r <= _end) {
+        if (_arr[l] < _arr[r]) {
+            _temp[cursor] = _arr[l];
+            ++cursor;
+            ++l;
+        }
+        else {
+            _temp[cursor] = _arr[r];
+            ++cursor;
+            ++r;
+        }
     }
 
-    if (largestIdx != _idx) {
-        std::swap(_arr[largestIdx], _arr[_idx]);
-
-        Heapify(_arr, _size, largestIdx);
+    //참고: if guard 해도 계산시간 변동은 없었음.
+    for (; l <= mid; ++l) {
+        _temp[cursor] = _arr[l];
+        ++cursor;
     }
+    for (; r <= _end; ++r) {
+        _temp[cursor] = _arr[r];
+        ++cursor;
+    }
+    
+    memcpy(_arr.data() + _begin, _temp.data() + _begin, (_end + 1 - _begin) * sizeof(int));
 }
 
-void HeapSort(std::vector<int>& _arr) {
-    for (size_t i = _arr.size() / 2; i != -1; --i) {
-        Heapify(_arr, _arr.size(), i);
-    }
+void MergeSort(std::vector<int>& _arr) {
+    if (_arr.size() <= 1) { return; }
 
-    for (size_t i = _arr.size() - 1; i != -1; --i) {
-        //0번은 정렬됨 -> 맨 뒤로 보내고 그거 제외한 부분만 Heapify
-        std::swap(_arr[0], _arr[i]);
-        Heapify(_arr, i, 0);
-    }
+    std::vector<int> temp{}; temp.resize(_arr.size());
+    DivideAndConquer(_arr, temp, 0, _arr.size() - 1);
 }
 
 int main() {
@@ -60,7 +73,7 @@ int main() {
         std::cin >> numbers[i];
         sum += numbers[i];
     }
-    HeapSort(numbers);
+    MergeSort(numbers);
 
     //ArithMean
     int arithMean = (int)(std::round((float)sum / (float)numbers.size()));
@@ -72,10 +85,8 @@ int main() {
     //Mode
     std::vector<int> modes{}; modes.reserve(2);
     int modeCount = 1;
-
     int curNum = numbers[0];
     int curNumCount = 0;
-
     for (size_t i = 0; i < numbers.size(); ++i) {
         if (curNum == numbers[i]) {
             ++curNumCount;

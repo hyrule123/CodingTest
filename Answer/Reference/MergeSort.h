@@ -37,6 +37,7 @@ void DivideAndConquerRecursive(std::vector<T>& _orig, std::vector<T>& _temp, con
         }
     }
 
+    //참고)if guard를 걸어놔도 시간에는 차이가 없음.
     //분할 갯수가 불균형하여 한 쪽이 남아있을 수도 있음 -> 남아있는 값들을 복사해준다.
     for (; lIter <= mid; ++lIter) {
         _temp[writeIter] = _orig[lIter];
