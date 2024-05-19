@@ -13,41 +13,38 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-#include <array>
 #include <vector>
-using uint = unsigned int;
-constexpr uint bucketSize = 10007;
-struct pair {
-    int val;
-    int count;
-};
+#include <cmath>
+void Heapify(std::vector<int>& _arr, const size_t _size, const size_t _idx) {
+    size_t largestIdx = _idx;
+    size_t left = _idx * 2 + 1;
+    size_t right = left + 1;
 
-
-std::array<std::vector<pair>, bucketSize> table;
-struct HashTable {
-    uint Hash(int _key) {
-        return ((uint)_key / bucketSize);
+    if (left < _size && _arr[largestIdx] < _arr[left]) {
+        largestIdx = left;
     }
-    pair& operator[] (int _key) {
-        std::vector<pair>& bucket = table[Hash(_key)];
-        if (false == bucket.empty()) {
-            for (size_t i = 0; i < bucket.size(); ++i) {
-                if (bucket[i].val == _key) {
-                    return bucket[i];
-                }
-            }
-        }
-        bucket.push_back(pair{ _key, 0 });
-        return bucket.back();
+    if (right < _size && _arr[largestIdx] < _arr[right]) {
+        largestIdx = right;
     }
-};
 
+    if (largestIdx != _idx) {
+        std::swap(_arr[largestIdx], _arr[_idx]);
 
-//참고: N은 홀수
-//1. arithMean: 입력받는 동안 sum값을 기록, 마지막에 (float)N으로 나눠주고 round(모든값의 합 <= 2억 -> int로 처리 가능)
-//2. median: 입력받은 후 처리해야 함
-//3. mode: 입력받는동안 해시테이블에 기록
-//4. range: 입력받으면서 최댓값, 최솟값 
+        Heapify(_arr, _size, largestIdx);
+    }
+}
+
+void HeapSort(std::vector<int>& _arr) {
+    for (size_t i = _arr.size() / 2; i != -1; --i) {
+        Heapify(_arr, _arr.size(), i);
+    }
+
+    for (size_t i = _arr.size() - 1; i != -1; --i) {
+        //0번은 정렬됨 -> 맨 뒤로 보내고 그거 제외한 부분만 Heapify
+        std::swap(_arr[0], _arr[i]);
+        Heapify(_arr, i, 0);
+    }
+}
 
 int main() {
     USING_IOSTREAM;
@@ -55,38 +52,62 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int arithMean{};
-    int max = std::numeric_limits<int>::min();
-    int min = std::numeric_limits<int>::max();
-
-    HashTable modeTable{};
-
     int N{}; std::cin >> N;
+    std::vector<int> numbers((size_t)N);
+
+    int sum = 0;
     for (int i = 0; i < N; ++i) {
-        int input{}; std::cin >> input;
-
-        arithMean += input;
-        if (max < input) { max = input; }
-        if (min > input) { min = input; }
-
-        ++(modeTable[input].count);
+        std::cin >> numbers[i];
+        sum += numbers[i];
     }
-    arithMean /= N;
+    HeapSort(numbers);
+
+    //ArithMean
+    int arithMean = (int)(std::round((float)sum / (float)numbers.size()));
     std::cout << arithMean << '\n';
 
-    
-    pair mode{};
-    for (uint i = 1; i < bucketSize; ++i) {
-        std::vector<pair>& bucket = table[i];
-        if (false == bucket.empty()) {
-            for (size_t j = 0; j < bucket.size(); ++j) {
-                if (bucket[j].count > mode.count) {
-                    mode = bucket[j];
-                }
+    //Median: N은 무조건 홀수이므로 /2만해줘도 됨
+    std::cout << numbers[numbers.size() / 2] << '\n';
+
+    //Mode
+    std::vector<int> modes{}; modes.reserve(2);
+    int modeCount = 1;
+
+    int curNum = numbers[0];
+    int curNumCount = 0;
+
+    for (size_t i = 0; i < numbers.size(); ++i) {
+        if (curNum == numbers[i]) {
+            ++curNumCount;
+        }
+        //숫자 바뀔경우 평가 후 current 초기화
+        else {
+            if (modeCount < curNumCount) {
+                modes.clear();
+                modes.push_back(curNum);
+                modeCount = curNumCount;
             }
+            else if (modeCount == curNumCount && modes.size() < 2) {
+                modes.push_back(curNum);
+            }
+
+            curNum = numbers[i];
+            curNumCount = 1;
         }
     }
+    //마지막 숫자 평가
+    if (modeCount < curNumCount) {
+        modes.clear();
+        modes.push_back(curNum);
+        modeCount = curNumCount;
+    }
+    else if (modeCount == curNumCount && modes.size() < 2) {
+        modes.push_back(curNum);
+    }
+    std::cout << (modes.size() == 1 ? modes[0] : modes[1]) << '\n';
 
+    //Range
+    std::cout << numbers.back() - numbers.front();
     
     return 0;
 }
