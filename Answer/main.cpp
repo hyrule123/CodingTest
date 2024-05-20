@@ -14,49 +14,126 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-#include <cmath>
+#include <array>
+struct str {
+    char c[12]{};
+    int len{};
+    int count{};
 
-void DivideAndConquer(std::vector<int>& _arr, std::vector<int>& _temp, size_t _begin, size_t _end) {
-    if (_begin >= _end) { return; }
+    void Reset() {
+        c[0] = '\0';
+        len = 0;
+        count = 0;
+    }
+    void Set() { len = (int)std::strlen(c); count = 1; }
+    bool Empty() const { return (len == 0); }
+    bool operator == (const str& _other) const {
+        if (len != _other.len) { return false; }
 
-    const size_t mid = _begin + (_end - _begin) / 2;
-    DivideAndConquer(_arr, _temp, _begin, mid);
-    DivideAndConquer(_arr, _temp, mid + 1, _end);
+        for (int i = 0; i < len; ++i) {
+            if (c[i] != _other.c[i]) { return false; }
+        }
 
-    size_t l = _begin;
+        return true;
+    }
+    bool operator > (const str& _other) const {
+        if (count != _other.count) {
+            return (count > _other.count);
+        }
+
+        else if (len > _other.len) { return true; }
+        else if (len == _other.len) { 
+            for (int i = 0; i < len; ++i) {
+                if (c[i] == _other.c[i]) { continue; }
+
+                return (c[i] < _other.c[i]);
+            }
+        }
+
+        return false;
+    }
+};
+
+bool IsPrime(size_t _num) {
+    if (_num <= 1) { return false; }
+    else if (_num <= 3) { return true; }
+
+    if (_num % 2 == 0 || _num % 3 == 0) { return false; }
+
+    for (size_t i = 5; i * i < _num; i += 5) {
+        if (_num % i == 0) { return false; }
+    }
+
+    return true;
+}
+
+size_t ComputeBucketCount(size_t _num){
+    _num = (size_t)(1.25f * _num);
+    while (false == IsPrime(_num)) {
+        ++_num;
+    }
+    return _num;
+}
+
+size_t Hash1(const str& _str) {
+    size_t ret = 0;
+    if (false == _str.Empty()) {
+        ret = _str.c[0];
+        for (int i = 1; i < _str.len; ++i) {
+            ret = (ret * 31 + _str.c[i]) % 100'000'007;
+        }
+    }
+    return ret;
+}
+size_t Hash2(const str& _str) {
+    size_t ret = 0;
+    if (false == _str.Empty()) {
+        ret = _str.c[0];
+        for (int i = 1; i < _str.len; ++i) {
+            ret = (ret * 59 + _str.c[i]) % 150'000'071;
+        }
+    }
+    return ret;
+}
+
+void DnC(std::vector<str>& _arr, std::vector<str>& _temp, const size_t _start, const size_t _end) {
+    if (_start >= _end) { return; }
+
+    const size_t mid = _start + (_end - _start) / 2;
+    size_t l = _start;
     size_t r = mid + 1;
-    size_t cursor = _begin;
+
+    DnC(_arr, _temp, l, mid);
+    DnC(_arr, _temp, r, _end);
+
+    size_t cursor = _start;
     while (l <= mid && r <= _end) {
-        if (_arr[l] < _arr[r]) {
+        if (_arr[l] > _arr[r]) {
             _temp[cursor] = _arr[l];
-            ++cursor;
-            ++l;
+            ++cursor; ++l;
         }
         else {
             _temp[cursor] = _arr[r];
-            ++cursor;
-            ++r;
+            ++cursor; ++r;
         }
     }
-
-    //참고: if guard 해도 계산시간 변동은 없었음.
-    for (; l <= mid; ++l) {
-        _temp[cursor] = _arr[l];
-        ++cursor;
-    }
-    for (; r <= _end; ++r) {
-        _temp[cursor] = _arr[r];
-        ++cursor;
-    }
     
-    memcpy(_arr.data() + _begin, _temp.data() + _begin, (_end + 1 - _begin) * sizeof(int));
+    while (l <= mid) {
+        _temp[cursor] = _arr[l];
+        ++cursor; ++l;
+    }
+    while (r <= _end) {
+        _temp[cursor] = _arr[r];
+        ++cursor; ++r;
+    }
+
+    memcpy(_arr.data() + _start, _temp.data() + _start, sizeof(str) * (_end - _start + 1));
 }
 
-void MergeSort(std::vector<int>& _arr) {
-    if (_arr.size() <= 1) { return; }
+void MergeSort(std::vector<str>& _arr) {
+    std::vector<str> temp(_arr.size());
 
-    std::vector<int> temp{}; temp.resize(_arr.size());
-    DivideAndConquer(_arr, temp, 0, _arr.size() - 1);
+    DnC(_arr, temp, 0, _arr.size() - 1);
 }
 
 int main() {
@@ -65,60 +142,45 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    int N{}; std::cin >> N;
-    std::vector<int> numbers((size_t)N);
+    int N{}, M{}; std::cin >> N >> M;
+    std::vector<str> table(ComputeBucketCount((size_t)N));
 
-    int sum = 0;
+    //해시테이블에 넣어서 카운트 세준다.
+    str input{};
     for (int i = 0; i < N; ++i) {
-        std::cin >> numbers[i];
-        sum += numbers[i];
-    }
-    MergeSort(numbers);
+        input.Reset();
+        std::cin >> input.c; input.Set();
 
-    //ArithMean
-    int arithMean = (int)(std::round((float)sum / (float)numbers.size()));
-    std::cout << arithMean << '\n';
-
-    //Median: N은 무조건 홀수이므로 /2만해줘도 됨
-    std::cout << numbers[numbers.size() / 2] << '\n';
-
-    //Mode
-    std::vector<int> modes{}; modes.reserve(2);
-    int modeCount = 1;
-    int curNum = numbers[0];
-    int curNumCount = 0;
-    for (size_t i = 0; i < numbers.size(); ++i) {
-        if (curNum == numbers[i]) {
-            ++curNumCount;
+        if (input.len < M) {
+            input.Reset();
+            continue;
         }
-        //숫자 바뀔경우 평가 후 current 초기화
-        else {
-            if (modeCount < curNumCount) {
-                modes.clear();
-                modes.push_back(curNum);
-                modeCount = curNumCount;
-            }
-            else if (modeCount == curNumCount && modes.size() < 2) {
-                modes.push_back(curNum);
+
+        size_t idx = Hash1(input) % table.size();
+        size_t step = Hash2(input);
+
+        bool found = false;
+        while (false == table[idx].Empty()) {
+            if (table[idx] == input) {
+                ++(table[idx].count);
+                found = true;
+                break;
             }
 
-            curNum = numbers[i];
-            curNumCount = 1;
+            idx = (idx + step) % table.size();
+        }
+
+        if (false == found) {
+            table[idx] = input;
         }
     }
-    //마지막 숫자 평가
-    if (modeCount < curNumCount) {
-        modes.clear();
-        modes.push_back(curNum);
-        modeCount = curNumCount;
-    }
-    else if (modeCount == curNumCount && modes.size() < 2) {
-        modes.push_back(curNum);
-    }
-    std::cout << (modes.size() == 1 ? modes[0] : modes[1]) << '\n';
 
-    //Range
-    std::cout << numbers.back() - numbers.front();
+    //해시테이블을 그대로 sort해서 규칙에 맞게 정렬시킨다
+    MergeSort(table);
+
+    for (size_t i = 0; i < table.size() && false == table[i].Empty(); ++i) {
+        std::cout << table[i].c << '\n';
+    }
     
     return 0;
 }
