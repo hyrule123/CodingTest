@@ -13,11 +13,20 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-using uint64 = std::int64_t;
-uint64 Factorial(uint64 _num) {
-    if (_num <= 1) { return 1; }
+struct int2 { 
+    int n_2{}, n_1{}; 
+};
 
-    return _num * Factorial(_num - 1);
+int2 FibRecursive(int _n) {
+    if (_n <= 2) { return { 0, 1 }; }
+    int2 result = FibRecursive(--_n);
+    return { result.n_1, result.n_1 + result.n_2 };
+}
+
+int Fibonacci(int _n) {
+    if (_n <= 1) { return _n; }
+    int2 ret = FibRecursive(_n);
+    return ret.n_2 + ret.n_1;
 }
 
 int main() {
@@ -25,9 +34,10 @@ int main() {
 
     READ_INPUT;
     WRITE_OUTPUT;
-
-    uint64 input{}; std::cin >> input;
-    std::cout << Factorial(input);
+    
+    int n{}; std::cin >> n;
+    std::cin >> n;
+    std::cout << Fibonacci(n);
     
     return 0;
 }
