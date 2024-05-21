@@ -14,59 +14,18 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-int DnC(std::vector<int>& _vec, std::vector<int>& _temp, const size_t _start, const size_t _end, int& _nthWrite) {
-    if (_start >= _end) { return -1; }
-
-
-    const size_t mid = _start + (_end - _start) / 2;
-    size_t l = _start;
-    size_t r = mid + 1;
-
-    int ret = 0;
-    ret = DnC(_vec, _temp, l, mid, _nthWrite);
-    if (-1 != ret) { return ret; }
-
-    ret = DnC(_vec, _temp, r, _end, _nthWrite);
-    if (-1 != ret) { return ret; }
-
-    size_t cursor = _start;
-    while (l <= mid && r <= _end) {
-        if (_vec[l] <= _vec[r]) {
-            _temp[cursor] = _vec[l];
-            ++cursor; ++l;
-        }
-        else {
-            _temp[cursor] = _vec[r];
-            ++cursor; ++r;
-        }
+void Cantor(std::vector<char>& _arr, const size_t _start, const size_t _end) {
+    size_t len = _end - _start;
+    if (len <= 1) { 
+        return; 
     }
+    len /= 3;
 
-    while (l <= mid) {
-        _temp[cursor] = _vec[l];
-        ++cursor; ++l;
-    }
-    while (r <= _end) {
-        _temp[cursor] = _vec[r];
-        ++cursor; ++r;
-    }
+    size_t part = _start + len;
+    memset(_arr.data() + part, ' ', len);
 
-    for (size_t i = _start; i <= _end; ++i) {
-        _vec[i] = _temp[i];
-        --_nthWrite;
-        if (_nthWrite == 0) {
-            return _vec[i];
-        }
-    }
-
-    return -1;
-}
-
-int MergeSortNth(std::vector<int>& _vec, int _nthWrite) {
-    if (_vec.size() < 2) { return -1; }
-
-    std::vector<int> temp(_vec.size());
-
-    return DnC(_vec, temp, 0, temp.size() - 1, _nthWrite);
+    Cantor(_arr, _start, part);
+    Cantor(_arr, part + len, _end);
 }
 
 int main() {
@@ -75,13 +34,22 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t N{}; int K{}; std::cin >> N >> K;
-    std::vector<int> vec(N);
-    for (size_t i = 0; i < N; ++i) {
-        std::cin >> vec[i];
+    std::vector<char> arr{};
+    int input{};
+    while (std::cin >> input) {
+        size_t size = 1;
+        while ((--input) >= 0) {
+            size *= 3;
+        }
+        arr.clear();
+        arr.resize(size + 2, '-');
+        
+        arr[arr.size() - 2] = '\n';
+        arr[arr.size() - 1] = '\0';
+        
+        Cantor(arr, 0, size);
+
+        std::cout << arr.data();
     }
-
-    std::cout << MergeSortNth(vec, K);
-
     return 0;
 }
