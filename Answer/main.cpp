@@ -14,30 +14,32 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-#include <string>
 
-void SetStar(std::vector<std::vector<char>>& _sqre, const size_t _startX, const size_t _startY, size_t _length) {
-    if (_length <= 1) { return; }
-    _length /= 3;
-    
-    size_t xErase = _startX + _length;
-    size_t xEraseEnd = xErase + _length;
-    size_t yErase = _startY + _length;
-    size_t yEraseEnd = yErase + _length;
-
-    //중간 뚫기
-    for (size_t y = yErase; y < yEraseEnd; ++y) {
-        memset(_sqre[y].data() + xErase, ' ', _length);
+using uint = unsigned int;
+void HanoiRecursive(uint _curLevel, uint _from, uint _to, uint _temp) {
+    if (_curLevel == 0) { 
+        return; 
     }
 
-    //8방향 재귀
-    for (size_t x = _startX, xEnd = xEraseEnd + _length; x < xEnd; x += _length) {
-        for (size_t y = _startY, yEnd = yEraseEnd + _length; y < yEnd; y += _length) {
-            //방금 했던 중간부분은 호출 안해도 됨
-            if (x == xErase && y == yErase) { continue; }
-            SetStar(_sqre, x, y, _length);
-        }
+    //가장 작은 원반부터 옮기기 시작(1차 재귀) - temp와 to에 번갈아가면서 쌓아준다.
+    HanoiRecursive(_curLevel - 1, _from, _temp, _to);
+
+    //내 원반을 목표 봉에 넣어주고
+    std::cout << _from << ' ' << _to << '\n';
+
+    //temp 봉에 옮겨놓은 나보다 작은 원반들을 목표 봉으로 옮겨준다(2차 재귀)
+    HanoiRecursive(_curLevel - 1, _temp, _to, _from);
+}
+
+void Hanoi(uint _levels) {
+    uint trials = 1;
+    for (uint i = 0; i < _levels; ++i) {
+        trials *= 2;
     }
+    trials -= 1;
+    std::cout << trials << '\n';
+
+    HanoiRecursive(_levels, 1u, 3u, 2u);
 }
 
 int main() {
@@ -46,22 +48,9 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
 
-    size_t N{}; std::cin >> N;
+    uint N{}; std::cin >> N;
+
+    Hanoi(N);
     
-    std::vector<std::vector<char>> square;
-    square.resize(N);
-    size_t charSize = N + 2;
-    for (size_t i = 0; i < N; ++i) {
-        square[i].resize(charSize, '*');
-        square[i][charSize - 2] = '\n';
-        square[i][charSize - 1] = '\0';
-    }
-
-    SetStar(square, 0, 0, N);
-
-    for (size_t i = 0; i < N; ++i) {
-        std::cout << square[i].data();
-    }
-
     return 0;
 }
