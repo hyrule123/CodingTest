@@ -13,20 +13,15 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 ////////////////////////////
 
-struct int2 { 
-    int n_2{}, n_1{}; 
-};
-
-int2 FibRecursive(int _n) {
-    if (_n <= 2) { return { 0, 1 }; }
-    int2 result = FibRecursive(--_n);
-    return { result.n_1, result.n_1 + result.n_2 };
+int recursion(const char* s, int l, int r, int& callCount) {
+    ++callCount;
+    if (l >= r) return 1;
+    else if (s[l] != s[r]) return 0;
+    else return recursion(s, l + 1, r - 1, callCount);
 }
 
-int Fibonacci(int _n) {
-    if (_n <= 1) { return _n; }
-    int2 ret = FibRecursive(_n);
-    return ret.n_2 + ret.n_1;
+int isPalindrome(const char* s, int& callCount) {
+    return recursion(s, 0, (int)strlen(s) - 1, callCount);
 }
 
 int main() {
@@ -35,9 +30,16 @@ int main() {
     READ_INPUT;
     WRITE_OUTPUT;
     
-    int n{}; std::cin >> n;
-    std::cin >> n;
-    std::cout << Fibonacci(n);
-    
+    int T{}; std::cin >> T;
+
+    char input[1004]{};
+    for (int i = 0; i < T; ++i) {
+        input[0] = '\0';
+        std::cin >> input;
+        int callCount = 0;
+        int ispal = isPalindrome(input, callCount);
+        std::cout << ispal << ' ' << callCount << '\n';
+    }
+
     return 0;
 }
