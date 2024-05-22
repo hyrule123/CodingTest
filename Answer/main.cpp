@@ -14,34 +14,29 @@ std::ios_base::sync_with_stdio(false)
 ////////////////////////////
 
 #include <vector>
-void DigitRecursive(std::vector<int>& _inUse, const int _range, const size_t _digitMax) {
-    if (_inUse.size() == _digitMax) { 
-        for (size_t i = 0; i < _inUse.size(); ++i) {
-            std::cout << _inUse[i] << ' ';
+
+void AscendingRecursive(std::vector<int>& _before, const int _range, const size_t _max) {
+    if (_before.size() == _max) {
+        for (size_t i = 0; i < _before.size(); ++i) {
+            std::cout << _before[i] << ' ';
         }
         std::cout << '\n';
-        return; 
+        return;
     }
 
-    for (int i = 1; i <= _range; ++i) {
-        bool cont = false;
-        for (size_t j = 0; j < _inUse.size(); ++j) {
-            if (_inUse[j] == i) {
-                cont = true;
-                break;
-            }
-        }
-        if (cont) { continue; }
-        _inUse.push_back(i);
-        DigitRecursive(_inUse, _range, _digitMax);
-        _inUse.pop_back();
+
+    for (int i = (_before.empty() ? 0 : _before.back()) + 1; i <= _range; ++i) {
+        _before.push_back(i);
+        AscendingRecursive(_before, _range, _max);
+        _before.pop_back();
     }
 }
 
-void Digit(int N, size_t M) {
-    std::vector<int> inUse{};
-    inUse.reserve(M);
-    DigitRecursive(inUse, N, M);
+void Ascending(int _n, size_t _m) {
+    std::vector<int> before;
+    before.reserve(_n);
+
+    AscendingRecursive(before, _n, _m);
 }
 
 int main() {
@@ -49,9 +44,9 @@ int main() {
 
     READ_INPUT;
     WRITE_OUTPUT;
-    
+
     int N{}; size_t M{}; std::cin >> N >> M;
-    Digit(N, M);
+    Ascending(N, M);
 
     return 0;
 }
