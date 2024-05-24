@@ -10,9 +10,8 @@ std::ios_base::sync_with_stdio(false)
 #include <cstring>  //memset
 //////////////////
 
-
 #include <vector>
-void Recursive(std::vector<int>& _arr, const int _range, const size_t _max) {
+void Recursive(std::vector<int>& _arr, int _range, size_t _max) {
     if (_arr.size() == _max) {
         for (size_t i = 0; i < _arr.size(); ++i) {
             std::cout << _arr[i] << ' ';
@@ -22,17 +21,23 @@ void Recursive(std::vector<int>& _arr, const int _range, const size_t _max) {
     }
 
     for (int i = 1; i <= _range; ++i) {
+        if (false == _arr.empty()) {
+            if (false == (i >= _arr.back())) { continue; }
+        }
+        
         _arr.push_back(i);
         Recursive(_arr, _range, _max);
         _arr.pop_back();
     }
 }
 
-int main() { READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
+int main() { 
+    READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
     int N{}; size_t M{}; std::cin >> N >> M;
-    std::vector<int> arr;
+    std::vector<int> arr{};
     arr.reserve(M);
+
     Recursive(arr, N, M);
 
     return 0;
