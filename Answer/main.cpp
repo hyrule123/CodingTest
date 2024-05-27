@@ -9,36 +9,57 @@
 #include <cstring>  //memset
 //////////////////
 
-using uint = unsigned int;
-#include <vector>
-uint FibRecursive(size_t _n, uint& _code1Count) {
-    if (_n <= 2) { ++_code1Count; return 1; }
-    
-    return FibRecursive(_n - 1, _code1Count) + FibRecursive(_n - 2, _code1Count);
-}
-
-uint FibDynamic(size_t _n, uint& _code2Count) {
-    std::vector<uint> seq(_n, 1);
-
-    for (size_t i = 2; i < _n; ++i) {
-        seq[i] = seq[i - 1] + seq[i - 2];
-        ++_code2Count;
+//백준 9184 컴파일타임 계산 버전(2056kb, 4ms)
+#include <array>
+using int3d = std::array<std::array<std::array<int, 21>, 21>, 21>;
+constexpr int3d MakeArr() {
+    int3d ret{};
+    for (size_t a = 0; a <= 20; ++a) {
+        for (size_t b = 0; b <= 20; ++b) {
+            for (size_t c = 0; c <= 20; ++c) {
+                if (a == 0 || b == 0 || c == 0) {
+                    ret[a][b][c] = 1;
+                }
+                else if (a < b && b < c) {
+                    ret[a][b][c] 
+                        = ret[a][b][c - 1] 
+                        + ret[a][b - 1][c - 1] 
+                        - ret[a][b - 1][c];
+                }
+                else {
+                    ret[a][b][c] 
+                        = ret[a - 1][b][c] 
+                        + ret[a - 1][b - 1][c]
+                        + ret[a - 1][b][c - 1] 
+                        - ret[a - 1][b - 1][c - 1];
+                }
+            }
+        }
     }
-
-    return seq[_n - 1];
+    return ret;
 }
+int3d preMake = MakeArr();
 
 int main() { 
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
+    
+    while (true) {
+        int a, b, c; std::cin >> a >> b >> c;
+        if (a == -1 && b == -1 && c == -1) {
+            break;
+        }
 
-    size_t N{}; std::cin >> N;
-    uint count = 0;
-    FibRecursive(N, count);
-    std::cout << count << ' ';
+        std::cout << "w(" << a << ", " << b << ", " << c << ") = ";
 
-    count = 0;
-    FibDynamic(N, count);
-    std::cout << count;
+        if (a <= 0 || b <= 0 || c <= 0) {
+            a = 0; b = 0; c = 0;
+        }
+        else if (a > 20 || b > 20 || c > 20) {
+            a = 20; b = 20; c = 20;
+        }
+        
+        std::cout << preMake[a][b][c] << '\n';
+    }
 
     return 0;
 }
