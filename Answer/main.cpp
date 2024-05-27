@@ -9,56 +9,42 @@
 #include <cstring>  //memset
 //////////////////
 
-//백준 9184 컴파일타임 계산 버전(2056kb, 4ms)
-#include <array>
-using int3d = std::array<std::array<std::array<int, 21>, 21>, 21>;
-constexpr int3d MakeArr() {
-    int3d ret{};
-    for (size_t a = 0; a <= 20; ++a) {
-        for (size_t b = 0; b <= 20; ++b) {
-            for (size_t c = 0; c <= 20; ++c) {
-                if (a == 0 || b == 0 || c == 0) {
-                    ret[a][b][c] = 1;
-                }
-                else if (a < b && b < c) {
-                    ret[a][b][c] 
-                        = ret[a][b][c - 1] 
-                        + ret[a][b - 1][c - 1] 
-                        - ret[a][b - 1][c];
-                }
-                else {
-                    ret[a][b][c] 
-                        = ret[a - 1][b][c] 
-                        + ret[a - 1][b - 1][c]
-                        + ret[a - 1][b][c - 1] 
-                        - ret[a - 1][b - 1][c - 1];
-                }
-            }
-        }
+//재귀함수 + 메모 버전(2056kb, 8ms)
+int memo[21][21][21]{};
+int w(int _a, int _b, int _c) {
+    int& m = memo[_a][_b][_c];
+    if (m) {
+        return m;
     }
-    return ret;
-}
-int3d preMake = MakeArr();
 
-int main() { 
+    if (_a == 0 || _b == 0 || _c == 0) {
+        m = 1;
+        return m;
+    }
+    else if (_a < _b && _b < _c) {
+        m = w(_a, _b, _c - 1) + w(_a, _b - 1, _c - 1) - w(_a, _b - 1, _c);
+        return m;
+    }
+
+    m = w(_a - 1, _b, _c) + w(_a - 1, _b - 1, _c) + w(_a - 1, _b, _c - 1) - w(_a - 1, _b - 1, _c - 1);
+    return m;
+}
+
+int main() {
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
-    
+
     while (true) {
         int a, b, c; std::cin >> a >> b >> c;
-        if (a == -1 && b == -1 && c == -1) {
-            break;
-        }
+        if (a == -1 && b == -1 && c == -1) { break; }
 
         std::cout << "w(" << a << ", " << b << ", " << c << ") = ";
-
         if (a <= 0 || b <= 0 || c <= 0) {
-            a = 0; b = 0; c = 0;
+            std::cout << 1 << '\n';
+            continue;
         }
-        else if (a > 20 || b > 20 || c > 20) {
-            a = 20; b = 20; c = 20;
-        }
-        
-        std::cout << preMake[a][b][c] << '\n';
+        else if (a > 20 || b > 20 || c > 20) { a = 20; b = 20; c = 20; }
+
+        std::cout << w(a, b, c) << '\n';
     }
 
     return 0;
