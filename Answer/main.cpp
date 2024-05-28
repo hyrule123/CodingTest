@@ -9,43 +9,30 @@
 #include <cstring>  //memset
 //////////////////
 
-//재귀함수 + 메모 버전(2056kb, 8ms)
-int memo[21][21][21]{};
-int w(int _a, int _b, int _c) {
-    int& m = memo[_a][_b][_c];
-    if (m) {
-        return m;
+/*
+* 백준 질문게시판 발췌
+길이가 k인 경우는 길이가 k-2에서 00를 더한 경우 +
+길이가 k-1에서 1을 더한 경우의 합으로 볼 수 있기 때문에
+
+dp[1]=1,dp[2]=2로 두고 dp[k]=dp[k-1]+dp[k-2] 으로 점화식을 세워서 나타내면 피보나치 수열과 같게 됩니다
+*/
+#include <vector>
+using uint = unsigned int;
+uint Fib15746(size_t _n) {
+    std::vector<uint> Fib(_n + 1, 1);
+    
+    for (size_t i = 2; i <= _n; ++i) {
+        Fib[i] = (Fib[i - 1] + Fib[i - 2]) % 15746;
     }
 
-    if (_a == 0 || _b == 0 || _c == 0) {
-        m = 1;
-        return m;
-    }
-    else if (_a < _b && _b < _c) {
-        m = w(_a, _b, _c - 1) + w(_a, _b - 1, _c - 1) - w(_a, _b - 1, _c);
-        return m;
-    }
-
-    m = w(_a - 1, _b, _c) + w(_a - 1, _b - 1, _c) + w(_a - 1, _b, _c - 1) - w(_a - 1, _b - 1, _c - 1);
-    return m;
+    return Fib.back();
 }
 
 int main() {
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
-    while (true) {
-        int a, b, c; std::cin >> a >> b >> c;
-        if (a == -1 && b == -1 && c == -1) { break; }
-
-        std::cout << "w(" << a << ", " << b << ", " << c << ") = ";
-        if (a <= 0 || b <= 0 || c <= 0) {
-            std::cout << 1 << '\n';
-            continue;
-        }
-        else if (a > 20 || b > 20 || c > 20) { a = 20; b = 20; c = 20; }
-
-        std::cout << w(a, b, c) << '\n';
-    }
+    size_t N; std::cin >> N;
+    std::cout << Fib15746(N);
 
     return 0;
 }
