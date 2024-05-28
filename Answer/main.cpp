@@ -9,30 +9,28 @@
 #include <cstring>  //memset
 //////////////////
 
-/*
-* 백준 질문게시판 발췌
-길이가 k인 경우는 길이가 k-2에서 00를 더한 경우 +
-길이가 k-1에서 1을 더한 경우의 합으로 볼 수 있기 때문에
+#include <array>
+using uint64 = std::uint64_t;
+constexpr size_t size = 100;
+constexpr std::array<uint64, size> PadovanPreMake() {
+    std::array<uint64, size> ret{ 1, 1, 1, 2, 2, };
 
-dp[1]=1,dp[2]=2로 두고 dp[k]=dp[k-1]+dp[k-2] 으로 점화식을 세워서 나타내면 피보나치 수열과 같게 됩니다
-*/
-#include <vector>
-using uint = unsigned int;
-uint Fib15746(size_t _n) {
-    std::vector<uint> Fib(_n + 1, 1);
-    
-    for (size_t i = 2; i <= _n; ++i) {
-        Fib[i] = (Fib[i - 1] + Fib[i - 2]) % 15746;
+    for (size_t i = 5; i < size; ++i) {
+        ret[i] = ret[i - 1] + ret[i - 5];
     }
 
-    return Fib.back();
+    return ret;
 }
+constexpr std::array<uint64, size> PadovanSeq = PadovanPreMake();
 
 int main() {
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
-    size_t N; std::cin >> N;
-    std::cout << Fib15746(N);
+    int N; std::cin >> N;
+    for (int i = 0; i < N; ++i) {
+        size_t T; std::cin >> T;
+        std::cout << PadovanSeq[T - 1] << '\n';
+    }
 
     return 0;
 }
