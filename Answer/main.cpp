@@ -9,23 +9,29 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <vector>
+#include <array>
+using uint = unsigned int;
+using cost = std::array<uint, 3>;
+enum { r, g, b };
 
 int main() {
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
     size_t N{}; std::cin >> N;
-    std::vector<int> seq(N);
-    std::cin >> seq[0];
-    int maxSum = seq[0];
+    cost prevCost{}, curCost{};
+    std::cin >> prevCost[r] >> prevCost[g] >> prevCost[b];
     for (size_t i = 1; i < N; ++i) {
-        std::cin >> seq[i];
+        std::cin >> curCost[r] >> curCost[g] >> curCost[b];
         
-        //지난 연속합에 이어서 더한다. 더한 값을 쓰는것보다 새로 시작하는게 더 클경우 여기부터 연속합을 새로 시작한다.
-        seq[i] = std::max(seq[i - 1] + seq[i], seq[i]);
-        maxSum = std::max(seq[i], maxSum);
+        //r로 넘어갈 수 있는 색상 = g, b >> g, b중 코스트가 적은 쪽을 선택한다.
+        curCost[r] += std::min(prevCost[g], prevCost[b]);
+        curCost[g] += std::min(prevCost[r], prevCost[b]);
+        curCost[b] += std::min(prevCost[r], prevCost[g]);
+
+        prevCost = curCost;
     }
-    std::cout << maxSum;
+    
+    std::cout << std::min(std::min(curCost[r], curCost[g]), curCost[b]);
 
     return 0;
 }
