@@ -9,29 +9,41 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <array>
 using uint = unsigned int;
-using cost = std::array<uint, 3>;
-enum { r, g, b };
+#include <vector>
 
 int main() {
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
     size_t N{}; std::cin >> N;
-    cost prevCost{}, curCost{};
-    std::cin >> prevCost[r] >> prevCost[g] >> prevCost[b];
-    for (size_t i = 1; i < N; ++i) {
-        std::cin >> curCost[r] >> curCost[g] >> curCost[b];
-        
-        //r로 넘어갈 수 있는 색상 = g, b >> g, b중 코스트가 적은 쪽을 선택한다.
-        curCost[r] += std::min(prevCost[g], prevCost[b]);
-        curCost[g] += std::min(prevCost[r], prevCost[b]);
-        curCost[b] += std::min(prevCost[r], prevCost[g]);
-
-        prevCost = curCost;
-    }
+    std::vector<uint> prev, cur; prev.reserve(N); cur.reserve(N);
     
-    std::cout << std::min(std::min(curCost[r], curCost[g]), curCost[b]);
+    prev.resize(1); std::cin >> prev[0];
+    for (size_t i = 2; i <= N; ++i) {
+        cur.resize(i);
+
+        //맨앞에껀 좌측이 없으므로 선택지는 1개
+        std::cin >> cur.front();
+        cur.front() += prev.front();
+        for (size_t j = 1, jEnd = cur.size() - 1; j < jEnd; ++j) {
+            std::cin >> cur[j];
+            //j번째 선택지가 가질수 있는 선택지 중 큰걸 골라준다.
+            cur[j] += std::max(prev[j - 1], prev[j]);
+        }
+        //맨뒤에껏도 마찬가지로 선택지 1개
+        std::cin >> cur.back();
+        cur.back() += prev.back();
+
+        //prev와 cur을 교체
+        prev.swap(cur);
+    }
+
+    //모든 최대값 선택지 중 제일 큰걸 찾는다.
+    uint maxVal = prev[0];
+    for (size_t i = 1; i < prev.size(); ++i) {
+        if (maxVal < prev[i]) { maxVal = prev[i]; }
+    }
+    std::cout << maxVal;
 
     return 0;
 }
