@@ -9,14 +9,14 @@ struct deque {
 
     size_t Size() { return size; }
 
-    void PushFront(balloon _b) {
+    void PushFront(unsigned int _b) {
         if (Full()) { return; }
 
         begin = PrevCursor(begin);
         cont[begin] = _b;
         ++size;
     }
-    void PushBack(balloon _b) {
+    void PushBack(unsigned int _b) {
         if (Full()) { return; }
 
         cont[end] = _b;
@@ -35,10 +35,10 @@ struct deque {
             --size;
         }
     }
-    balloon Front() { return cont[begin]; }
-    balloon Back() { return cont[PrevCursor(end)]; }
-
-    std::vector<balloon> cont;
+    unsigned int Front() { return cont[begin]; }
+    unsigned int Back() { return cont[PrevCursor(end)]; }
+    
+    std::vector<unsigned int> cont;
     size_t capacity;
     size_t size;
     size_t begin;
