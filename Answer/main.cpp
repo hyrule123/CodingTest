@@ -9,41 +9,46 @@
 #include <cstring>  //memset
 //////////////////
 
-using uint = unsigned int;
 #include <vector>
+struct accScore { int idx, score; };
 
 int main() {
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
     size_t N{}; std::cin >> N;
-    std::vector<uint> prev, cur; prev.reserve(N); cur.reserve(N);
-    
-    prev.resize(1); std::cin >> prev[0];
-    for (size_t i = 2; i <= N; ++i) {
-        cur.resize(i);
-
-        //맨앞에껀 좌측이 없으므로 선택지는 1개
-        std::cin >> cur.front();
-        cur.front() += prev.front();
-        for (size_t j = 1, jEnd = cur.size() - 1; j < jEnd; ++j) {
-            std::cin >> cur[j];
-            //j번째 선택지가 가질수 있는 선택지 중 큰걸 골라준다.
-            cur[j] += std::max(prev[j - 1], prev[j]);
+    std::vector<int> scores(N);
+    for (size_t i = 0; i < N; ++i) {
+        std::cin >> scores[i];
+    }
+    //사이즈가 2 이하일 경우 경우의 수는 하나
+    if (N <= 2) {
+        int sum{};
+        for (size_t i = 0; i < scores.size(); ++i) {
+            sum += scores[i];
         }
-        //맨뒤에껏도 마찬가지로 선택지 1개
-        std::cin >> cur.back();
-        cur.back() += prev.back();
-
-        //prev와 cur을 교체
-        prev.swap(cur);
+        std::cout << sum;
+        return 0;
     }
 
-    //모든 최대값 선택지 중 제일 큰걸 찾는다.
-    uint maxVal = prev[0];
-    for (size_t i = 1; i < prev.size(); ++i) {
-        if (maxVal < prev[i]) { maxVal = prev[i]; }
+    std::vector<int> steps(N);
+    steps[0] = scores[0];
+
+    //두번째 계단까지 최대 점수는 무조건 계단을 다 밟고오는것
+    steps[1] = scores[0] + scores[1];
+
+    //계단 2(3번째)오는법: 0 2, 1, 2 둘중 큰거
+    steps[2] = std::max(scores[0], scores[1]) + scores[2];
+
+    for (size_t i = 3; i < N; ++i) {
+        //3계단을 올라왔을 때(2 + 1)
+        steps[i] = steps[i - 3] + scores[i - 1];
+
+        //2계단을 올라왔을때와 비교하고, 더 큰값을 채택
+        steps[i] = std::max(steps[i], steps[i - 2]);
+        steps[i] += scores[i];
     }
-    std::cout << maxVal;
+
+    std::cout << steps.back();
 
     return 0;
 }
