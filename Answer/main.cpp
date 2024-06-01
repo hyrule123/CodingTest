@@ -1,7 +1,7 @@
 ﻿#ifndef LOCAL
 #define READ_INPUT (void)0
 #define WRITE_OUTPUT (void)0
-#endif //NDEF LOCAL
+#endif
 #define USING_IOSTREAM std::cin.tie(nullptr); std::ios_base::sync_with_stdio(false)
 #include <stdio.h>
 #include <iostream>
@@ -9,49 +9,41 @@
 #include <cstring>  //memset
 //////////////////
 
-using uint = unsigned int;
 #include <vector>
+using uint = unsigned int;
+uint mod = 1'000'000'000;
 
 int main() {
     READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
-    size_t N{}; std::cin >> N; ;
-    if (N == 1) { std::cout << 0; return 0; }
-    else if (N <= 3) { std::cout << 1; return 0; }
+    uint N{}; std::cin >> N;
+    if (N == 1) { std::cout << 9; return 0; }
 
-    std::vector<uint> memo(N + 1);
-    
-    //1 to 1 -> 0, 2 to 1 -> 1, 3 to 1 -> 1
-    //4 to 1부터는 3가지 경우의수를 가진다.
-    
-    //ex)4 to 1
-    //(4-1)==3 to 1 : 1 + 1(-1 했으므로)
-    //(4/2)==2 to 1 : 1 + 1(/2 했으므로)
-    //(4/3): 없음
-    //>> -1번째, /2번째(나누어떨어질 경우), /3번째(나누떨어질 경우)
-    //인덱스에서 + 1을 한 결과와 같음
+    //1자리수일 경우의 값(0부터 각 자리수별로 1개씩, "0 포함" -> 마지막 합산에서만 뺄것임)
+    //ex)1자리수 0 -> 2자리수 10이 됨
+    std::vector<uint> prev({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
+    std::vector<uint> cur((size_t)10);
 
-    //ex)6 to 1
-    //6 - 1 to 1 + 1
-    //6 / 2 to 1 + 1
-    //6 / 3 to 1 + 1
-    //셋중 최솟값을 찾는다
+    for (uint i = 2; i <= N; ++i) {
+        //이전 단계에서 1로 시작했던 숫자에만 0을 붙일 수 있다
+        cur[0] = prev[1] % mod;
+        //이전 단계에서 8로 시작했던 숫자에만 9를 붙일 수 있다.
+        cur[9] = prev[8] % mod;
 
-    memo[1] = 0; memo[2] = 1; memo[3] = 1;
-    for (size_t i = 4; i <= N; ++i) {
-        //-1
-        memo[i] = memo[i - 1] + 1;
-
-        // /2
-        if (i % 2 == 0) {
-            memo[i] = std::min(memo[i], memo[i / 2] + 1);
+        //이번 단계의 j로 시작하는 수의 뒤에는 j-1, j+1만 붙일 수 있다.
+        //ex)2_1..., 2_3...
+        for (uint j = 1; j <= 8; ++j) {
+            cur[j] = (prev[j - 1] + prev[j + 1]) % mod;
         }
-        // /3
-        if (i % 3 == 0) {
-            memo[i] = std::min(memo[i], memo[i / 3] + 1);
-        }
+        cur.swap(prev);
     }
-    std::cout << memo.back();
+
+    uint sum{};
+    for (uint i = 1; i <= 9; ++i) {
+        sum += prev[i];
+        sum %= mod;
+    }
+    std::cout << sum;
 
     return 0;
 }
