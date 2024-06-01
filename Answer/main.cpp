@@ -11,39 +11,45 @@
 
 #include <vector>
 using uint = unsigned int;
-uint mod = 1'000'000'000;
 
 int main() {
-    READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
+	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
-    uint N{}; std::cin >> N;
-    if (N == 1) { std::cout << 9; return 0; }
+	size_t N{}; std::cin >> N;
+	std::vector<uint> scores(N);
+	std::vector<uint> maxScores(N);
 
-    //1자리수일 경우의 값(0부터 각 자리수별로 1개씩, "0 포함" -> 마지막 합산에서만 뺄것임)
-    //ex)1자리수 0 -> 2자리수 10이 됨
-    std::vector<uint> prev({ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
-    std::vector<uint> cur((size_t)10);
+	std::cin >> scores[0];
+	maxScores[0] = scores[0];
 
-    for (uint i = 2; i <= N; ++i) {
-        //이전 단계에서 1로 시작했던 숫자에만 0을 붙일 수 있다
-        cur[0] = prev[1] % mod;
-        //이전 단계에서 8로 시작했던 숫자에만 9를 붙일 수 있다.
-        cur[9] = prev[8] % mod;
+	if (N == 1) { std::cout << maxScores[0]; return 0; }
 
-        //이번 단계의 j로 시작하는 수의 뒤에는 j-1, j+1만 붙일 수 있다.
-        //ex)2_1..., 2_3...
-        for (uint j = 1; j <= 8; ++j) {
-            cur[j] = (prev[j - 1] + prev[j + 1]) % mod;
-        }
-        cur.swap(prev);
-    }
+	std::cin >> scores[1];
+	maxScores[1] = scores[0] + scores[1];
 
-    uint sum{};
-    for (uint i = 1; i <= 9; ++i) {
-        sum += prev[i];
-        sum %= mod;
-    }
-    std::cout << sum;
+	if (N == 2) { std::cout << maxScores[1]; return 0; }
 
-    return 0;
+	std::cin >> scores[2];
+	maxScores[2] = std::max(scores[0], scores[1]) + scores[2];
+	//먹 + 이번꺼 안먹
+	maxScores[2] = std::max(maxScores[2], maxScores[1]);
+
+	for (size_t i = 3; i < N; ++i) {
+		//i-3까지의 최댓값 + x o o
+		maxScores[i] = maxScores[i - 3] + scores[i - 1];
+
+		//i-2까지의 최댓값 + x o
+		maxScores[i] = std::max(maxScores[i], maxScores[i - 2]);
+
+		//뒤의 o를 더해준다
+		std::cin >> scores[i];
+		maxScores[i] += scores[i];
+
+		//i-1의 최댓값 + x(이번꺼)
+		maxScores[i] = std::max(maxScores[i], maxScores[i - 1]);
+	}
+
+	std::cout << maxScores.back();
+
+	return 0;
 }
