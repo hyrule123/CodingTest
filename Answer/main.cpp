@@ -17,27 +17,36 @@ int main() {
 
 	size_t N{}; std::cin >> N;
 	std::vector<uint> seq(N);
-	std::vector<uint> dp(N, 1);
-
-	std::cin >> seq[0];
-	uint max = 1;
-	for (size_t i = 1; i < N; ++i) {
+	for (size_t i = 0; i < N; ++i) {
 		std::cin >> seq[i];
-
-		size_t prev = i - 1;
-		if (seq[prev] == seq[i]) {
-			dp[i] = dp[prev];
-			continue;
-		}
-
-		for (size_t j = 0; j < i; ++j) {
-			if (seq[j] < seq[i]) {
-				dp[i] = std::max(dp[i], dp[j] + 1);
-			}
-		}
-		max = std::max(max, dp[i]);
 	}
 
+	struct length { uint fromLeft, fromRight; };
+	std::vector<length> dp(N, { 1u, 1u });
+
+	for (size_t left = 0; left < N; ++left) {
+		//왼쪽에서 오른쪽으로
+		for (size_t j = 0; j < left; ++j) {
+			if (seq[j] < seq[left]) {
+				dp[left].fromLeft = std::max(dp[left].fromLeft, dp[j].fromLeft + 1);
+			}
+		}
+
+		//오른쪽에서 왼쪽으로
+		size_t right = N - left - 1;
+		for (size_t j = N - 1; j > right; --j) {
+			if (seq[right] > seq[j]) {
+				dp[right].fromRight = std::max(dp[right].fromRight, dp[j].fromRight + 1);
+			}
+		}
+	}
+
+	//left + right가 최대가 되는 부분을 구해준다.(둘다 각각 최소값 1) { 1 }의 max = 2 -> 나중에 1 빼줘야함
+	uint max = 2;
+	for (size_t i = 0; i < N; ++i) {
+		max = std::max(max, dp[i].fromLeft + dp[i].fromRight);
+	}
+	--max;
 	std::cout << max;
 
 	return 0;
