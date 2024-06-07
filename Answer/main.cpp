@@ -10,46 +10,42 @@
 //////////////////
 
 #include <vector>
-std::vector<int> LIS; 
-
-void InsertLIS(int _val) {
-	if (LIS.back() < _val) { LIS.push_back(_val); return; }
-	size_t start = 0;
-	size_t end = LIS.size();
-	size_t mid = LIS.size() / 2;
-	while (start < end) {
-		if (LIS[mid - 1] < _val && _val <= LIS[mid]) {
-			LIS[mid] = _val;
-			break;
-		}
-			
-		if (LIS[mid] <= _val) {
-			start = mid;
-		}
-		else {
-			end = mid;
-		}
-		mid = (start + end) / 2;
+#include <string>
+int LCSMax = 0;
+std::string a, b;
+int Recursive(size_t _i, size_t _j, int _prev) {
+	if (_i >= a.size() || _j >= b.size()) {
+		return _prev;
 	}
+
+	if (a[_i] == b[_j]) {
+		return Recursive(_i + 1, _j + 1, _prev + 1);
+	}
+
+	int max = std::max(Recursive(_i + 1, _j, _prev), Recursive(_i, _j + 1, _prev));
+	return max;
 }
 
 int main() {
 	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
-	size_t N; std::cin >> N;
-	std::vector<int> inputs(501, -1);
-	for (size_t i = 0; i < N; ++i) {
-		int idx, val; std::cin >> idx >> val;
-		inputs[idx] = val;
-	}
+	 std::cin >> a >> b;
+	for (size_t i = 0; i < a.size(); ++i) {
+		if (LCSMax + (int)i >= a.size()) { 
+			break; 
+		}
 
-	LIS.reserve(N + 1); LIS.push_back(0);
-	for (size_t i = 0; i < 501; ++i) {
-		if (0 <= inputs[i]) {
-			InsertLIS(inputs[i]);
+		for (size_t j = 0; j < b.size(); ++j) {
+			if (LCSMax + (int)j >= b.size()) { 
+				break; 
+			}
+
+			if (a[i] == b[j]) {
+				LCSMax = std::max(LCSMax, Recursive(i + 1, j + 1, 1));
+			}
 		}
 	}
-	std::cout << N - (LIS.size() - 1);
+	std::cout << LCSMax;
 
 	return 0;
 }
