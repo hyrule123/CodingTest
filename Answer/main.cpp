@@ -9,43 +9,34 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <vector>
-#include <string>
 int LCSMax = 0;
-std::string a, b;
-int Recursive(size_t _i, size_t _j, int _prev) {
-	if (_i >= a.size() || _j >= b.size()) {
-		return _prev;
-	}
-
-	if (a[_i] == b[_j]) {
-		return Recursive(_i + 1, _j + 1, _prev + 1);
-	}
-
-	int max = std::max(Recursive(_i + 1, _j, _prev), Recursive(_i, _j + 1, _prev));
-	return max;
-}
+char a[1002], b[1002];
+int dp[1002][1002]{};
 
 int main() {
 	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
+	
+	std::cin.getline(a + 1, 1001);
+	std::cin.getline(b + 1, 1001);
+	a[0] = '0', b[0] = '0';	//인덱스 계산에 -1이 필요하므로 완충용으로 하나 넣어줌
+	int lenA = (int)std::strlen(a);
+	int lenB = (int)std::strlen(b);
 
-	 std::cin >> a >> b;
-	for (size_t i = 0; i < a.size(); ++i) {
-		if (LCSMax + (int)i >= a.size()) { 
-			break; 
-		}
-
-		for (size_t j = 0; j < b.size(); ++j) {
-			if (LCSMax + (int)j >= b.size()) { 
-				break; 
-			}
-
+	for (int i = 1; i < lenA; ++i) {
+		for (int j = 1; j < lenB; ++j) {
 			if (a[i] == b[j]) {
-				LCSMax = std::max(LCSMax, Recursive(i + 1, j + 1, 1));
+				//같은 문자열을 찾았을 경우 -> 둘다 한칸씩 이동
+				dp[i][j] = dp[i - 1][j - 1] + 1;
 			}
+			else {
+				//다른 문자열일 경우: i 또는 j에서 한칸씩 이동, 큰 값을 사용한다.
+				dp[i][j] = std::max(dp[i - 1][j], dp[i][j - 1]);
+			}
+
+			LCSMax = std::max(LCSMax, dp[i][j]);
 		}
 	}
-	std::cout << LCSMax;
 
+	std::cout << LCSMax;
 	return 0;
 }
