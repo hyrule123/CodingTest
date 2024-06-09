@@ -9,34 +9,31 @@
 #include <cstring>  //memset
 //////////////////
 
-int LCSMax = 0;
-char a[1002], b[1002];
-int dp[1002][1002]{};
+#include <vector>
 
 int main() {
 	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 	
-	std::cin.getline(a + 1, 1001);
-	std::cin.getline(b + 1, 1001);
-	a[0] = '0', b[0] = '0';	//인덱스 계산에 -1이 필요하므로 완충용으로 하나 넣어줌
-	int lenA = (int)std::strlen(a);
-	int lenB = (int)std::strlen(b);
+	int N, K; std::cin >> N >> K;
+	//row(i): 가방에 넣은 물건 수, col(j): 현재 무게에서 가질수 있는 최대 가치
+	std::vector<std::vector<int>> dp(N + 1, std::vector<int>(K + 1));
 
-	for (int i = 1; i < lenA; ++i) {
-		for (int j = 1; j < lenB; ++j) {
-			if (a[i] == b[j]) {
-				//같은 문자열을 찾았을 경우 -> 둘다 한칸씩 이동
-				dp[i][j] = dp[i - 1][j - 1] + 1;
-			}
-			else {
-				//다른 문자열일 경우: i 또는 j에서 한칸씩 이동, 큰 값을 사용한다.
-				dp[i][j] = std::max(dp[i - 1][j], dp[i][j - 1]);
-			}
+	for (int i = 1; i <= N; ++i) {
+		int weight, value; std::cin >> weight >> value;
 
-			LCSMax = std::max(LCSMax, dp[i][j]);
+		for (int j = 1; j <= K; ++j) {
+			//이번 짐 안 넣었을 때: 이전 값(i-1개 짐을 넣었을 때 그대로 사용)
+			int except = dp[i - 1][j];
+
+			//이번짐 넣었을 때: 이전 값 중 이번에 넣을 짐의 무게를 뺀 곳의 값 + value
+			int include{};
+			if (j >= weight) {
+				include = dp[i - 1][j - weight] + value;
+			}
+			dp[i][j] = std::max(except, include);
 		}
 	}
+	std::cout << dp[N][K];
 
-	std::cout << LCSMax;
 	return 0;
 }
