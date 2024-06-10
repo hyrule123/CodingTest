@@ -14,26 +14,19 @@
 int main() {
 	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 	
-	int N, K; std::cin >> N >> K;
-	//row(i): 가방에 넣은 물건 수, col(j): 현재 무게에서 가질수 있는 최대 가치
-	std::vector<std::vector<int>> dp(N + 1, std::vector<int>(K + 1));
+	int N, M; std::cin >> N >> M;
+	std::vector<int> arr(N + 1);
 
-	for (int i = 1; i <= N; ++i) {
-		int weight, value; std::cin >> weight >> value;
-
-		for (int j = 1; j <= K; ++j) {
-			//이번 짐 안 넣었을 때: 이전 값(i-1개 짐을 넣었을 때 그대로 사용)
-			int except = dp[i - 1][j];
-
-			//이번짐 넣었을 때: 이전 값 중 이번에 넣을 짐의 무게를 뺀 곳의 값 + value
-			int include{};
-			if (j >= weight) {
-				include = dp[i - 1][j - weight] + value;
-			}
-			dp[i][j] = std::max(except, include);
-		}
+	std::cin >> arr[1];
+	for (int i = 2; i <= N; ++i) {
+		std::cin >> arr[i];
+		arr[i] += arr[i - 1];
 	}
-	std::cout << dp[N][K];
+
+	for (int i = 1; i <= M; ++i) {
+		int a, b; std::cin >> a >> b;
+		std::cout << arr[b] - arr[a - 1] << '\n';
+	}
 
 	return 0;
 }
