@@ -9,32 +9,37 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <vector>
+#include <array>
+std::array<std::array<int, 28>, 200000> usages;
 
 int main() {
 	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
+	
+	std::array<int, 28> useCount{};
+	int i = 0;
+	while (true) {
+		int c = std::cin.get();
+		if (c == '\n') { break; }
 
-	int N, M; std::cin >> N >> M;
+		c -= 'a';
+		++(useCount[c]);
+		usages[i] = useCount;
 
-	std::vector<int> prevs(M);
-	int prevIdx = 0;
-	std::cin >> prevs[0];
-	int sum = prevs[0];
-	for (int i = 1; i < M; ++i) {
-		std::cin >> prevs[i];
-		sum += prevs[i];
+		++i;
 	}
+	
+	int N; std::cin >> N;
+	for (int i = 0; i < N; ++i) {
+		char c; int start, end; std::cin >> c >> start >> end;
+		c -= 'a';
 
-	int max = sum;
-	for (int i = M; i < N; ++i) {
-		sum -= prevs[prevIdx];
-		std::cin >> prevs[prevIdx];
-		sum += prevs[prevIdx];
-		++prevIdx; if (prevIdx >= M) { prevIdx = 0; }
-		if (max < sum) { max = sum; };
+		if (start == 0) {
+			std::cout << usages[end][c] << '\n';
+		}
+		else {
+			std::cout << usages[end][c] - usages[start - 1][c] << '\n';
+		}
 	}
-
-	std::cout << max;
 
 	return 0;
 }
