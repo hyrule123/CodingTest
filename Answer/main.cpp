@@ -13,20 +13,28 @@
 
 int main() {
 	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
-	
+
 	int N, M; std::cin >> N >> M;
-	std::vector<int> arr(N + 1);
 
-	std::cin >> arr[1];
-	for (int i = 2; i <= N; ++i) {
-		std::cin >> arr[i];
-		arr[i] += arr[i - 1];
+	std::vector<int> prevs(M);
+	int prevIdx = 0;
+	std::cin >> prevs[0];
+	int sum = prevs[0];
+	for (int i = 1; i < M; ++i) {
+		std::cin >> prevs[i];
+		sum += prevs[i];
 	}
 
-	for (int i = 1; i <= M; ++i) {
-		int a, b; std::cin >> a >> b;
-		std::cout << arr[b] - arr[a - 1] << '\n';
+	int max = sum;
+	for (int i = M; i < N; ++i) {
+		sum -= prevs[prevIdx];
+		std::cin >> prevs[prevIdx];
+		sum += prevs[prevIdx];
+		++prevIdx; if (prevIdx >= M) { prevIdx = 0; }
+		if (max < sum) { max = sum; };
 	}
+
+	std::cout << max;
 
 	return 0;
 }
