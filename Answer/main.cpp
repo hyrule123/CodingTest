@@ -15,22 +15,20 @@ using uint = std::uint32_t;
 int main() {
 	READ_INPUT; WRITE_OUTPUT; USING_IOSTREAM;
 
-	uint N, M; std::cin >> N >> M;
-	std::vector<std::vector<uint>> board(N + 1, std::vector<uint>(N + 1));
+	uint N, M, K; std::cin >> N >> M >> K;
+	std::vector<std::vector<char>> bw(N, std::vector<char>(M));
+	std::vector<std::vector<uint>> board(N + 2, std::vector<uint>(M + 2));
 
-	for (uint r = 1; r <= N; ++r) {
-		for (uint c = 1; c <= N; ++c) {
+	std::cin.getline(bw[2].data() + 2, M);
+	for (uint r = 2; r <= N + 1; ++r) {
+		for (uint c = 2; c <= M + 1; ++c) {
 			uint& cur = board[r][c];
-			std::cin >> cur;
-			cur += board[r - 1][c] + board[r][c - 1] - board[r - 1][c - 1];
+			cur = board[r-2][c]+board[r][c-2]-board[r-2][c-2];
+			if (bw[r - 1][c - 1] == 'B') { ++cur; };
+
+			std::cin >> bw[r][c];
+			if (bw[r][c] == 'B') { ++cur; }
 		}
-	}
-
-	for (uint i = 1; i <= M; ++i) {
-		uint x1, y1, x2, y2; std::cin >> x1 >> y1 >> x2 >> y2;
-
-		//구하는 블록까지의 전체합 - 블록 윗줄까지의 합 - 블록 왼쪽까지의 합 + 윗줄 옆줄 겹치는 부분의 합
-		std::cout << board[x2][y2] - board[x1 - 1][y2] - board[x2][y1 - 1] + board[x1 - 1][y1 - 1] << '\n';
 	}
 
 	return 0;
