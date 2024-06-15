@@ -9,39 +9,57 @@
 #include <cstring>  //memset
 //////////////////
 #include <vector>
-using uint64 = std::uint64_t;
+struct colorCount { 
+	int white, blue; 
+	void operator +=(const colorCount& _other) {
+		white += _other.white;
+		blue += _other.blue;
+	}
+};
+std::vector<std::vector<bool>> paper;
+colorCount Recursive(int _r, int _c, int _size) {
+	colorCount ret{};
+
+	for (int r = _r; r < _r + _size; ++r) {
+		for (int c = _c; c < _c + _size; ++c) {
+			if (paper[r][c]) {
+				++ret.blue;
+			}
+			else {
+				++ret.white;
+			}
+		}
+	}
+	//하나로만 이루어져있다면 있는 쪽을 1로 바꾼 뒤 return
+	if (ret.white == 0 || ret.blue == 0) {
+		ret.white = !!ret.white;
+		ret.blue = !!ret.blue;
+		return ret;
+	}
+
+	int half = _size / 2;
+	ret = Recursive(_r, _c,half);
+	ret += Recursive(_r + half, _c,	half);
+	ret += Recursive(_r, _c + half,	half);
+	ret += Recursive(_r + half, _c + half, half);
+
+	return ret;
+}
 
 int main() {	
 	std::cin.tie(nullptr); std::ios_base::sync_with_stdio(false);
 	READ_INPUT; WRITE_OUTPUT;
 
-	//최대 10^9 * 10^9 = 10^18 < 2^64
-	uint64 N; std::cin >> N;
-	std::vector<uint64> cityDistance(N);
-	for (uint64 i = 0; i < N - 1; ++i) {
-		std::cin >> cityDistance[i];
-	}
-
-	uint64 sumPrice = 0;
-	uint64 curGasPrice; std::cin >> curGasPrice;
-	uint64 accDistance = 0;
-	for (uint64 i = 0; i < N; ++i) {
-		accDistance += cityDistance[i];
-
-		uint64 nextGasPrice; std::cin >> nextGasPrice;
-		//내가 이 도시에서 사야하는 기름값보다 i번째 도시의 기름값이 싸다면 거기까지 갈수있을만큼만 넣는다
-		//거기서부터 새로넣어서 가는게 더 싸게먹히니까
-		if (nextGasPrice < curGasPrice) {
-			sumPrice += accDistance * curGasPrice;
-			accDistance = 0;
-			curGasPrice = nextGasPrice;
+	int N; std::cin >> N;
+	paper.resize(N, std::vector<bool>(N));
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < N; ++j) {
+			int input; std::cin >> input;
+			if (input) { paper[i][j] = true; }
 		}
 	}
+	colorCount ans = Recursive(0, 0, N);
+	std::cout << ans.white << '\n' << ans.blue;
 
-	if (accDistance != 0) {
-		sumPrice += accDistance * curGasPrice;
-	}
-
-	std::cout << sumPrice;
 	return 0;
 }
