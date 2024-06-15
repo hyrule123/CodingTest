@@ -8,30 +8,40 @@
 #include <limits>
 #include <cstring>  //memset
 //////////////////
+#include <vector>
+using uint64 = std::uint64_t;
 
 int main() {	
 	std::cin.tie(nullptr); std::ios_base::sync_with_stdio(false);
 	READ_INPUT; WRITE_OUTPUT;
 
-	int input; std::cin >> input;
-	int sum = input;
+	//최대 10^9 * 10^9 = 10^18 < 2^64
+	uint64 N; std::cin >> N;
+	std::vector<uint64> cityDistance(N);
+	for (uint64 i = 0; i < N - 1; ++i) {
+		std::cin >> cityDistance[i];
+	}
 
-	//음수 기호 첫 발견 이후로 다음 음수까지 전부 괄호치면 그게 최솟값이 되므로
-	bool negativeFound = false;
-	while (std::cin >> input) {
-		if (input < 0) { 
-			negativeFound = true;
-			input = -input;
-		}
+	uint64 sumPrice = 0;
+	uint64 curGasPrice; std::cin >> curGasPrice;
+	uint64 accDistance = 0;
+	for (uint64 i = 0; i < N; ++i) {
+		accDistance += cityDistance[i];
 
-		if (negativeFound) {
-			sum -= input;
-		}
-		else {
-			sum += input;
+		uint64 nextGasPrice; std::cin >> nextGasPrice;
+		//내가 이 도시에서 사야하는 기름값보다 i번째 도시의 기름값이 싸다면 거기까지 갈수있을만큼만 넣는다
+		//거기서부터 새로넣어서 가는게 더 싸게먹히니까
+		if (nextGasPrice < curGasPrice) {
+			sumPrice += accDistance * curGasPrice;
+			accDistance = 0;
+			curGasPrice = nextGasPrice;
 		}
 	}
-	std::cout << sum;
 
+	if (accDistance != 0) {
+		sumPrice += accDistance * curGasPrice;
+	}
+
+	std::cout << sumPrice;
 	return 0;
 }
