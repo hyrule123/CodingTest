@@ -9,56 +9,29 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <vector>
-using uint64 = std::uint64_t;
-std::vector<uint64> waitTime;
-
-void Heapify(const uint64 _size, const uint64 _idx) {
-	uint64 parent = _idx;
-	uint64 left = _idx * 2 + 1;
-	uint64 right = left + 1;
-
-	if (left < _size && waitTime[parent] <= waitTime[left]) {
-		parent = left;
-	}
-	if (right < _size && waitTime[parent] <= waitTime[right]) {
-		parent = right;
-	}
-
-	if (_idx != parent) {
-		std::swap(waitTime[_idx], waitTime[parent]);
-		Heapify(_size, parent);
-	}
-}
-
-void HeapSort() {
-	if (waitTime.size() < 2) { return; }
-
-	for (uint64 i = (uint64)waitTime.size() / 2; i != -1; --i) {
-		Heapify((uint64)waitTime.size(), i);
-	}
-
-	for (uint64 i = (uint64)waitTime.size() - 1; i >= 1; --i) {
-		std::swap(waitTime[0], waitTime[i]);
-		Heapify(i, 0);
-	}
-}
-
 int main() {	
 	std::cin.tie(nullptr); std::ios_base::sync_with_stdio(false);
 	READ_INPUT; WRITE_OUTPUT;
 
-	uint64 N; std::cin >> N;
-	waitTime.resize(N);
-	for (uint64 i = 0; i < N; ++i) {
-		std::cin >> waitTime[i];
-	}
-	HeapSort();
+	int input; std::cin >> input;
+	int sum = input;
 
-	uint64 sum = 0;
-	for (uint64 i = 0; i < N; ++i) {
-		sum += waitTime[i] * (N - i);
+	//음수 기호 첫 발견 이후로 다음 음수까지 전부 괄호치면 그게 최솟값이 되므로
+	bool negativeFound = false;
+	while (std::cin >> input) {
+		if (input < 0) { 
+			negativeFound = true;
+			input = -input;
+		}
+
+		if (negativeFound) {
+			sum -= input;
+		}
+		else {
+			sum += input;
+		}
 	}
 	std::cout << sum;
+
 	return 0;
 }
