@@ -10,70 +10,55 @@
 //////////////////
 
 #include <vector>
-struct pair { 
-	int start, end; 
-	bool operator > (pair& _other) {
-		if (end == _other.end) {
-			return start < _other.start;
-		}
-		return end < _other.end;
+using uint64 = std::uint64_t;
+std::vector<uint64> waitTime;
+
+void Heapify(const uint64 _size, const uint64 _idx) {
+	uint64 parent = _idx;
+	uint64 left = _idx * 2 + 1;
+	uint64 right = left + 1;
+
+	if (left < _size && waitTime[parent] <= waitTime[left]) {
+		parent = left;
 	}
-};
-
-void MergeSort(std::vector<pair>& _vec, std::vector<pair>& _temp, size_t _start, size_t _end) {
-	if (_start >= _end) { return; }
-
-	size_t mid = (_start + _end) / 2;
-	MergeSort(_vec, _temp, _start, mid);
-	MergeSort(_vec, _temp, mid + 1, _end);
-
-	size_t i = _start;
-	size_t tempIdx = _start;
-	size_t j = mid + 1;
-	
-	while (i <= mid && j <= _end) {
-		if (_vec[i] > _vec[j]) {
-			_temp[tempIdx] = _vec[i];
-			++i; ++tempIdx;
-		}
-		else {
-			_temp[tempIdx] = _vec[j];
-			++j; ++tempIdx;
-		}
+	if (right < _size && waitTime[parent] <= waitTime[right]) {
+		parent = right;
 	}
 
-	for (; i <= mid; ++i, ++tempIdx) {
-		_temp[tempIdx] = _vec[i];
+	if (_idx != parent) {
+		std::swap(waitTime[_idx], waitTime[parent]);
+		Heapify(_size, parent);
 	}
-	for (; j <= _end; ++j, ++tempIdx) {
-		_temp[tempIdx] = _vec[j];
+}
+
+void HeapSort() {
+	if (waitTime.size() < 2) { return; }
+
+	for (uint64 i = (uint64)waitTime.size() / 2; i != -1; --i) {
+		Heapify((uint64)waitTime.size(), i);
 	}
 
-	memcpy(&(_vec[_start]), &(_temp[_start]), sizeof(pair) * (_end + 1 - _start));
+	for (uint64 i = (uint64)waitTime.size() - 1; i >= 1; --i) {
+		std::swap(waitTime[0], waitTime[i]);
+		Heapify(i, 0);
+	}
 }
 
 int main() {	
 	std::cin.tie(nullptr); std::ios_base::sync_with_stdio(false);
 	READ_INPUT; WRITE_OUTPUT;
 
-	int N; std::cin >> N;
-	std::vector<pair> pairs(N);
-	for (int i = 0; i < N; ++i) {
-		std::cin >> pairs[i].start >> pairs[i].end;
+	uint64 N; std::cin >> N;
+	waitTime.resize(N);
+	for (uint64 i = 0; i < N; ++i) {
+		std::cin >> waitTime[i];
 	}
-	std::vector<pair> temp(N);
-	MergeSort(pairs, temp, 0, pairs.size() - 1);
+	HeapSort();
 
-	int count = 1;
-	int lastMeeting = 0;
-	for (int j = 1; j < N; ++j) {
-		if (pairs[j].start >= pairs[lastMeeting].end) {
-			++count;
-			lastMeeting = j;
-		}
+	uint64 sum = 0;
+	for (uint64 i = 0; i < N; ++i) {
+		sum += waitTime[i] * (N - i);
 	}
-
-	std::cout << count;
-
+	std::cout << sum;
 	return 0;
 }
