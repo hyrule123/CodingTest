@@ -23,26 +23,21 @@
 //== n! * ( (r!) * (n - r)! ) ^ (p-2) 를 p로 나눈 나머지와 같다.
 //곱셈의 형태가 되었으므로, 나머지 연산의 분배법칙이 사용 가능해진다.
 
+//여기에 추가로 조합의 약분을 활용해서 추가 최적화가 가능
+
 #include <vector>
 #include <array>
 using uint64 = unsigned long long;
 constexpr uint64 mod = 1'000'000'007;
-std::vector<uint64> factorialMemo{ 1 };
-uint64 FactorialMod(uint64 _u) {
-	size_t prevSize = factorialMemo.size();
+uint64 FactorialRangedMod(uint64 _u, uint64 _range) {
+	uint64 ret = 1;
 
-	if (prevSize <= _u) {
-		factorialMemo.resize(_u + 1);
-	}
-	else {
-		return factorialMemo[_u];
+	for (uint64 i = 0; i < _range; ++i) {
+		ret = (ret * _u) % mod;
+		--_u;
 	}
 
-	for (; prevSize < factorialMemo.size(); ++prevSize) {
-		factorialMemo[prevSize] = factorialMemo[prevSize - 1] * prevSize % mod;
-	}
-	
-	return factorialMemo.back();
+	return ret;
 }
 
 //DP를 활용한 거듭제곱
@@ -78,8 +73,14 @@ int main() {
 	uint64 N, K; std::cin >> N >> K;
 
 	//n! * ( (r!) * (n - r)! ) ^ (p-2)
-	uint64 output = FactorialMod(N);
-	output = (output * PowMod(FactorialMod(K) * FactorialMod(N - K), mod - 2)) % mod;
+	//여기에 약분 활용
+	//r과 n-r중 작은걸 저장하고
+	//n! -> n * n-1 * ... min(r, n-r): n을 둘중 짧은거만큼만 팩토리얼
+	//(r!) * (n - r)! -> min(r, n-r)!: 둘중 짧은거 팩토리얼
+	uint64 shorter = std::min(K, N - K);
+
+	uint64 output = FactorialRangedMod(N, shorter);
+	output = (output * PowMod(FactorialRangedMod(shorter, shorter), mod - 2)) % mod;
 	std::cout << output;
 
 	return 0;
