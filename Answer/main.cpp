@@ -7,36 +7,80 @@
 #include <cstring>  //memset
 //////////////////
 
-using uint64 = std::uint64_t;
-uint64 arr64[64]{};
+
+//참고 사이트
+//https://velog.io/@junttang/BOJ-11401-%EC%9D%B4%ED%95%AD-%EA%B3%84%EC%88%98-3-%ED%95%B4%EA%B2%B0-%EC%A0%84%EB%9E%B5-C
+
+//페르마의 소정리를 사용해야 함.
+//N^p는 N과 합동이다(p로 나눈 나머지가 같다)
+//N^(p-1)는 1과 합동이다(p로 나누면 나머지가 1이다)
+//N^(p-2)는 N^-1과 합동이다(p로 나눈 나머지가 같다)
+
+//나머지 연산은 곱셈과 덧셈에 분배법칙이 적용되지만, 나눗셈에는 적용할 수 없다.
+//그러므로 나눗셈(분모) 연산이 있는 조합 수식에 대해서는 페르마의 소정리를 적용할 수 없다.
+//여기서 페르마의 소정리를 해야 하는것
+//nCr == n! * ( (r!) * (n - r)! )^-1 를 p로 나눈 나머지는
+//== n! * ( (r!) * (n - r)! ) ^ (p-2) 를 p로 나눈 나머지와 같다.
+//곱셈의 형태가 되었으므로, 나머지 연산의 분배법칙이 사용 가능해진다.
+
+#include <vector>
+#include <array>
+using uint64 = unsigned long long;
+constexpr uint64 mod = 1'000'000'007;
+std::vector<uint64> factorialMemo{ 1 };
+uint64 FactorialMod(uint64 _u) {
+	size_t prevSize = factorialMemo.size();
+
+	if (prevSize <= _u) {
+		factorialMemo.resize(_u + 1);
+	}
+	else {
+		return factorialMemo[_u];
+	}
+
+	for (; prevSize < factorialMemo.size(); ++prevSize) {
+		factorialMemo[prevSize] = factorialMemo[prevSize - 1] * prevSize % mod;
+	}
+	
+	return factorialMemo.back();
+}
+
+//DP를 활용한 거듭제곱
+uint64 PowMod(uint64 _base, uint64 _exp) {
+	if (_exp == 0) { return 1; }
+	else if (_exp == 1) { return _base; }
+	
+	//2^0
+	uint64 prev = _base % mod;
+	uint64 cur = 0;
+	uint64 ret = 1;
+	if (1 & _exp) { ret = prev; }
+	
+	for (uint64 i = 1; i < 64; ++i) {
+		uint64 bit = 1ull << i;
+		if (bit > _exp) { break; }
+		cur = (prev * prev) % mod;
+
+		if (bit & _exp) { 
+			ret = (ret * cur) % mod;
+		}
+
+		prev = cur;
+	}
+
+	return ret;
+}
 
 int main() {	
 	std::cin.tie(nullptr); std::ios_base::sync_with_stdio(false);
 	LOCAL_IO;
 
-	uint64 A, B, C; std::cin >> A >> B >> C;
+	uint64 N, K; std::cin >> N >> K;
 
-	//DP 방식
-	//DP의 인덱스: 지수가 2의 거듭제곱일 때의 결과
-	//arr64[0] = A^(2^0), arr64[1] = A^(2^1), arr64[2] = A^(2^2), ...
-	
-	//숫자 B가 지수
-	//예를들어 B == 5라고 하면
-	//A ^ 5 == A ^ (2^2 + 1) == A^4 * A^1 == arr64[2] * arr64[0]
-	//메모리에 B는 이진법으로 저장되어 있으므로 -> 비트 연산자를 통해서 빠르게 곱해야 할 인덱스를 알아낼 수 있다
-	uint64 mod = 1;
-	arr64[0] = A % C;	//A ^(2^0) % C
-	if (B & (1ull << 0ull)) { mod = arr64[0]; }
-
-	for (uint64 i = 1; i < 64; ++i) {
-		uint64 curBit = 1ull << i;	//2^i
-		if (curBit > B) { break; }	//2^i > B일 경우 중단
-		
-		arr64[i] = arr64[i - 1] * arr64[i - 1] % C;	//DP
-		if (curBit & B) { mod = (mod * arr64[i]) % C; }	//비트 연산을 통해 포함되는 자릿수일 경우 결과에 포함
-	}
-
-	std::cout << mod;
+	//n! * ( (r!) * (n - r)! ) ^ (p-2)
+	uint64 output = FactorialMod(N);
+	output = (output * PowMod(FactorialMod(K) * FactorialMod(N - K), mod - 2)) % mod;
+	std::cout << output;
 
 	return 0;
 }
