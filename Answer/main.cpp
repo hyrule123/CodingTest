@@ -75,8 +75,9 @@ int main() {
 	//n! * ( (r!) * (n - r)! ) ^ (p-2)
 	//여기에 약분 활용
 	//r과 n-r중 작은걸 저장하고
-	//n! -> n * n-1 * ... min(r, n-r): n을 둘중 짧은거만큼만 팩토리얼
+	//n! -> n * n-1 * ... min(r, n-r): n을 둘중 짧은거만큼만 범위 팩토리얼
 	//(r!) * (n - r)! -> min(r, n-r)!: 둘중 짧은거 팩토리얼
+	//약분을 활용할 경우 범위 팩토리얼에 겹치는 부분이 없어진다 -> 메모이제이션의 의미가 없음
 	uint64 shorter = std::min(K, N - K);
 
 	uint64 output = FactorialRangedMod(N, shorter);
