@@ -36,7 +36,11 @@ public:
 			, data(_other.data)
 			, color(_other.color)
 		{}
-
+		~Node() {
+			if (left != NIL()) { delete left; }
+			if (right != NIL()) { delete right; }
+		}
+		
 		static Node* NIL() { return &nil; }
 		static bool IsNil(Node* _node) { return (&nil == _node); }
 
@@ -48,7 +52,11 @@ public:
 	};
 
 	RedBlackTree() : root{ &Node::nil } { root->color = Color::Black; }
-	~RedBlackTree() {}
+	~RedBlackTree() {
+		if (root != Node::NIL()) {
+			delete root;
+		}
+	}
 
 	void Insert(int _data);
 	void Delete(int _data);
@@ -61,6 +69,7 @@ private:
 	void RightRotate(Node* _x);
 	void FixInsert(Node* _node);
 	Node* Search(int _data);
+	void _Delete(Node* _node);
 
 	void TraverseRecursive(Node* _node) const;
 	
@@ -117,9 +126,17 @@ void RedBlackTree::Insert(int _data)
 	FixInsert(newNode);
 }
 
+void RedBlackTree::Delete(int _data)
+{
+	Node* find = Search(_data);
+	if (nullptr == find) { return; }
+	_Delete(find);
+}
+
 void RedBlackTree::Traverse() const
 {
 	TraverseRecursive(root);
+	std::cout << '\n';
 }
 
 void RedBlackTree::LeftRotate(Node* _x)
@@ -263,11 +280,78 @@ RedBlackTree::Node* RedBlackTree::Search(int _data)
 	return node;
 }
 
+void RedBlackTree::_Delete(Node* _node)
+{
+	bool isLeft = (_node->left != Node::NIL());
+	bool isRight = (_node->right != Node::NIL());
+
+	if (isLeft && isRight) {
+		Node* suc = _node;
+		Node* sucChild = _node->right;
+		while (sucChild != Node::NIL()) {
+			suc = sucChild;
+			sucChild = suc->left;
+		}
+
+		if (suc != _node) {
+			_node->data = suc->data;
+			
+			if(suc == suc->parent->left) {
+				suc->parent->left = Node::NIL();
+			}
+			else {
+				suc->parent->right = Node::NIL();
+			}
+
+			delete suc;
+		}
+	}
+	else if (isLeft) {
+		if (_node->parent) {
+			if (_node->parent->left == _node) {
+				_node->parent->left = _node->left;
+			}
+			else {
+				_node->parent->right = _node->left;
+			}
+		}
+		
+		_node->left->parent = _node->parent;
+		_node->left = Node::NIL();
+
+		delete _node;
+	}
+	else if (isRight) {
+		if (_node->parent) {
+			if (_node->parent->left == _node) {
+				_node->parent->left = _node->right;
+			}
+			else {
+				_node->parent->right = _node->right;
+			}
+		}
+
+		_node->right->parent = _node->parent;
+		_node->right = Node::NIL();
+
+		delete _node;
+	}
+	else {
+		if (_node->parent->left == _node) {
+			_node->parent->left = Node::NIL();
+		}
+		else {
+			_node->parent->right = Node::NIL();
+		}
+		delete _node;
+	}
+}
+
 void RedBlackTree::TraverseRecursive(Node* _node) const
 {
 	if (_node == Node::NIL()) { return; }
 	TraverseRecursive(_node->left);
-	std::cout << _node->data << '\n';
+	std::cout << _node->data << ' ';
 	TraverseRecursive(_node->right);
 }
 
@@ -282,6 +366,9 @@ int main() {
 	rbtree.Insert(4);
 	rbtree.Insert(5);
 	rbtree.Insert(6);
+
+	rbtree.Delete(1);
+
 	rbtree.Traverse();
 
 	return 0;
