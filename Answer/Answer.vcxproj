@@ -150,9 +150,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClInclude Include="Reference\AVLTree.h" />
     <ClInclude Include="Reference\deque.h" />
     <ClInclude Include="Reference\CircleQueue.h" />
-    <ClInclude Include="Reference\RedBlack_GeeksforGeeks.h" />
+    <ClInclude Include="Reference\MyRedBlackTree.h" />
+    <ClInclude Include="Reference\RedBlack.h" />
     <ClInclude Include="Reference\SQRT.h" />
   </ItemGroup>
   <ItemGroup>

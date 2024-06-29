@@ -54,7 +54,13 @@
     <ClInclude Include="Reference\deque.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Reference\RedBlack_GeeksforGeeks.h">
+    <ClInclude Include="Reference\RedBlack.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Reference\MyRedBlackTree.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Reference\AVLTree.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
