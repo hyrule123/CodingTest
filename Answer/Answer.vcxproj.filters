@@ -54,13 +54,16 @@
     <ClInclude Include="Reference\deque.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Reference\RedBlack.h">
+    <ClInclude Include="Reference\BST\RedBlack.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Reference\MyRedBlackTree.h">
+    <ClInclude Include="Reference\BST\MyRedBlackTree.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Reference\AVLTree.h">
+    <ClInclude Include="Reference\BST\AVLTree.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Reference\BST\MyAVLTree.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

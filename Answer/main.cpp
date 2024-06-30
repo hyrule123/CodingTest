@@ -7,7 +7,6 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <vector>
 class AVLTree {
 public:
 	class Node {
@@ -39,26 +38,17 @@ public:
 	~AVLTree() { if (root) { delete root; } }
 
 	const Node* Search(int _key) { return _Search(_key); }
-	void Insert(int _key) {
-		if (nullptr == root) {
-			root = new Node(_key);
-		}
-		else {
-			_Insert(root, _key);
-		}
-	}
+	void Insert(int _key) { root = _Insert(root, _key); }
 	void Delete(int _key) { _Delete(root, _key); };
-	void Traverse();
+	void Clear() { delete root; root = nullptr; }
 
 private:
 	static Node* LeftRotate(Node* _n);
 	static Node* RightRotate(Node* _n);
 
 	Node* _Search(int _key);
-	void _Traverse(Node* _n);
 	Node* _Insert(Node* _n, int _key);
 	Node* _Delete(Node* _n, int _key);
-
 
 	Node* root;
 };
@@ -109,14 +99,6 @@ AVLTree::Node* AVLTree::_Search(int _key)
 	return ret;
 }
 
-void AVLTree::_Traverse(Node* _n)
-{
-	if (nullptr == _n) { return; }
-	_Traverse(_n->left);
-	std::cout << _n->key << ' ';
-	_Traverse(_n->right);
-}
-
 AVLTree::Node* AVLTree::_Insert(Node* _n, int _key)
 {
 	if (nullptr == _n) { return new Node(_key); }
@@ -141,9 +123,7 @@ AVLTree::Node* AVLTree::_Insert(Node* _n, int _key)
 		}
 		
 		//오른쪽으로 회전
-		Node* ret = RightRotate(_n);
-		if (_n == root) { root = ret; }
-		return ret;
+		return RightRotate(_n);
 	}
 	//오른쪽으로 기움
 	else if (1 < balance) {
@@ -151,9 +131,8 @@ AVLTree::Node* AVLTree::_Insert(Node* _n, int _key)
 		if (_key < _n->right->key) {
 			_n->right = RightRotate(_n->right);
 		}
-		Node* ret = LeftRotate(_n);
-		if (_n == root) { root = ret; }
-		return ret;
+
+		return LeftRotate(_n);
 	}
 
 	return _n;
@@ -241,52 +220,28 @@ AVLTree::Node* AVLTree::_Delete(Node* _n, int _key)
 }
 
 
-void AVLTree::Traverse()
-{
-	_Traverse(root);
-	std::cout << '\n';
-}
-
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	AVLTree tree;
+	AVLTree tree{};
+	int size; std::cin >> size;
+	for (int i = 0; i < size; ++i) {
+		int input; std::cin >> input;
+		tree.Insert(input);
+	}
 
-	tree.Insert(1);
-	tree.Insert(2);
-	tree.Insert(3);
-	tree.Insert(4);
-	tree.Insert(5);
-	tree.Insert(6);
-	tree.Insert(7);
-	tree.Insert(8);
-
-	tree.Delete(4);
-	tree.Traverse();
-
-	tree.Delete(1);
-	tree.Traverse();
-
-	tree.Delete(2);
-	tree.Traverse();
-
-	tree.Delete(3);
-	tree.Traverse();
-
-
-
-	tree.Delete(5);
-	tree.Traverse();
-
-	tree.Delete(6);
-	tree.Traverse();
-
-	tree.Delete(7);
-	tree.Traverse();
-
-	tree.Delete(8);
-	tree.Traverse();
+	std::cin >> size;
+	for (int i = 0; i < size; ++i) {
+		int input; std::cin >> input;
+		const AVLTree::Node* result = tree.Search(input);
+		if (result) {
+			std::cout << 1 << '\n';
+		}
+		else {
+			std::cout << 0 << '\n';
+		}
+	}
 
 	return 0;
 }
