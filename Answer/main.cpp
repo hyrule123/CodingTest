@@ -14,41 +14,34 @@ int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 	
-	uint K, N; std::cin >> K >> N;
-	std::vector<uint> wires(K);
-	uint end = 0;
-	for (uint i = 0; i < K; ++i) {
-		std::cin >> wires[i];
-		if (end < wires[i]) {
-			end = wires[i];
-		}
+	uint N, M; std::cin >> N >> M;
+	std::vector<uint> trees(N);
+	uint start = 0, end{};	//톱의 최소 높이=0
+	for (uint i = 0; i < N; ++i) {
+		std::cin >> trees[i];
+		if (end < trees[i]) { end = trees[i]; }
 	}
-	
-	//Paremetric Search
-	//end: 끝 범위를 1만큼 늘려놔야 end 범위까지 찾을 수 있기 때문
-	//ex)10 9 8 랜선에서 1개 만드는 경우 답은 10
-	//(start, end) = (1, 10) -> (5, 10) -> (7, 10), (8, 10), (9, 10) : 1, 10 범위로 할 경우 답이 9가 나옴
-	//(start, end) = (1, 11) -> (6, 11) -> (8, 11), (9, 11), (10, 11) : 답 10
-	uint start = 1; ++end;
-	uint mid{};
-	while (start + 1 < end) {
-		mid = (start + end) / 2;
+	++end;
 
-		uint count = 0;
-		for (uint i = 0; i < K; ++i) {
-			count += wires[i] / mid;
+	while (start + 1 < end) {
+		uint mid = (start + end) / 2;
+		uint height = 0;
+		for (uint i = 0; i < N; ++i) {
+			//톱의 높이보다 나무가 길 경우에만 자를수 있다
+			if (mid < trees[i]) {
+				height += (trees[i] - mid);
+			}
+			//루프마다 종료조건 검사 안하면 오버플로우가 발생할 수 있다
+			if (M < height) { break; }
 		}
-		
-		//N개보다 크거나 같을 경우 범위의 오른쪽을 탐색
-		//count == N인 값 중에서 가장 큰 값을 찾아야 하므로 '<='
-		if (N <= count) {
+
+		if (M <= height) {
 			start = mid;
 		}
 		else {
 			end = mid;
 		}
 	}
-
 	std::cout << start;
 
 	return 0;
