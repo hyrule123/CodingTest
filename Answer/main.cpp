@@ -7,85 +7,40 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <vector>
 using uint = unsigned int;
-
-std::vector<uint> dists;
-std::vector<uint> temp;
-void MergeSort(uint _start, uint _end) {
-	if (_start >= _end) { return; }
-
-	uint mid = (_start + _end) / 2;
-	MergeSort(_start, mid);
-	MergeSort(mid + 1, _end);
-
-	uint l = _start;
-	uint r = mid + 1;
-	uint i = _start;
-	while (l <= mid && r <= _end) {
-		if (dists[l] < dists[r]) {
-			temp[i] = dists[l]; ++l;
-		}
-		else {
-			temp[i] = dists[r]; ++r;
-		}
-		++i;
-	}
-	for (; l <= mid; ++l) {
-		temp[i] = dists[l];
-		++i;
-	}
-	for (; r <= _end; ++r) {
-		temp[i] = dists[r];
-		++i;
-	}
-
-	memcpy(dists.data() + _start, temp.data() + _start, sizeof(uint) * (_end - _start + 1));
-}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 	
-	uint N, C; std::cin >> N >> C;
-	dists.resize(N); temp.resize(N);
-	for (uint i = 0; i < N; ++i) {
-		std::cin >> dists[i];
-	}
-	MergeSort(0, (uint)dists.size() - 1);
+	uint N, K; std::cin >> N >> K;
 
-	//최대거리 구하고
-	uint minDist = 1, maxDist = dists.back() - dists.front() + 1;
+	//숫자 x == 이분탐색으로 정함
+	//숫자 y == 숫자 x보다 작거나 같은 숫자가 몇개인가?
+	//만약 y가 K보다 많다면 end를 낮추고, 그렇지 않다면 start를 올린다.
+	//2차원 N*N 행렬의 각 행 i에 x보다 작거나 같은 수는 min(x / i, N)
+	uint start = 1, end = K;
+	uint result = 1;
+	while (start <= end) {
+		uint x = (start + end) / 2;
 
-	//배열 안의 값들을 두 집 사이의 거리로 변경
-	for (uint i = 0; i < N - 1; ++i) {
-		dists[i] = dists[i + 1] - dists[i];
-	}
-	--N; dists.resize(N);
-	
-	while (minDist + 1 < maxDist) {
-		uint mid = (minDist + maxDist) / 2;
-
-		uint count = 1;	//첫 집에는 무조건 공유기를 설치해야 최대거리를 뽑을수 있다
-		uint sum = 0;
-
-		for (uint i = 0; i < N; ++i) {
-			sum += dists[i];
-			//이번 루프에서 요구하는 거리 이상이 되면 sum을 초기화하고 count를 올려준다(공유기를 설치한다)
-			if (mid <= sum) {
-				sum = 0;
-				++count;
-			}
+		uint y = 0;
+		for (uint i = 1; i <= N; ++i) {
+			y += std::min(x / i, N);
 		}
 
-		if (C <= count) {
-			minDist = mid;
+		//K개보다 모자라면 저점을 올려준다
+		if (y < K) {
+			start = x + 1;
 		}
+		//K보다 많을 경우 답일 수도 있으므로(K보다 같거나 많은 가장 첫 번째 인덱스) 
+		//result에 할당하고 고점을 내려준다.
 		else {
-			maxDist = mid;
+			result = x;
+			end = x - 1;
 		}
 	}
-	std::cout << minDist;
+	std::cout << result;
 
 	return 0;
 }
