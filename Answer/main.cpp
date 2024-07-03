@@ -8,33 +8,56 @@
 //////////////////
 
 #include <vector>
+std::vector<int> heap;
+void HeapifyDown(size_t _idx, size_t _size) {
 
+	while (_idx < _size) {
+		size_t biggest = _idx;
+		size_t left = _idx * 2;
+		size_t right = left + 1;
 
-//LIS 배열 의미: 길이가 idx인 부분 증가수열의 마지막 원소의 값 and 그 중 가장 작은 값
-//예를들어 이번에 20을 넣는데
-//LIS[3] 이 30, LIS[1]이 10 이라면 LIS[2] = 20을 넣어주면 된다.
-std::vector<int> LIS;
-void InsertLIS(int _u) {
-	if (LIS.back() < _u) {
-		LIS.push_back(_u);
-		return;
-	}
-
-	int start = 0, end = (int)LIS.size() - 1u;
-	int idx = 0;
-	while (start <= end) {
-		int mid = (start + end) / 2;
-		
-		if (_u <= LIS[mid]) {
-			idx = mid;
-			end = mid - 1;
+		if (left < _size && heap[biggest] < heap[left]) {
+			biggest = left;
 		}
-		else {
-			start = mid + 1;
+		if (right < _size && heap[biggest] < heap[right]) {
+			biggest = right;
 		}
-	}
 
-	LIS[idx] = _u;
+		if (biggest != _idx) {
+			std::swap(heap[biggest], heap[_idx]);
+			_idx = biggest;
+		}
+		else { break; }
+	}
+}
+
+void InsertHeap(int _i) {
+	heap.push_back(_i);
+
+	//Heapify Up
+	size_t idx = heap.size() - 1;
+	while (idx > 0) {
+		size_t parent = idx / 2;
+
+		if (heap[idx] > heap[parent]) {
+			std::swap(heap[idx], heap[parent]);
+		}
+		idx = parent;
+	}
+}
+
+int PopHeap() {
+	int ret = 0;
+	if (heap.empty()) { return ret; }
+	
+	ret = heap[0];
+	heap[0] = heap.back();
+	heap.resize(heap.size() - 1);
+	if (1 < heap.size()) {
+		HeapifyDown(0, heap.size());
+	}
+	
+	return ret;
 }
 
 int main() {
@@ -42,14 +65,16 @@ int main() {
 	LOCAL_IO;
 	
 	int N; std::cin >> N;
-	LIS.reserve(N);
-	LIS.push_back(0);
-	std::cin >> LIS.back();
-	for (int i = 1; i < N; ++i) {
+	heap.reserve(N);
+	for (int i = 0; i < N; ++i) {
 		int input; std::cin >> input;
-		InsertLIS(input);
+		if (input) {
+			InsertHeap(input);
+		}
+		else {
+			std::cout << PopHeap() << '\n';
+		}
 	}
-	std::cout << LIS.size();
 
 	return 0;
 }
