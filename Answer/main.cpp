@@ -7,40 +7,49 @@
 #include <cstring>  //memset
 //////////////////
 
-using uint = unsigned int;
+#include <vector>
+
+
+//LIS 배열 의미: 길이가 idx인 부분 증가수열의 마지막 원소의 값 and 그 중 가장 작은 값
+//예를들어 이번에 20을 넣는데
+//LIS[3] 이 30, LIS[1]이 10 이라면 LIS[2] = 20을 넣어주면 된다.
+std::vector<int> LIS;
+void InsertLIS(int _u) {
+	if (LIS.back() < _u) {
+		LIS.push_back(_u);
+		return;
+	}
+
+	int start = 0, end = (int)LIS.size() - 1u;
+	int idx = 0;
+	while (start <= end) {
+		int mid = (start + end) / 2;
+		
+		if (_u <= LIS[mid]) {
+			idx = mid;
+			end = mid - 1;
+		}
+		else {
+			start = mid + 1;
+		}
+	}
+
+	LIS[idx] = _u;
+}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 	
-	uint N, K; std::cin >> N >> K;
-
-	//숫자 x == 이분탐색으로 정함
-	//숫자 y == 숫자 x보다 작거나 같은 숫자가 몇개인가?
-	//만약 y가 K보다 많다면 end를 낮추고, 그렇지 않다면 start를 올린다.
-	//2차원 N*N 행렬의 각 행 i에 x보다 작거나 같은 수는 min(x / i, N)
-	uint start = 1, end = K;
-	uint result = 1;
-	while (start <= end) {
-		uint x = (start + end) / 2;
-
-		uint y = 0;
-		for (uint i = 1; i <= N; ++i) {
-			y += std::min(x / i, N);
-		}
-
-		//K개보다 모자라면 저점을 올려준다
-		if (y < K) {
-			start = x + 1;
-		}
-		//K보다 많을 경우 답일 수도 있으므로(K보다 같거나 많은 가장 첫 번째 인덱스) 
-		//result에 할당하고 고점을 내려준다.
-		else {
-			result = x;
-			end = x - 1;
-		}
+	int N; std::cin >> N;
+	LIS.reserve(N);
+	LIS.push_back(0);
+	std::cin >> LIS.back();
+	for (int i = 1; i < N; ++i) {
+		int input; std::cin >> input;
+		InsertLIS(input);
 	}
-	std::cout << result;
+	std::cout << LIS.size();
 
 	return 0;
 }
