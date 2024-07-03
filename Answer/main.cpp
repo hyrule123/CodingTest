@@ -9,23 +9,31 @@
 
 #include <vector>
 std::vector<int> heap;
+int ABS(int _i) { if (_i < 0) { _i = -_i; } return _i; }
+bool Comp(int _a, int _b) {
+	int absA = ABS(_a), absB = ABS(_b);
+	if (absA == absB) {
+		return _a < _b;
+	}
+	return absA < absB;
+}
 void HeapifyDown(size_t _idx, size_t _size) {
 
 	while (_idx < _size) {
-		size_t biggest = _idx;
+		size_t absMinIdx = _idx;
 		size_t left = _idx * 2;
 		size_t right = left + 1;
 
-		if (left < _size && heap[biggest] > heap[left]) {
-			biggest = left;
+		if (left < _size && Comp(heap[left], heap[absMinIdx])) {
+			absMinIdx = left;
 		}
-		if (right < _size && heap[biggest] > heap[right]) {
-			biggest = right;
+		if (right < _size && Comp(heap[right], heap[absMinIdx])) {
+			absMinIdx = right;
 		}
 
-		if (biggest != _idx) {
-			std::swap(heap[biggest], heap[_idx]);
-			_idx = biggest;
+		if (absMinIdx != _idx) {
+			std::swap(heap[absMinIdx], heap[_idx]);
+			_idx = absMinIdx;
 		}
 		else { break; }
 	}
@@ -39,7 +47,7 @@ void InsertHeap(int _i) {
 	while (idx > 0) {
 		size_t parent = idx / 2;
 
-		if (heap[idx] < heap[parent]) {
+		if (Comp(heap[idx], heap[parent])) {
 			std::swap(heap[idx], heap[parent]);
 		}
 		idx = parent;
