@@ -7,58 +7,93 @@
 #include <cstring>  //memset
 //////////////////
 
-//풀이 참고 - 1번 정석 DP 풀이 : O(N^3)
+//풀이 참고 - 3번 Kruth Optimization: O(N^2)
 //https://js1jj2sk3.tistory.com/3
+//https://blog.naver.com/edenooo/221461988510
 
-//dp[i][j] == i번 파일부터 j번 파일(i < j)을 합치는데 드는 최소비용
-//ex)3, 4, 5는 3/45와 34/5 두가지 경우의 수로 나눌 수 있다
-//또한 더했을 때만 비용에 합산한다. 아래 예시에서 괄호친 부분만 더하면 됨
-//3 / 45 -> 3 / (9) -> (12) = 9 + 12 = 21
-//== dp[3][3] + dp[4][5] + {3부터 5까지의 구간합}
-//0 + 9 + 12 = 21
-//cf)dp[3][3] == 0 (i < j)
+//점화식이 i~j 구간에서 dp[i][k] + dp[k][j] + C[i][j] 꼴일때 
+//num[i][j]란 dp[i][j]가 최소가 되게 하는 k(i  < k  < j)값을 저장하는 배열이라 정의하면, 다음이 성립한다.
+//num[i][j - 1] <= num[i][j] <= num[i + 1][j]
 
-//34 / 5 -> (7) / 5 -> (12) = 7 + 12 = 19
-//뭘 하던 마지막에 12(==3 + 4 + 5)를 더하는 것은 같음 -> i~j까지의 구간합
-int dp[501][501]{};
+//i,j-1  i, j
+//		 i+1,j
 
-//누적합(최대 10000 * 500 = 5000000)
-int inputSum[501]{};
+//현재 C[i][j]부분은 구간합(i번째 파일부터 j번째 파일 용량의 합)
+// 단순하게 a=1 <= b=2 <= c=3 <= d=4로 가정하면
+//1. 사각부등식 만족
+// C[1][3] + C[2][4] <= C[1][4] + C[2][3] -> 1+2+3 + 2+3+4 <= 1+2+3+4 + 2+3 좌변과 우변의 합이 같으므로 성립
+
+//2. 단조증가 만족 일 경우 사용 가능
+// 누적합이므로 자명
+
+//지금 문제의 i의 최소값은 1, 최대값은 K 이므로
+//1
+// 2 
+//  3
+//   4
+//형태의 배열이 된다.
+
+//Knuth 최적화의 요구조건은 다음과 같다(부등호에 =이 없음에 주의)
+//min(i  < k  < j) { dp2[i][k] + dp2[k][j] } + psum[i][j]
+//그러므로 dp 배열의 의미를 다음과 같이 수정해야 한다
+//dp[i][j] == (i + 1, j) 구간 내의 최소값
+//현재 dp[i][j] == 기존dp[i-1][j]
+using uint = unsigned int;
+uint dp[501][501];
+uint inputSum[501];
+
+//pivotRanges[i][j]: dp[i][j]가 최소가 되게 하는 pivot
+//이 배열도 dp를 구하면서 채워나가야 함
+uint pivotRanges[501][501]{};
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	int T; std::cin >> T;
-	for (int i = 0; i < T; ++i) {
-		int K; std::cin >> K;
-		for (int j = 1; j <= K; ++j) {
-			int input; std::cin >> input;
+	uint T; std::cin >> T;
+	for (uint i = 0; i < T; ++i) {
+		uint K; std::cin >> K;
+
+		memset(dp, 0, sizeof(uint) * 501 * 501);
+		memset(inputSum, 0, sizeof(uint) * 501);
+		memset(pivotRanges, 0, sizeof(uint) * 501 * 501);
+
+		for (uint j = 1; j <= K; ++j) {
+			uint input; std::cin >> input;
 			inputSum[j] = inputSum[j - 1] + input;
+			
+			//pivotRanges[i][j-1] <= pivotRanges[i][j] <= pivotRanges[i+1][j]
+			//
+			//dp 루프는 0,2부터 시작 -> 0, 1부터 채워나가야 한다.
+			//j는 1부터 시작 -> (0,1)->(1,2)...
+			//dp[j-1][j] (==j~j) 를 최소값으로 만들어주는 k = j(pSum[j] - pSum[j] = 0)
+			pivotRanges[j - 1][j] = j;
 		}
 
-		//for문이 이렇게 생겨먹은 이유
-		//dp[1][2] = 1부터 2까지의 최소합
-		//dp[1][5] = 1부터 5까지의 최소합
-		//1~5 안에는 1~1부터 1~5까지 모두 포함되어 있다.
-		//하위 범주를 먼저 계산해야 정상적인 DP 계산이 가능하다는 것
-		//그러므로 1~1, 1~2, 1~3, 1~4... 5~5 모두 계산이 되어 있어야 한다.->작은 범위부터 채워나간다
-		for (int range = 1; range <= K; ++range) {
-			for (int r = 1; r + range <= K; ++r) {
-				int c = r + range;
-				dp[r][c] = std::numeric_limits<int>::max();
+		//[i][j] -> i+1 ~ j
+		//[0][1] -> 1~1(=0), [0][2] -> 1~2 (range가 2 이상이여야 최소 1 이상 구간 dp를 확인 가능)
+		for (uint range = 2; range <= K; ++range) {
+			//대각선 방향으로 dp를 확인
+			for (uint r = 0; r + range <= K; ++r) {
+				uint c = r + range;
+				dp[r][c] = std::numeric_limits<uint>::max();
 
-				for (int pivot = r; pivot < c; ++pivot) {
-					dp[r][c] = std::min(dp[r][c],
-						dp[r][pivot] + dp[pivot + 1][c]
-					);
+				for (uint pivot = pivotRanges[r][c - 1]; pivot <= pivotRanges[r + 1][c]; ++pivot) {
+					//r+1~pivot + pivot+1~c
+					uint prev = dp[r][pivot] + dp[pivot][c];
+					if (prev < dp[r][c]) {
+						dp[r][c] = prev;
+						pivotRanges[r][c] = pivot;
+					}
 				}
-				dp[r][c] += inputSum[c] - inputSum[r - 1];
+
+				//r,c == r+1 ~ c 이므로 구간합은 pSum[c] - pSum[r + 1 - 1]
+				dp[r][c] += (inputSum[c] - inputSum[r]);
 			}
 		}
-		
-		//1~K(전체 구간)의 합은 dp[1][K]에 저장되었을 것이다.
-		std::cout << dp[1][K]<<'\n';
+
+		//r+1 ~ c이므로 1 ~ K 범위가 된다.
+		std::cout << dp[0][K] << '\n';
 	}
 
 	return 0;
