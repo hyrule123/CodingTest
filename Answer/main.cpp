@@ -9,15 +9,13 @@
 
 #include <vector>
 struct mat { int r, c; };
-
-mat input[500];
-int dp[500][500];
-
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
 	int N; std::cin >> N;
+	std::vector<mat> input(N);
+	std::vector<std::vector<int>> dp(N, std::vector<int>(N));
 	std::cin >> input[0].r >> input[0].c;
 	for (int i = 1; i < N; ++i) {
 		std::cin >> input[i].r >> input[i].c;
