@@ -7,46 +7,72 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <bitset>
-std::bitset<15001> combi;
-int ABS(int _i) { if (_i < 0) { _i = -_i; } return _i; }
+#include <vector>
+std::vector<int> heap;
+void HeapifyDown(size_t _idx, size_t _size) {
+
+	while (_idx < _size) {
+		size_t biggest = _idx;
+		size_t left = _idx * 2 + 1;
+		size_t right = left + 1;
+
+		if (left < _size && heap[biggest] > heap[left]) {
+			biggest = left;
+		}
+		if (right < _size && heap[biggest] > heap[right]) {
+			biggest = right;
+		}
+
+		if (biggest != _idx) {
+			std::swap(heap[biggest], heap[_idx]);
+			_idx = biggest;
+		}
+		else { break; }
+	}
+}
+
+void InsertHeap(int _i) {
+	heap.push_back(_i);
+
+	//Heapify Up
+	size_t idx = heap.size() - 1;
+	while (idx > 0) {
+		size_t parent = (idx - 1) / 2;
+
+		if (heap[idx] < heap[parent]) {
+			std::swap(heap[idx], heap[parent]);
+		}
+		idx = parent;
+	}
+}
+
+int PopHeap() {
+	int ret = 0;
+	if (heap.empty()) { return ret; }
+
+	ret = heap[0];
+	heap[0] = heap.back();
+	heap.resize(heap.size() - 1);
+	if (1 < heap.size()) {
+		HeapifyDown(0, heap.size());
+	}
+
+	return ret;
+}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	int nWeight, weights[30]{}, weightMax = 0; std::cin >> nWeight;
-	combi[0] = true;
-	for (int i = 0; i < nWeight; ++i) {
-		std::cin >> weights[i];
-		weightMax += weights[i];
-
-		//역순으로 하지 않으면, 1g에 3g 추를 추가한다고 할때
-		//0, 1, 4(1+3), 7(4+3), 10(7+3)... 중복 true가 생성됨.
-		for (int j = weightMax; j >= 0; --j) {
-			if (combi[j]) {
-				//기존 조합 + 오른쪽 저울에 추를 추가
-				combi[j + weights[i]] = true;
-			}
-		}
-		
-		//위와 마찬가지 이유로 순차적으로 해야 함.
-		for (int j = 0; j <= weightMax; ++j) {
-			if (combi[j]) {
-				//기존 조합 + 왼쪽 저울에 추를 추가
-				combi[ABS(j - weights[i])] = true;
-			}
-		}
-	}
-
-	int nOrbs; std::cin >> nOrbs;
-	while (nOrbs--) {
-		int orbWeight; std::cin >> orbWeight;
-		if (combi[orbWeight]) {
-			std::cout << "Y ";
+	int N; std::cin >> N;
+	heap.reserve(N);
+	for (int i = 0; i < N; ++i) {
+		int input; std::cin >> input;
+		if (input) {
+			InsertHeap(input);
 		}
 		else {
-			std::cout << "N ";
+			std::cout << PopHeap() << '\n';
 		}
 	}
 
