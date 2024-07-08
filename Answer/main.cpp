@@ -7,48 +7,48 @@
 #include <cstring>  //memset
 //////////////////
 
-#include <array>
-using uint = unsigned int;
-enum dir { left, up, right, down };
-
-uint N, M;
-uint path[502][502];
-uint memo[502][502];	//memo: x, y에서 N, M까지 갈 수 있는 방법의 수
-
-uint Recursive(uint x, uint y) {
-
-	//도착했을 경우 1을 return
-	if (x == N && y == M) { return 1; }
-
-	//아직 지나가지 않은 길일 경우 탐색
-	else if (0xff'ff'ff'ff == memo[x][y]) {
-		memo[x][y] = 0;
-
-		if (path[x - 1][y] < path[x][y]) { memo[x][y] += Recursive(x - 1, y); }
-		if (path[x][y - 1] < path[x][y]) { memo[x][y] += Recursive(x, y - 1); }
-		if (path[x + 1][y] < path[x][y]) { memo[x][y] += Recursive(x + 1, y); }
-		if (path[x][y + 1] < path[x][y]) { memo[x][y] += Recursive(x, y + 1); }
-	}
-
-	//이미 지나간 길일 경우 memo를 반환
-	return memo[x][y];
-}
-
+#include <bitset>
+std::bitset<15001> combi;
+int ABS(int _i) { if (_i < 0) { _i = -_i; } return _i; }
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> M;
-	memset(path, 0xff, sizeof(uint) * 502 * 502);
-	memset(memo, 0xff, sizeof(uint) * 502 * 502);
-	for (uint r = 1; r <= N; ++r) {
-		for (uint c = 1; c <= M; ++c) {
-			std::cin >> path[r][c];
+	int nWeight, weights[30]{}, weightMax = 0; std::cin >> nWeight;
+	combi[0] = true;
+	for (int i = 0; i < nWeight; ++i) {
+		std::cin >> weights[i];
+		weightMax += weights[i];
+
+		//역순으로 하지 않으면, 1g에 3g 추를 추가한다고 할때
+		//0, 1, 4(1+3), 7(4+3), 10(7+3)... 중복 true가 생성됨.
+		for (int j = weightMax; j >= 0; --j) {
+			if (combi[j]) {
+				//기존 조합 + 오른쪽 저울에 추를 추가
+				combi[j + weights[i]] = true;
+			}
+		}
+		
+		//위와 마찬가지 이유로 순차적으로 해야 함.
+		for (int j = 0; j <= weightMax; ++j) {
+			if (combi[j]) {
+				//기존 조합 + 왼쪽 저울에 추를 추가
+				combi[ABS(j - weights[i])] = true;
+			}
 		}
 	}
 
-	std::cout << Recursive(1, 1);
+	int nOrbs; std::cin >> nOrbs;
+	while (nOrbs--) {
+		int orbWeight; std::cin >> orbWeight;
+		if (combi[orbWeight]) {
+			std::cout << "Y ";
+		}
+		else {
+			std::cout << "N ";
+		}
+	}
 
 	return 0;
 }
