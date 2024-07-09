@@ -8,73 +8,32 @@
 //////////////////
 
 #include <vector>
-std::vector<int> heap;
-void HeapifyDown(size_t _idx, size_t _size) {
-
-	while (_idx < _size) {
-		size_t biggest = _idx;
-		size_t left = _idx * 2 + 1;
-		size_t right = left + 1;
-
-		if (left < _size && heap[biggest] > heap[left]) {
-			biggest = left;
-		}
-		if (right < _size && heap[biggest] > heap[right]) {
-			biggest = right;
-		}
-
-		if (biggest != _idx) {
-			std::swap(heap[biggest], heap[_idx]);
-			_idx = biggest;
-		}
-		else { break; }
-	}
-}
-
-void InsertHeap(int _i) {
-	heap.push_back(_i);
-
-	//Heapify Up
-	size_t idx = heap.size() - 1;
-	while (idx > 0) {
-		size_t parent = (idx - 1) / 2;
-
-		if (heap[idx] < heap[parent]) {
-			std::swap(heap[idx], heap[parent]);
-		}
-		idx = parent;
-	}
-}
-
-int PopHeap() {
-	int ret = 0;
-	if (heap.empty()) { return ret; }
-
-	ret = heap[0];
-	heap[0] = heap.back();
-	heap.resize(heap.size() - 1);
-	if (1 < heap.size()) {
-		HeapifyDown(0, heap.size());
-	}
-
-	return ret;
-}
+int N, K;
+//dp 의미: 배열의 '(index)원'을 가진 동전들로 만들 수 있는 경우의 수
+//ex) 3원, 동전 1/2 -> 111, 12 2개
+std::vector<int> dp;
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	int N; std::cin >> N;
-	heap.reserve(N);
+	std::cin >> N >> K;
+	dp.resize(K + 1);
+	dp[0] = true;
+
 	for (int i = 0; i < N; ++i) {
-		int input; std::cin >> input;
-		if (input) {
-			InsertHeap(input);
-		}
-		else {
-			std::cout << PopHeap() << '\n';
+		int coin; std::cin >> coin;
+		if (K < coin) { continue; }
+
+		//j - coin에서 가능한 경우의 수를 dp[j]에 더해 준다.
+		//ex)dp[3] = 2(111, 12)
+		//dp[5] = dp[5](1 <= 11111) + dp[5 - 2] = 2 (111 + 2, 12 + 2)
+		//1원을 만들수 있는 경우의 수의 총합에 2원을 추가하는 것이므로
+		for (int j = coin; j <= K; ++j) {
+			if (dp[j - coin]) { dp[j] += dp[j - coin]; }
 		}
 	}
+	std::cout << dp.back();
 
 	return 0;
 }
