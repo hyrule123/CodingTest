@@ -7,33 +7,51 @@
 #include <cstring>  //memset
 //////////////////
 
+//이번 앱을 끄거나 켜거나
 #include <vector>
-int N, K;
-//dp 의미: 배열의 '(index)원'을 가진 동전들로 만들 수 있는 경우의 수
-//ex) 3원, 동전 1/2 -> 111, 12 2개
-std::vector<int> dp;
+struct app { int mem, cost; };
+std::vector<app> apps;
+//i = i번째 앱까지 , j: 제거 비용, val: 제거되는 최대 메모리
+std::vector<std::vector<int>> dp;
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> K;
-	dp.resize(K + 1);
-	dp[0] = true;
+	int N, M; std::cin >> N >> M;
+	apps.resize(N + 1);
+	for (int i = 1; i <= N; ++i) {
+		std::cin >> apps[i].mem;
+	}
+	int maxCost = 0;
+	for (int i = 1; i <= N ; ++i) {
+		std::cin >> apps[i].cost;
+		maxCost += apps[i].cost;
+	}
 
-	for (int i = 0; i < N; ++i) {
-		int coin; std::cin >> coin;
-		if (K < coin) { continue; }
+	int minCost = std::numeric_limits<int>::max();
+	//최악의 경우 최대 비용은 100 * 100 = 10000
+	dp.resize(N + 1, std::vector<int>(maxCost + 1));
+	for (int i = 1; i <= N; ++i) {
 
-		//j - coin에서 가능한 경우의 수를 dp[j]에 더해 준다.
-		//ex)dp[3] = 2(111, 12)
-		//dp[5] = dp[5](1 <= 11111) + dp[5 - 2] = 2 (111 + 2, 12 + 2)
-		//1원을 만들수 있는 경우의 수의 총합에 2원을 추가하는 것이므로
-		for (int j = coin; j <= K; ++j) {
-			if (dp[j - coin]) { dp[j] += dp[j - coin]; }
+		for (int j = 0; j <= maxCost; ++j) {
+			//이번 앱을 제거하지 않았을 때
+			int exclude = dp[i - 1][j];
+
+			//이번 앱을 제거했을 때: [j - (이번앱 cost)].mem + (이번앱 mem)
+			int include = 0;
+			if (apps[i].cost <= j) {
+				include = dp[i - 1][j - apps[i].cost] + apps[i].mem;
+			}
+
+			dp[i][j] = std::max(exclude, include);
+			if (M <= dp[i][j]) {
+				minCost = std::min(minCost, j);
+			}
 		}
 	}
-	std::cout << dp.back();
+	std::cout << minCost;
+
 
 	return 0;
 }
