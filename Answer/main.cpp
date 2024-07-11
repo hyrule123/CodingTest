@@ -6,50 +6,43 @@
 #include <limits>
 #include <cstring>  //memset
 
-/*복습 - 골드바흐 파티션*/
+/*복습 - 11049 행렬 곱셈 순서*/
 #include <vector>
-using uint = unsigned int;
-std::vector<uint> inputs;
-std::vector<bool> sieve;
-void ComputeSieve(uint _n) {
-	sieve.resize(_n + 1, true);
-	if (0 < _n) { sieve[0] = false; }
-	if (1 < _n) { sieve[1] = false; }
+struct mat { int r, c; };
+std::vector<mat> mats;
 
-	for (uint i = 2; i * i <= _n; ++i) {
-		if (sieve[i]) {
-			for (uint j = i + i; j <= _n; j += i) {
-				sieve[j] = false;
-			}
-		}
-	}
-}
+//dp[i][j]: i 행렬부터 j 행렬까지 곱했을 때 최소값
+std::vector<std::vector<int>> dp;
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	uint N, primeMax = 0; std::cin >> N;
-	inputs.resize(N);
-	for (uint i = 0; i < N; ++i) {
-		std::cin >> inputs[i];
-		if (primeMax < inputs[i]) {
-			primeMax = inputs[i];
+	int N; std::cin >> N;
+	mats.resize(N + 1);
+	for (int i = 1; i <= N; ++i) {
+		std::cin >> mats[i].r >> mats[i].c;
+	}
+
+	dp.resize(N + 1, std::vector<int>(N + 1));
+
+	for (int range = 1; range <= N; ++range) {
+		for (int r = 1; r + range <= N; ++r) {
+			int c = r + range;
+			dp[r][c] = std::numeric_limits<int>::max();
+
+			for (int pivot = r; pivot < c; ++pivot) {
+				dp[r][c] = std::min(dp[r][c],
+					dp[r][pivot] + dp[pivot + 1][c]
+
+					//요게 핵심. 가운데 c가 pivot의 c임에 주의
+					+ mats[r].r * mats[pivot].c * mats[c].c
+				);
+			}
 		}
 	}
 
-	ComputeSieve(primeMax);
-	
-	for (uint i = 0; i < N; ++i) {
-		uint goldbachCount = 0;
-		for (uint j = 2; j * 2 <= inputs[i]; ++j) {
-			//j가 소수 + (인풋값 짝수) - j가 소수이면 골드바흐 파티션이 성립
-			if (sieve[j] && sieve[inputs[i] - j]) {
-				++goldbachCount;
-			}
-		}
-		std::cout << goldbachCount << '\n';
-	}
+	std::cout << dp[1][N];
 
 	return 0;
 }
