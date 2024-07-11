@@ -5,48 +5,55 @@
 #include <iostream>
 #include <limits>
 #include <cstring>  //memset
-
 /*
-백준 1520 내리막 길 (복습)
+백준 2629 (양팔저울) - 복습
+*/
+/*
+* 추를 올렸을 때 경우의 수: 왼쪽에 올리냐 오른쪽에 올리냐
+* 왼쪽에 올리면 전체 무게에서 그만큼 감소, 오른쪽에 올리면 그만큼 증가
+* 최소나 최대값을 구하는게 아니므로 안 올리는 선택지는 x
+* -> dp[i]->bool: 무게 i를 만들 수 있는가?
 */
 #include <vector>
-//memo: 현재 위치에서 끝에 도달할 수 있는 경우의 수
-struct cont { int val = std::numeric_limits<int>::max(), memo = -1; };
-std::vector<std::vector<cont>> dp;
-int N, M;
-int SearchPath(int _r, int _c) {
-	//도착했을 경우 1 반환
-	if (_r == N && _c == M) { return 1; }
-
-	//메모가 없으면(이 경로 처음 방문하면) 경로 계산
-	if (dp[_r][_c].memo == -1) {
-		dp[_r][_c].memo = 0;
-
-		cont& cur = dp[_r][_c];
-
-		//상하좌우
-		if (dp[_r - 1][_c].val < cur.val) { cur.memo += SearchPath(_r - 1, _c); }
-		if (dp[_r + 1][_c].val < cur.val) { cur.memo += SearchPath(_r + 1, _c); }
-		if (dp[_r][_c - 1].val < cur.val) { cur.memo += SearchPath(_r, _c - 1); }
-		if (dp[_r][_c + 1].val < cur.val) { cur.memo += SearchPath(_r, _c + 1); }
-	}
-	
-	//메모가 있으면 이미 해당 위치에서 경로가 계산된 것이므로 그대로 반환
-	return dp[_r][_c].memo;
-}
+std::vector<int> weights;
+std::vector<bool> dp;
+int ABS(int i) { if (i < 0) { i = -i; } return i; }
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> M;
-	dp.resize(N + 2, std::vector<cont>(M + 2));
-	for (int r = 1; r <= N; ++r) {
-		for (int c = 1; c <= M; ++c) {
-			std::cin >> dp[r][c].val;
+	int N, maxWeight = 0; std::cin >> N;
+	weights.resize(N + 1);
+	for (int i = 0; i < N; ++i) {
+		std::cin >> weights[i];
+		maxWeight += weights[i];
+	}
+	dp.resize(maxWeight + 1);
+
+	dp[0] = true; dp[weights[0]] = true;
+	for (int i = 1; i < N; ++i) {
+		//연쇄효과 방지를 위해 역순으로(ex.2 -> 순차적으로 할시 2, 4, 6, 8, ... true로 만들어버리므로)
+		for (int w = maxWeight - weights[i]; w >= 0; --w) {
+			if (dp[w]) { dp[w + weights[i]] = true; }
+		}
+
+		//마찬가지로 연쇄효과 방지를 위해 순차적으로, 음수 방지를 위해 절대값
+		for (int w = 0; w <= maxWeight; ++w) {
+			if (dp[w]) { dp[ABS(w - weights[i])] = true; }
 		}
 	}
-	std::cout << SearchPath(1, 1);
+
+	int nOrb; std::cin >> nOrb;
+	while (nOrb--) {
+		int orb; std::cin >> orb;
+		char result = 'N';
+		//이 구슬이 범위 안에 있고 구슬의 무게를 저울로 표현할수 있으면
+		if (orb <= maxWeight && dp[orb]) {
+			result = 'Y';
+		}
+		std::cout << result << ' ';
+	}
 
 	return 0;
 }
