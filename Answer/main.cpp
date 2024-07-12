@@ -6,36 +6,56 @@
 #include <limits>
 #include <cstring>  //memset
 /*
-백준 17298 (오큰수) - std::vector 버전(29376kb, 184ms)
+백준 17299 (오등큰수)
 */
-#include <vector>
+#include <array>
+constexpr int arrSize = 1'000'001;
+std::array<int, arrSize> inputs;	//입력
+std::array<int, arrSize> freqs;		//출현 빈도
+
 struct elem { int val, idx; };
-std::vector<elem> stack;
-std::vector<int> ans;
+struct Stack {
+	std::array<elem, arrSize> cont{};
+	int _size = 0;
+
+	bool empty() { return _size == 0; }
+	int size() { return _size; }
+	void pop() { --_size; }
+	void push(int _val, int _idx) { cont[_size].val = _val; cont[_size].idx = _idx; ++_size; }
+	elem& back() { return cont[_size - 1]; }
+
+} stack;
+std::array<int, arrSize> ans;
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	//stack 삽입 규칙: 현재 스택의 맨 끝 값보다 낮은 값만 넣는다.
-	//높은 값을 발견했을 경우 그보다 낮은 값들을 전부 꺼내서 NGE를 계산
+	//stack 삽입 규칙: 현재 스택의 맨 끝 값의 빈도보다 작은 값만 넣는다
+	//stack의 맨 뒤보다 높은 값을 발견했을 경우 그보다 낮은 값들을 전부 꺼내서 NGF를 계산
 	int N; std::cin >> N;
-	stack.reserve(N); ans.resize(N, -1);
+	ans.fill(-1);
 
-	for (int i = 0; i < N; ++i) {
-		int input; std::cin >> input;
-		if (stack.empty()) { stack.push_back({ input, i }); }
-
-		//마지막 값보다 큰값을 발견한경우: stack에서 작은 값을 모조리 꺼내서 답지 배열에 등록
-		while (false == stack.empty() && stack.back().val < input) {
-			ans[stack.back().idx] = input;
-			stack.pop_back();
-		}
-
-		stack.push_back({ input, i });
+	for (int i = 1; i <= N; ++i) {
+		std::cin >> inputs[i];
+		++(freqs[inputs[i]]);
 	}
 
-	for (int i = 0; i < N; ++i) {
+	//stack에는 빈도를 기록
+	for(int i = 1;i <= N; ++i){
+		int curNumFreq = freqs[inputs[i]];
+
+		//마지막 값보다 카운트가 큰값을 발견한경우: stack에서 작은 값을 모조리 꺼내서 답지 배열에 등록
+		while (false == stack.empty() && stack.back().val < curNumFreq) {
+			//답은 freq가 아닌 높은 빈도를 가졌던 수임
+			ans[stack.back().idx] = inputs[i];
+			stack.pop();
+		}
+
+		stack.push(curNumFreq, i);
+	}
+
+	for (int i = 1; i <= N; ++i) {
 		std::cout << ans[i] << ' ';
 	}
 
