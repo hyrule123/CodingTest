@@ -6,67 +6,78 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 1725 (히스토그램)
+백준 3015 (오아시스 재결합)
 */
 #include <array>
-struct bar { int height, pos; };
-constexpr int arrSize = 100000;
+using ll = long long;
+constexpr ll arrSize = 500000;
+//500000명이 있고 모두 같은 키일때 경우의 수: 500000 * 499999 / 2
+//124,999,750,000 -> 1000억이 넘어감
+struct man { ll height, sameHeightCount; };
 struct Stack {
-	std::array<bar, arrSize> cont{};
-	int size = 0;
+	std::array<man, arrSize> cont{};
+	ll size = 0;
 
 	bool Empty() { return size == 0; }
-	int Size() { return size; }
-	bar& Back() { return cont[size - 1]; }
-	void Push(bar b) { cont[size] = b; ++size; }
+	ll Size() { return size; }
+	man& Back() { return cont[size - 1]; }
+	void Push(const man& h) { cont[size] = h; ++size; }
 	void Pop() { --size; }
-
-} histogram;
+	void Clear() { size = 0; }
+} stack;
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	int N; std::cin >> N;
-	int maxSquare = 0;
-	for (int i = 0; i < N; ++i) {
-		bar b; std::cin >> b.height;
-		b.pos = i;
+	ll N; std::cin >> N;
 
-		//이번 막대가 스택의 마지막 막대보다 짧을 경우 
-		//스택에서 이번 막대보다 짧은 막대가 나올때까지 하나씩 꺼내서 가로길이에 합산
-		//스택에 2 3 4 있고 1이 들어왔으면 -> max(4 * 1, 3 * 2, 2 * 3)
-		while (false == histogram.Empty() && b.height < histogram.Back().height) {
-			bar& lastBar = histogram.Back();
-			histogram.Pop();
-			int width = i;
+	ll pairCount = 0;
+	for(ll i =0;i<N;++i){
+		man cur; std::cin >> cur.height;
+		cur.sameHeightCount = 1;
+		
+		/*
+		stack 삽입 규칙
+		1. 스택은 항상 내림차순이여야 한다.
+		2. 이번에 들어갈 원소가 1번 규칙을 깰 경우(스택의 끝보다 클 경우)
+				-> 규칙에 맞을 때까지 스택을 꺼내고, pairCount를 기록된 sameHeightCount만큼 더해준다.
+			 ex) 3 3 3 + 4 -> 3/4 3/4 3/4 3개 경우의수가 만들어짐
+		3. 만약 이번에 들어갈 원소가 스택의 끝과 같다면 병합한다(sameHeightCount를 그만큼 늘려준다)
+			-> 병합 전 pairCount를 sameHeightCount만큼 늘려준다.(
+			ex. 3 + 3 -> pairCount에 1 더해주고 둘이 병합 -> 3(2)
+				3(2) + 3 -> pairCount에 2 더해주고 병합 3(3)
+				-->> 3 3 3 은 서로를 볼 수 있는 쌍이 3개 만들어진다.
+			3-1. 만약 병합한 원소 앞에 원소가 하나 더 있을경우 1만큼 더해준다(
+			ex. 4 3(2) + 3 -> 4/3 쌍이 하나 생기므로 +1
+		*/
 
-			//비어있으면 히스토그램의 끝까지 이동가능(ex. 3 2 1에서 1의 경우를 생각해보자)
-			if (false == histogram.Empty()) {
-				width -= (histogram.Back().pos + 1);
+		while (false == stack.Empty() && stack.Back().height < cur.height) {
+			pairCount += stack.Back().sameHeightCount;
+			stack.Pop();
+		}
+
+		if (false == stack.Empty()) {
+			//맨 끝 사람과 키가 같을경우
+			if (stack.Back().height == cur.height) {
+				pairCount += stack.Back().sameHeightCount;
+				cur.sameHeightCount += stack.Back().sameHeightCount;
+				stack.Pop();
+
+				//사람이 남아있어 쌍을 이룰 수 있을경우
+				if (false == stack.Empty()) {
+					++pairCount;
+				}
 			}
-
-			maxSquare = std::max(maxSquare, lastBar.height * width);
+			//맨 끝 사람보다 키가 작을경우
+			else {
+				++pairCount;
+			}
 		}
 
-		histogram.Push(b);
+		stack.Push(cur);
 	}
-
-	//나머지 막대들에 대한 계산
-	while (false == histogram.Empty()) {
-		bar& lastBar = histogram.Back();
-		histogram.Pop();
-		int width = N;
-
-		//비어있으면 히스토그램의 끝까지 이동가능(ex. 3 2 1에서 1의 경우를 생각해보자)
-		if (false == histogram.Empty()) {
-			width -= histogram.Back().pos + 1;
-		}
-
-		maxSquare = std::max(maxSquare, lastBar.height * width);
-	}
-
-	std::cout << maxSquare;
+	std::cout << pairCount;
 
 	return 0;
 }
