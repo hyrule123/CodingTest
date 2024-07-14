@@ -6,73 +6,81 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 24479, 24480 (알고리즘 수업 - 깊이 우선 탐색 1, 2) - 부등호 방향만 달라져서 그냥 같이 올림
+백준 24444 (알고리즘 수업 - 너비 우선 탐색 1)
 */
+struct cq {
+	void Reserve(int _size) {
+		if (++_size <= capacity) { return; }
+
+		int* temp = new int[_size];
+		memset(temp, 0, sizeof(int) * _size);
+		if (cont) {
+			if (start > end) {
+				int frontSize = capacity - start;
+				memcpy(temp, cont + start, frontSize * sizeof(int));
+				memcpy(temp + frontSize, cont, end * sizeof(int));
+			}
+			else {
+				memcpy(temp, cont + start, sizeof(int) * (end - start));
+			}
+			delete[] cont;
+
+			start = 0;
+			end = size;
+		}
+		cont = temp;
+		capacity = _size;
+	}
+
+	bool Empty() { return size == 0; }
+	int Next(int _cursor) { if (capacity <= ++_cursor) { _cursor -= capacity; } return _cursor; }
+	void PushBack(int _elem) {
+		cont[end] = _elem;
+		end = Next(end);
+		++size;
+	}
+	int Front() { return cont[start]; }
+	void PopFront() { start = Next(start); --size; }
+
+	void PrintAll() {
+		int iter = start;
+		while (iter != end) {
+			std::cout << cont[iter] << '\n';
+			iter = Next(iter);
+		}
+	}
+
+	int* cont = nullptr;
+	int size = 0;
+	int capacity = 0;
+	int start = 0;
+	int end = 0;
+};
 #include <bitset>
-#include <vector>
-std::vector<int> links[100001];
-std::vector<int> temp;
-std::bitset<100001> visits{};
-int ans[100001]{}, visitOrder = 1;
-int N, M, R, size = 0;
-
-void MergeSort(std::vector<int>& _vec, int _start, int _end) {
-	if (_start >= _end) { return; }
-
-	int mid = (_start + _end) / 2;
-	MergeSort(_vec, _start, mid);
-	MergeSort(_vec, mid + 1, _end);
-
-	int cursor = 0;
-	int left = _start;
-	int right = mid + 1;
-	while (left <= mid && right <= _end) {
-		if (_vec[left] > _vec[right]) {
-			temp[cursor++] = _vec[left++];
-		}
-		else {
-			temp[cursor++] = _vec[right++];
-		}
-	}
-	for (; left <= mid;) {
-		temp[cursor++] = _vec[left++];
-	}
-	for (; right <= _end;) {
-		temp[cursor++] = _vec[right++];
-	}
-
-	memcpy(_vec.data() + _start, temp.data(), sizeof(int) * (_end - _start + 1));
-}
-
-void DFS(int _node) {
-	if (false == visits[_node]) {
-		visits[_node] = true;
-		ans[_node] = visitOrder;
-		++visitOrder;
-	}
-
-	for (int i : links[_node]) {
-		if (false == visits[i]) { DFS(i); }
-	}
-}
+std::bitset<100001> visited;
+cq q{};
+int N, M, R, ans[100001];
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
-
 	std::cin >> N >> M >> R;
-	for (int i = 0; i < M; ++i) {
-		int from, to; std::cin >> from >> to;
-		links[from].push_back(to);
-		links[to].push_back(from);
+	
+	srand(time(0));
+	int s = rand() % 100;
+	q.Reserve(s);
+	for (int i = 0; i < s / 2; ++i) {
+		q.PushBack(rand());
+		q.PopFront();
 	}
-	for (int i = 1; i <= N; ++i) {
-		temp.resize(links[i].size());
-		MergeSort(links[i], 0, (int)links[i].size() - 1);
+	for (int i = 0; i < s; ++i) {
+		q.PushBack(rand());
 	}
-	DFS(R);
-	for (int i = 1; i <= N; ++i) {
-		std::cout << ans[i] << '\n';
-	}
+	q.PrintAll();
+	s = rand() % 100 + 100;
+	q.Reserve(s);
+	std::cout << '\n';
+	q.PrintAll();
+
 	return 0;
 }
