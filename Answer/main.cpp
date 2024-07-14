@@ -6,68 +6,53 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 24479 (알고리즘 수업 - 깊이 우선 탐색 1)
+백준 24479, 24480 (알고리즘 수업 - 깊이 우선 탐색 1, 2) - 부등호 방향만 달라져서 그냥 같이 올림
 */
 #include <bitset>
-#include <array>
-std::array<std::bitset<100001>, 100001> links;
-struct link { 
-	int from, to; 
-	bool operator < (const link& _other) const {
-		if (from == _other.from) {
-			return to < _other.to;
+#include <vector>
+std::vector<int> links[100001];
+std::vector<int> temp;
+std::bitset<100001> visits{};
+int ans[100001]{}, visitOrder = 1;
+int N, M, R, size = 0;
+
+void MergeSort(std::vector<int>& _vec, int _start, int _end) {
+	if (_start >= _end) { return; }
+
+	int mid = (_start + _end) / 2;
+	MergeSort(_vec, _start, mid);
+	MergeSort(_vec, mid + 1, _end);
+
+	int cursor = 0;
+	int left = _start;
+	int right = mid + 1;
+	while (left <= mid && right <= _end) {
+		if (_vec[left] > _vec[right]) {
+			temp[cursor++] = _vec[left++];
 		}
-		return from < _other.from;
-	}
-};
-link links[200000]{};
-int N, M, R, size = 0, nodes[100001]{};
-
-void Heapify(int _parent, int _size) {
-	int max = _parent;
-	int left = max * 2 + 1;
-	int right = left + 1;
-
-	if (left < _size && links[max] < links[left]) {
-		max = left;
-	}
-	if (right < _size && links[max] < links[right]) {
-		max = right;
-	}
-
-	if (max != _parent) {
-		std::swap(links[max], links[_parent]);
-
-		Heapify(max, _size);
-	}
-}
-void HeapSort() {
-	for (int i = M - 1; i >= 1; --i) {
-		std::swap(links[0], links[i]);
-		Heapify(0, i);
-	}
-}
-
-void HeapifyUp() {
-	int child = size - 1;
-
-	while (0 < child) {
-		int parent = (child - 1) / 2;
-		if (links[parent] < links[child]) {
-			std::swap(links[parent], links[child]);
+		else {
+			temp[cursor++] = _vec[right++];
 		}
-		child = parent;
 	}
+	for (; left <= mid;) {
+		temp[cursor++] = _vec[left++];
+	}
+	for (; right <= _end;) {
+		temp[cursor++] = _vec[right++];
+	}
+
+	memcpy(_vec.data() + _start, temp.data(), sizeof(int) * (_end - _start + 1));
 }
 
-void DFS(int node, int linkIdxStart, int linkIdxEnd) {
-	if (node > N) { return; }
-	++(nodes[node]);
+void DFS(int _node) {
+	if (false == visits[_node]) {
+		visits[_node] = true;
+		ans[_node] = visitOrder;
+		++visitOrder;
+	}
 
-	int nextIdxEnd = linkIdxEnd;
-
-	while (linkIdxStart <= linkIdxEnd) {
-		DFS(links[linkIdxStart].to, linkIdxEnd + 1);
+	for (int i : links[_node]) {
+		if (false == visits[i]) { DFS(i); }
 	}
 }
 
@@ -76,13 +61,18 @@ int main() {
 	LOCAL_IO;
 
 	std::cin >> N >> M >> R;
-	for (int i = 0; i < N; ++i) {
-		std::cin >> links[size].from >> links[size].to; ++size;
-		HeapifyUp();
+	for (int i = 0; i < M; ++i) {
+		int from, to; std::cin >> from >> to;
+		links[from].push_back(to);
+		links[to].push_back(from);
 	}
-	HeapSort();
-
-
-
+	for (int i = 1; i <= N; ++i) {
+		temp.resize(links[i].size());
+		MergeSort(links[i], 0, (int)links[i].size() - 1);
+	}
+	DFS(R);
+	for (int i = 1; i <= N; ++i) {
+		std::cout << ans[i] << '\n';
+	}
 	return 0;
 }
