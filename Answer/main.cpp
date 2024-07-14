@@ -6,78 +6,83 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 3015 (오아시스 재결합)
+백준 24479 (알고리즘 수업 - 깊이 우선 탐색 1)
 */
+#include <bitset>
 #include <array>
-using ll = long long;
-constexpr ll arrSize = 500000;
-//500000명이 있고 모두 같은 키일때 경우의 수: 500000 * 499999 / 2
-//124,999,750,000 -> 1000억이 넘어감
-struct man { ll height, sameHeightCount; };
-struct Stack {
-	std::array<man, arrSize> cont{};
-	ll size = 0;
+std::array<std::bitset<100001>, 100001> links;
+struct link { 
+	int from, to; 
+	bool operator < (const link& _other) const {
+		if (from == _other.from) {
+			return to < _other.to;
+		}
+		return from < _other.from;
+	}
+};
+link links[200000]{};
+int N, M, R, size = 0, nodes[100001]{};
 
-	bool Empty() { return size == 0; }
-	ll Size() { return size; }
-	man& Back() { return cont[size - 1]; }
-	void Push(const man& h) { cont[size] = h; ++size; }
-	void Pop() { --size; }
-	void Clear() { size = 0; }
-} stack;
+void Heapify(int _parent, int _size) {
+	int max = _parent;
+	int left = max * 2 + 1;
+	int right = left + 1;
+
+	if (left < _size && links[max] < links[left]) {
+		max = left;
+	}
+	if (right < _size && links[max] < links[right]) {
+		max = right;
+	}
+
+	if (max != _parent) {
+		std::swap(links[max], links[_parent]);
+
+		Heapify(max, _size);
+	}
+}
+void HeapSort() {
+	for (int i = M - 1; i >= 1; --i) {
+		std::swap(links[0], links[i]);
+		Heapify(0, i);
+	}
+}
+
+void HeapifyUp() {
+	int child = size - 1;
+
+	while (0 < child) {
+		int parent = (child - 1) / 2;
+		if (links[parent] < links[child]) {
+			std::swap(links[parent], links[child]);
+		}
+		child = parent;
+	}
+}
+
+void DFS(int node, int linkIdxStart, int linkIdxEnd) {
+	if (node > N) { return; }
+	++(nodes[node]);
+
+	int nextIdxEnd = linkIdxEnd;
+
+	while (linkIdxStart <= linkIdxEnd) {
+		DFS(links[linkIdxStart].to, linkIdxEnd + 1);
+	}
+}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	ll N; std::cin >> N;
-
-	ll pairCount = 0;
-	for(ll i =0;i<N;++i){
-		man cur; std::cin >> cur.height;
-		cur.sameHeightCount = 1;
-		
-		/*
-		stack 삽입 규칙
-		1. 스택은 항상 내림차순이여야 한다.
-		2. 이번에 들어갈 원소가 1번 규칙을 깰 경우(스택의 끝보다 클 경우)
-				-> 규칙에 맞을 때까지 스택을 꺼내고, pairCount를 기록된 sameHeightCount만큼 더해준다.
-			 ex) 3 3 3 + 4 -> 3/4 3/4 3/4 3개 경우의수가 만들어짐
-		3. 만약 이번에 들어갈 원소가 스택의 끝과 같다면 병합한다(sameHeightCount를 그만큼 늘려준다)
-			-> 병합 전 pairCount를 sameHeightCount만큼 늘려준다.(
-			ex. 3 + 3 -> pairCount에 1 더해주고 둘이 병합 -> 3(2)
-				3(2) + 3 -> pairCount에 2 더해주고 병합 3(3)
-				-->> 3 3 3 은 서로를 볼 수 있는 쌍이 3개 만들어진다.
-			3-1. 만약 병합한 원소 앞에 원소가 하나 더 있을경우 1만큼 더해준다(
-			ex. 4 3(2) + 3 -> 4/3 쌍이 하나 생기므로 +1
-		*/
-
-		while (false == stack.Empty() && stack.Back().height < cur.height) {
-			pairCount += stack.Back().sameHeightCount;
-			stack.Pop();
-		}
-
-		if (false == stack.Empty()) {
-			//맨 끝 사람과 키가 같을경우
-			if (stack.Back().height == cur.height) {
-				pairCount += stack.Back().sameHeightCount;
-				cur.sameHeightCount += stack.Back().sameHeightCount;
-				stack.Pop();
-
-				//사람이 남아있어 쌍을 이룰 수 있을경우
-				if (false == stack.Empty()) {
-					++pairCount;
-				}
-			}
-			//맨 끝 사람보다 키가 작을경우
-			else {
-				++pairCount;
-			}
-		}
-
-		stack.Push(cur);
+	std::cin >> N >> M >> R;
+	for (int i = 0; i < N; ++i) {
+		std::cin >> links[size].from >> links[size].to; ++size;
+		HeapifyUp();
 	}
-	std::cout << pairCount;
+	HeapSort();
+
+
 
 	return 0;
 }
