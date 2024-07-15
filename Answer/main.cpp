@@ -105,17 +105,16 @@ int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> M;
+	N = 100; M = 100;
 
 	for (int r = 1; r <= N; ++r) {
-		char input[101]; std::cin >> input;
 		for (int c = 1; c <= M; ++c) {
 			//지나갈수 있는 길은 PATH(-2)로 채워준다
-			if (input[c - 1] == '1') { map[r][c] = PATH; }
+			map[r][c] = PATH;
 		}
 	}
-
-	q.Reserve(1000);
+	
+	q.Reserve(1);
 	std::cout << BFS();
 
 	return 0;
