@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cstring> //memset
 /*
-백준 2178 (미로 탐색)
+백준 2178 (미로 탐색) - 큐를 1000개까지 쓰는 케이스
 */
 struct coord { int x, y; };
 struct CircleQueue {
@@ -105,12 +105,13 @@ int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	N = 100; M = 100;
+	std::cin >> N >> M;
 
 	for (int r = 1; r <= N; ++r) {
+		char input[101]; std::cin >> input;
 		for (int c = 1; c <= M; ++c) {
 			//지나갈수 있는 길은 PATH(-2)로 채워준다
-			map[r][c] = PATH;
+			if (input[c - 1] == '1') { map[r][c] = PATH; }
 		}
 	}
 	
