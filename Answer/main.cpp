@@ -6,7 +6,7 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 24444 (알고리즘 수업 - 너비 우선 탐색 1)
+백준 24445 (알고리즘 수업 - 너비 우선 탐색 2)
 */
 struct cq {
 	void Reserve(int _size) {
@@ -77,7 +77,7 @@ void MergeSort(std::vector<int>& v, int s, int e) {
 	int l = s;
 	int r = mid + 1;
 	while (l <= mid && r <= e) {
-		if (v[l] < v[r]) {
+		if (v[l] > v[r]) {
 			temp[i++] = v[l++];
 		}
 		else {
