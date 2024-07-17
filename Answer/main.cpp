@@ -6,46 +6,85 @@
 /*
 백준 1697 (숨바꼭질)
 */
+struct Coord { 
+	int r, c;
+	Coord operator + (const Coord& _other) const {
+		return { r + _other.r, c + _other.c };
+	}
+	bool Inbound(int size) {
+		return (0 <= r && 0 <= c && r < size && c < size);
+	}
+};
+constexpr Coord dirs[] = {
+	{-1,-2},{-2,-1},{-2,1},{-1,2},{1,2},{2,1},{2,-1},{1,-2}
+};
 struct CircleQueue {
+	void Reserve(int _cap) {
+		if (capacity >= _cap) { return; }
+
+		Coord* temp = new Coord[_cap];
+		if (cont) {
+			if (false == Empty()) {
+				if (start < end) {
+					memcpy(temp, cont + start, sizeof(Coord) * size);
+				}
+				else {
+					int startPartSize = capacity - start;
+					memcpy(temp, cont + start, sizeof(Coord) * startPartSize);
+					memcpy(temp + startPartSize, cont, sizeof(Coord) * end);
+				}
+			}
+			delete[] cont;
+		}
+		cont = temp;
+		start = 0;
+		end = size;
+		capacity = _cap;
+	}
 
 	bool Empty() { return size == 0; }
-	int Next(int cur) { if (++cur >= cap) { cur -= cap; } return cur; }
+	bool Full() { return size == capacity; }
+	int Next(int cur) { if (++cur >= capacity) { cur -= capacity; } return cur; }
+	void Clear() { size = 0; start = 0; end = 0; }
 
-	void PushBack(int i) { cont[end] = i; end = Next(end); ++size; }
-	int PopFront() { int ret = cont[start]; start = Next(start); --size; return ret; }
+	void PushBack(Coord i) { 
+		if (Full()) { Reserve(capacity * 2); }
+		cont[end] = i; end = Next(end); ++size; }
+	Coord PopFront() { Coord ret = cont[start]; start = Next(start); --size; return ret; }
 
-	static constexpr int cap = 50000;
-	int cont[cap]{}, size{}, start{}, end{};
+	Coord* cont{};
+	int capacity{}, size{}, start{}, end{};
 } q;
-int N, K, K2;
+
 #include <array>
-using arr = std::array<int, 100001>;
-constexpr arr Fill() { arr a; a.fill(-1); return a; }
-arr arriveTime = Fill();
+std::array<std::array<int, 300>, 300> board;
+#define NOT_VISITED -1
 int BFS() {
-	arriveTime[N] = 0;
-	q.PushBack(N);
+	int size; Coord from, to;
+	std::cin>> size >> from.r >> from.c >> to.r >> to.c;
+	for (int i = 0; i < size; ++i) {
+		board[i].fill(NOT_VISITED);
+	}
+	board[from.r][from.c] = 0;
+	q.Clear();
+	q.Reserve(size);
+	q.PushBack(from);
 
 	int ret = 0;
 	while (false == q.Empty()) {
-		int cur = q.PopFront();
-		if (cur == K) { 
-			ret = arriveTime[cur]; break; }
+		Coord cur = q.PopFront();
+		if (cur.r == to.r && cur.c == to.c) {
+			ret = board[cur.r][cur.c]; break;
+		}
 
-		int next = cur * 2;
-		if (next <= K2 && arriveTime[next] == -1) { 
-			arriveTime[next] = arriveTime[cur] + 1;
-			q.PushBack(next); 
-		}
-		next = cur + 1;
-		if (next <= K && arriveTime[next] == -1) { 
-			arriveTime[next] = arriveTime[cur] + 1;
-			q.PushBack(next); 
-		}
-		next = cur - 1;
-		if (0 <= next && arriveTime[next] == -1) { 
-			arriveTime[next] = arriveTime[cur] + 1;
-			q.PushBack(next); 
+		for (int dir = 0; dir < 8; ++dir) {
+			Coord next = cur + dirs[dir];
+			if (
+				next.Inbound(size) 
+				&& NOT_VISITED == board[next.r][next.c]) {
+				board[next.r][next.c] = board[cur.r][cur.c] + 1;
+				q.PushBack(next);
+			}
 		}
 	}
 
@@ -56,10 +95,10 @@ int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> K;
-	//K * 2 이상 가면 차라리 -1씩 해서 내려오는게 나을듯
-	K2 = std::min(100000, K * 2);
-	std::cout << BFS();
+	int tc; std::cin >> tc;
+	while (tc--) {
+		std::cout << BFS() << '\n';
+	}
 
 	return 0;
 }
