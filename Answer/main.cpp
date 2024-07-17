@@ -4,119 +4,67 @@
 #include <iostream>
 #include <cstring> //memset
 /*
-백준 2178 (미로 탐색) - 큐를 1000개까지 쓰는 케이스
+백준 1012 (유기농 배추) - stack 활용
 */
-struct coord { int x, y; };
-struct CircleQueue {
+int TC, N, M, K;
+#include <bitset>
+std::bitset<52> farm[52];
+struct coord { int r, c; };
+struct stack {
+	coord c[500]{};
+	int size{};
+
 	bool Empty() { return size == 0; }
-	bool Full() { return capacity == size + 1; }
-	int Next(int i) { if (++i >= capacity) { i -= capacity; } return i; }
-	void Reserve(int cap) {
-		if (++cap <= capacity) { return; }
+	coord Pop() { --size; return c[size]; }
+	void Push(coord _coord) { c[size++] = _coord; }
+} stk;
 
-		coord* temp = new coord[cap];
-		memset(temp, 0, sizeof(coord) * cap);
-		if (cont) {
-			if (end < start) {
-				int frontSize = capacity - start;
-				memcpy(temp, cont + start, sizeof(coord) * frontSize);
-				memcpy(temp + frontSize, cont, sizeof(coord) * end);
-			}
-			else {
-				memcpy(temp, cont + start, sizeof(coord) * (end - start + 1));
-			}
-			start = 0;
-			end = size;
-
-			delete[] cont;
-		}
-		cont = temp;
-		capacity = cap;
+void CheckPos(int r, int c) {
+	if (farm[r][c]) {
+		farm[r][c] = false;
+		stk.Push({ r,c });
 	}
-	void PushBack(int x, int y) {
-		if (Full()) {
-			Reserve(size * 2);
-		}
-
-		cont[end] = { x, y };
-		end = Next(end);
-		++size;
-	}
-	void PopFront() { start = Next(start); --size; }
-	coord Front() { return cont[start]; }
- 
-	coord* cont{};
-	int size{}, capacity{}, start{}, end{};
-} q;
-
-#include <array>
-#define WALL -1
-#define PATH -2
-//길 주변에 벽을 둘러줄예정 -> 둘레를 1씩 추가한다
-using Map = std::array<std::array<int, 102>, 102>;
-constexpr Map Fill() {
-	Map m;
-	for (int i = 0; i < 102; ++i) {
-		m[i].fill(WALL);
-	}
-	return m;
 }
-//기본 WALL(-1)로 채워놓는다
-Map map = Fill();
-int N, M;
 
-int BFS() {
-	//1,1부터 시작이므로 0
-	map[1][1] = 0;
-	q.PushBack(1, 1);
+void DFS(int r, int c) {
+	CheckPos(r, c);
 
-	int ret = 0;
-	while (false == q.Empty()) {
-		coord c = q.Front(); q.PopFront();
+	//상좌하우 순으로 stack에 넣는다(꺼낼때는 우하좌상 순으로 꺼내짐)
+	//재귀 형식일때는 stack에서 뽑을 때 지나갔다고 표시하지만
+	//스택일때는 먼저 지나갔다고 표시한 후 stack에 넣어야 한다
+	while (false == stk.Empty()) {
+		coord c = stk.Pop();
 
-		//도착했을 경우 거리를 반환
-		if (c.x == N && c.y == M) { 
-			ret = map[c.x][c.y] + 1; break; 
-		}
-		
-		//지나갈 수 있는 길일 경우 그 자리에 여태까지 걸어온 거리를 기록
-		if (map[c.x][c.y + 1] == PATH) {
-			map[c.x][c.y + 1] = map[c.x][c.y] + 1;
-			q.PushBack(c.x, c.y + 1);
-		}
-		if (map[c.x + 1][c.y] == PATH) {
-			map[c.x + 1][c.y] = map[c.x][c.y] + 1;
-			q.PushBack(c.x + 1, c.y);
-		}
-		if (map[c.x][c.y - 1] == PATH) {
-			map[c.x][c.y - 1] = map[c.x][c.y] + 1;
-			q.PushBack(c.x, c.y - 1);
-		}
-		if (map[c.x - 1][c.y] == PATH) {
-			map[c.x - 1][c.y] = map[c.x][c.y] + 1;
-			q.PushBack(c.x - 1, c.y);
-		}
+		CheckPos(c.r - 1, c.c);
+		CheckPos(c.r, c.c - 1);
+		CheckPos(c.r + 1, c.c);
+		CheckPos(c.r, c.c + 1);
 	}
-
-	return ret;
 }
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> M;
-
-	for (int r = 1; r <= N; ++r) {
-		char input[101]; std::cin >> input;
-		for (int c = 1; c <= M; ++c) {
-			//지나갈수 있는 길은 PATH(-2)로 채워준다
-			if (input[c - 1] == '1') { map[r][c] = PATH; }
+	std::cin >> TC;
+	while (TC--) {
+		std::cin >> N >> M >> K;
+		for (int i = 0; i < K; ++i) {
+			int r, c; std::cin >> r >> c;
+			farm[r + 1][c + 1] = true;
 		}
+
+		int ans = 0;
+		for (int i = 1; i <= N; ++i) {
+			for (int j = 1; j <= M; ++j) {
+				if (farm[i][j]) {
+					++ans;
+					DFS(i, j);
+				}
+			}
+		}
+		std::cout << ans << '\n';
 	}
-	
-	q.Reserve(1);
-	std::cout << BFS();
 
 	return 0;
 }
