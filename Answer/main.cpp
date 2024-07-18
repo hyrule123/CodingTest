@@ -6,88 +6,76 @@
 /*
 백준 16928 (뱀과 사다리 게임)
 */
-struct pos { int warp = 0, diceCasts = -1; };
-pos board[102]{};
-#include <vector>
-//diceCast가 적은놈을 우선적으로 꺼내줌
-struct posInfo { 
-	int pos, diceCasts;
-};
-struct PriorityQueue {
-	void Insert(posInfo p) {
-		cont.push_back(p);
+struct CircleQueue {
+	bool Empty() { return 0 == size; }
+	bool Full() { return capacity == size; }
+	int Next(int cur) { if (++cur >= capacity) { cur -= capacity; } return cur; }
 
-		int child = (int)cont.size() - 1;
-		while(child > 0) {
-			int parent = (child - 1) / 2;
-			if (cont[child].diceCasts < cont[parent].diceCasts) {
-				std::swap(cont[child], cont[parent]);
+	void Reserve(int cap) {
+		if (cap <= capacity) { return; }
+
+		int* temp = new int[cap];
+		if (cont) {
+			if (false == Empty()) {
+				if (start < end) {
+					memcpy(temp, cont + start, sizeof(int) * size);
+				}
+				else {
+					int startPartSize = capacity - start;
+					memcpy(temp, cont + start, sizeof(int) * startPartSize);
+					memcpy(temp + startPartSize, cont, sizeof(int) * end);
+				}
 			}
-			else { break; }
-			child = parent;
+			delete[] cont;
 		}
+		cont = temp;
+		start = 0;
+		end = size;
+		capacity = cap;
 	}
-	posInfo Pop() {
-		posInfo ret = cont.front();
-		std::swap(cont.front(), cont.back());
-		cont.resize(cont.size() - 1);
 
-		if (false == cont.empty()) {
-			size_t parent = 0;
-			size_t end = (cont.size() - 1) / 2;
-			while (parent <= end) {
-				size_t smallest = parent;
-				size_t left = smallest * 2 + 1;
-				size_t right = left + 1;
-				if (left < cont.size() && cont[left].diceCasts < cont[smallest].diceCasts) {
-					smallest = left;
-				}
-				if (right < cont.size() && cont[right].diceCasts < cont[smallest].diceCasts) {
-					smallest = right;
-				}
-				
-				//더이상 내려가지 못하면 break
-				if (smallest == parent) { break; }
-
-				std::swap(cont[parent], cont[smallest]);
-				parent = smallest;
-			}
-		}
-
+	void PushBack(int i) {
+		if (Full()) { Reserve(capacity * 2); }
+		cont[end] = i;
+		end = Next(end);
+		++size;
+	}
+	int PopFront() {
+		int ret = cont[start];
+		start = Next(start); --size;
 		return ret;
 	}
 
-	std::vector<posInfo> cont;
+	int* cont{}, capacity{}, size{}, start{}, end{};
 } q;
-
+struct pos {
+	int diceCasts = -1;
+	int warp = 0;
+};
+pos board[102]{};
 int BFS() {
 	board[1].diceCasts = 0;
-	q.Insert({ 1 , board[1].diceCasts});
+	q.PushBack(1);
 
 	int ret = 0;
-	while (false == q.cont.empty()) {
-		posInfo cur = q.Pop();
-		if (cur.pos == 100) {
-			ret = cur.diceCasts;
+	while (false == q.Empty()) {
+		int cur = q.PopFront();
+		int diceCasted = board[cur].diceCasts;
+		if (cur == 100) {
+			ret = diceCasted;
 			break;
 		}
 		
-		//워프가 있다면 워프
-		if (board[cur.pos].warp) {
-			int warp = board[cur.pos].warp;
-			if (-1 == board[warp].diceCasts) {
-				board[warp].diceCasts = board[cur.pos].diceCasts;
-				q.Insert({warp, board[warp].diceCasts});
-			}
+		//워프가 있다면 워프한 곳 기준에서 주사위를 던진다(주사위를 던지지 않으므로 경우의 수에 합산하지 않음)
+		if (board[cur].warp) {
+			cur = board[cur].warp;
 		}
-		//없으면 주사위 던진다
-		else {
-			for (int i = 1; i <= 6; ++i) {
-				int dest = cur.pos + i;
-				if (dest <= 100 && -1 == board[dest].diceCasts) {
-					board[dest].diceCasts = board[cur.pos].diceCasts + 1;
-					q.Insert({ dest, board[dest].diceCasts });
-				}
+
+		for (int i = 1; i <= 6; ++i) {
+			int dest = cur + i;
+			if (dest <= 100 && -1 == board[dest].diceCasts) {
+				board[dest].diceCasts = diceCasted + 1;
+				q.PushBack(dest);
 			}
 		}
 	}
@@ -101,15 +89,11 @@ int main() {
 
 	//어차피 둘다 특정위치로 이동시키는건 똑같음
 	int ladder, snake; std::cin >> ladder >> snake;
-	while (ladder--) {
+	for (int i = 0; i < ladder + snake; ++i) {
 		int from, to; std::cin >> from >> to;
 		board[from].warp = to;
 	}
-	while (snake--) {
-		int from, to; std::cin >> from >> to;
-		board[from].warp = to;
-	}
-	q.cont.reserve(100);
+	q.Reserve(100);
 	std::cout << BFS();
 
 	return 0;
