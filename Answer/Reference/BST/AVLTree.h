@@ -22,11 +22,11 @@ int max(int a, int b);
 
 // A utility function to get height 
 // of the tree 
-int height(Node* N)
+int height(Node* Y)
 {
-	if (N == NULL)
+	if (Y == NULL)
 		return 0;
-	return N->height;
+	return Y->height;
 }
 
 // A utility function to get maximum
@@ -94,13 +94,13 @@ Node* leftRotate(Node* x)
 	return y;
 }
 
-// Get Balance factor of node N 
-int getBalance(Node* N)
+// Get Balance factor of node Y 
+int getBalance(Node* Y)
 {
-	if (N == NULL)
+	if (Y == NULL)
 		return 0;
-	return height(N->left) -
-		height(N->right);
+	return height(Y->left) -
+		height(Y->right);
 }
 
 Node* insert(Node* node, int key)
