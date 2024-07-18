@@ -4,25 +4,25 @@
 #include <iostream>
 #include <cstring> //memset
 /*
-백준 1697 (숨바꼭질)
+백준 7576 (토마토)
 */
-struct Coord { 
-	int r, c;
-	Coord operator + (const Coord& _other) const {
-		return { r + _other.r, c + _other.c };
-	}
-	bool Inbound(int size) {
-		return (0 <= r && 0 <= c && r < size && c < size);
-	}
-};
-constexpr Coord dirs[] = {
-	{-1,-2},{-2,-1},{-2,1},{-1,2},{1,2},{2,1},{2,-1},{1,-2}
-};
+int R, C;
+struct Coord { int r, c; };
 struct CircleQueue {
-	void Reserve(int _cap) {
-		if (capacity >= _cap) { return; }
+	bool Empty() { return size == 0; }
+	bool Full() { return size == capacity; }
+	int Next(int cur) { if (++cur >= capacity) { cur -= capacity; } return cur; }
+	void PushBack(Coord c) { 
+		if (Full()) { Reserve(capacity * 2); } 
+		cont[end] = c; 
+		end = Next(end); 
+		++size; 
+	}
+	Coord PopFront() { Coord ret = cont[start]; start = Next(start); --size; return ret; }
+	void Reserve(int cap) {
+		if (cap <= capacity) { return; }
 
-		Coord* temp = new Coord[_cap];
+		Coord* temp = new Coord[cap];
 		if (cont) {
 			if (false == Empty()) {
 				if (start < end) {
@@ -36,69 +36,74 @@ struct CircleQueue {
 			}
 			delete[] cont;
 		}
-		cont = temp;
 		start = 0;
 		end = size;
-		capacity = _cap;
+		capacity = cap;
+		cont = temp;
 	}
-
-	bool Empty() { return size == 0; }
-	bool Full() { return size == capacity; }
-	int Next(int cur) { if (++cur >= capacity) { cur -= capacity; } return cur; }
-	void Clear() { size = 0; start = 0; end = 0; }
-
-	void PushBack(Coord i) { 
-		if (Full()) { Reserve(capacity * 2); }
-		cont[end] = i; end = Next(end); ++size; }
-	Coord PopFront() { Coord ret = cont[start]; start = Next(start); --size; return ret; }
 
 	Coord* cont{};
 	int capacity{}, size{}, start{}, end{};
 } q;
 
-#include <array>
-std::array<std::array<int, 300>, 300> board;
-#define NOT_VISITED -1
+int farm[1002][1002]{};
+void Check(int r, int c, Coord orig) {
+	if (farm[r][c] == 0) {
+		farm[r][c] = farm[orig.r][orig.c] + 1;
+		q.PushBack({ r, c });
+	}
+}
+
 int BFS() {
-	int size; Coord from, to;
-	std::cin>> size >> from.r >> from.c >> to.r >> to.c;
-	for (int i = 0; i < size; ++i) {
-		board[i].fill(NOT_VISITED);
-	}
-	board[from.r][from.c] = 0;
-	q.Clear();
-	q.Reserve(size);
-	q.PushBack(from);
-
-	int ret = 0;
+	Coord last{};
 	while (false == q.Empty()) {
-		Coord cur = q.PopFront();
-		if (cur.r == to.r && cur.c == to.c) {
-			ret = board[cur.r][cur.c]; break;
-		}
-
-		for (int dir = 0; dir < 8; ++dir) {
-			Coord next = cur + dirs[dir];
-			if (
-				next.Inbound(size) 
-				&& NOT_VISITED == board[next.r][next.c]) {
-				board[next.r][next.c] = board[cur.r][cur.c] + 1;
-				q.PushBack(next);
-			}
-		}
+		last = q.PopFront();
+		
+		Check(last.r, last.c - 1, last);
+		Check(last.r, last.c + 1, last);
+		Check(last.r - 1, last.c, last);
+		Check(last.r + 1, last.c, last);
 	}
 
-	return ret;
+	return farm[last.r][last.c] - 1;
 }
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	int tc; std::cin >> tc;
-	while (tc--) {
-		std::cout << BFS() << '\n';
+	std::cin >> C >> R;
+	//BFS 탐색을 해야하는 범위 주변으로 -1을 둘러쳐 준다.
+	for (int r = 0; r <= R + 1; ++r) {
+		farm[r][0] = -1;
+		farm[r][C + 1] = -1;
 	}
+	for (int c = 0; c <= C + 1; ++c) {
+		farm[0][c] = -1;
+		farm[R + 1][c] = -1;
+	}
+
+	q.Reserve(std::max(R, C));
+	for (int r = 1; r <= R; ++r) {
+		for (int c = 1; c <= C; ++c) {
+			std::cin >> farm[r][c];
+			if (1 == farm[r][c]) {
+				q.PushBack({ r, c });
+			}
+		}
+	}
+	int days = BFS();
+
+	//혹시나 안 익은 토마토(0)이 남아있을 경우 -1을 출력하고 프로그램 종료
+	for (int r = 1; r <= R; ++r) {
+		for (int c = 1; c <= C; ++c) {
+			if (0 == farm[r][c]) {
+				std::cout << -1;
+				return 0;
+			}
+		}
+	}
+	std::cout << days;
 
 	return 0;
 }
