@@ -96,6 +96,8 @@ T PopHeap(std::vector<T>& cont) {
 uint T, n, m, t, s, g, h;
 std::vector<travel> edges[2001];
 uint dp[2001];
+
+//INF와 INF를 더한 값과 min비교를 하는 경우가 있기 때문에 uint_max를 사용할 수 없음.
 constexpr uint INF = (uint)1e9;
 std::vector<travel> heap;
 struct answer { 
