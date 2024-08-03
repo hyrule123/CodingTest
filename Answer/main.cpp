@@ -5,14 +5,44 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 2470 (두 용액) - 내 풀이 1(오답)
+백준 2470 (두 용액) - 내 풀이 2
 */
-int liquids[100000], N;
-#include <vector>
+int liquids[100000], N, temp[100000];
 struct answer {
 	int ABS_sum = std::numeric_limits<int>::max(), left, right;
 } ans;
 int ABS(int i) { if (i < 0) { i = -i; } return i; }
+
+void MergeSort(int start, int end) {
+	if (start >= end) { return; }
+
+	int mid = (start + end) / 2;
+
+	MergeSort(start, mid);
+	MergeSort(mid + 1, end);
+
+	int l = start;
+	int r = mid + 1;
+	int cursor = l;
+
+	while (l <= mid && r <= end) {
+		if (liquids[l] < liquids[r]) {
+			temp[cursor++] = liquids[l++];
+		}
+		else {
+			temp[cursor++] = liquids[r++];
+		}
+	}
+
+	for (; l <= mid;) {
+		temp[cursor++] = liquids[l++];
+	}
+	for (; r <= end;) {
+		temp[cursor++] = liquids[r++];
+	}
+	
+	memcpy(liquids + start, temp + start, sizeof(int) * (end - start + 1));
+}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
@@ -22,43 +52,28 @@ int main() {
 	for (int i = 0; i < N; ++i) {
 		std::cin >> liquids[i];
 	}
+	MergeSort(0, N - 1);
 
-	int left = 0, right = N - 1;
+	int l = 0, r = N - 1;
+	while (l < r) {
+		int sum = liquids[l] + liquids[r];
 
-	while (true) {
-		//동일 인덱스일경우 움직일 수 있는 포인터를 한칸만 이동시킨다
-		//둘다 이동할 수 없을 경우 끝
-		if (left == right) {
-			if (left + 1 < N) { ++left; }
-			if (right - 1 >= 0) { --right; }
-			else { break; }
-		}
-
-		int sum = liquids[left] + liquids[right];
-
-		//0에 더 가까운 값일 경우 갱신한다.
 		if (ABS(sum) < ans.ABS_sum) {
 			ans.ABS_sum = ABS(sum);
-			ans.left = liquids[left];
-			ans.right = liquids[right];
+			ans.left = liquids[l];
+			ans.right = liquids[r];
 		}
 
-		//0에 가깝게 해야함
-		//sum이 0보다 작을 경우: 좀 더 큰 값이 나올수 있도록 작은 값의 포인터를 이동
 		if (sum < 0) {
-			if (liquids[left] < liquids[right] && left + 1 < N) { ++left; }
-			else if (right - 1 >= 0) { --right; }
-			else { break; }
+			++l;
 		}
-		//좀 더 작은 값이 나올 수 있도록 큰 값의 포인터를 이동
 		else if (sum > 0) {
-			if (liquids[left] > liquids[right] && left + 1 < N) { ++left; }
-			else if (right - 1 >= 0) { --right; }
-			else { break; }
+			--r;
 		}
-
-		//sum = 0이 나오면 가장 가까운값을 찾은 것이므로 중단하고 바로 출력
-		else { break; }
+		
+		else {//sum == 0
+			break;
+		}
 	}
 
 	//오름차순 출력
