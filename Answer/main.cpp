@@ -5,83 +5,45 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 2470 (두 용액) - 내 풀이 2
+백준 1806 (부분합)
 */
-int liquids[100000], N, temp[100000];
-struct answer {
-	int ABS_sum = std::numeric_limits<int>::max(), left, right;
-} ans;
-int ABS(int i) { if (i < 0) { i = -i; } return i; }
-
-void MergeSort(int start, int end) {
-	if (start >= end) { return; }
-
-	int mid = (start + end) / 2;
-
-	MergeSort(start, mid);
-	MergeSort(mid + 1, end);
-
-	int l = start;
-	int r = mid + 1;
-	int cursor = l;
-
-	while (l <= mid && r <= end) {
-		if (liquids[l] < liquids[r]) {
-			temp[cursor++] = liquids[l++];
-		}
-		else {
-			temp[cursor++] = liquids[r++];
-		}
-	}
-
-	for (; l <= mid;) {
-		temp[cursor++] = liquids[l++];
-	}
-	for (; r <= end;) {
-		temp[cursor++] = liquids[r++];
-	}
-	
-	memcpy(liquids + start, temp + start, sizeof(int) * (end - start + 1));
-}
+int N, ser[100000], S;
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N;
+	std::cin >> N >> S;
 	for (int i = 0; i < N; ++i) {
-		std::cin >> liquids[i];
-	}
-	MergeSort(0, N - 1);
-
-	int l = 0, r = N - 1;
-	while (l < r) {
-		int sum = liquids[l] + liquids[r];
-
-		if (ABS(sum) < ans.ABS_sum) {
-			ans.ABS_sum = ABS(sum);
-			ans.left = liquids[l];
-			ans.right = liquids[r];
-		}
-
-		if (sum < 0) {
-			++l;
-		}
-		else if (sum > 0) {
-			--r;
-		}
-		
-		else {//sum == 0
-			break;
-		}
+		std::cin >> ser[i];
 	}
 
-	//오름차순 출력
-	if (ans.left < ans.right) {
-		std::cout << ans.left << ' ' << ans.right;
+	int l = 0;
+	int r = 0;
+	int sum = ser[0];
+	int minLen = std::numeric_limits<int>::max();
+	while (true) {
+		//S에 도달하지 못했는데 더이상 진행 불가능할 경우 break
+		if (sum < S) {
+			if (r < N) {
+				sum += ser[++r];
+			}
+			else {
+				break;
+			}
+		}
+		//S를 넘어섰다면 부분합 시작점을 오른쪽으로(sum이 S(양수)보다 크므로 무조건 양수이고, 이는 곧 l < r)
+		else {
+			minLen = std::min(minLen, r - l + 1);
+			sum -= ser[l]; ++l;
+		}
+	}
+	
+	if (minLen == std::numeric_limits<int>::max()) {
+		std::cout << 0;
 	}
 	else {
-		std::cout << ans.right << ' ' << ans.left;
+		std::cout << minLen;
 	}
 
 	return 0;
