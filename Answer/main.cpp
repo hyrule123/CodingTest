@@ -5,46 +5,80 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 1806 (부분합)
+백준 1644 (소수의 연속합)
 */
-int N, ser[100000], S;
+#include <vector>
+#include <cmath>
+using ull = unsigned long long;
+std::vector<ull> Sieve(ull _n) {
+	std::vector<ull> ret;
+	ret.reserve(_n / ((ull)std::log(_n) + 1));
+
+	std::vector<bool> sieve(_n + 1, true);
+	sieve[0] = false;
+	sieve[1] = false;
+	for (ull i = 2; i <= _n; ++i) {
+		if (sieve[i]) {
+			ret.push_back(i);
+
+			for (ull j = i + i; j <= _n; j += i) {
+				sieve[j] = false;
+			}
+		}
+	}
+
+	return ret;
+}
+ull N;
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> S;
-	for (int i = 0; i < N; ++i) {
-		std::cin >> ser[i];
+	std::cin >> N;
+	if (N <= 1) {
+		std::cout << 0;
+		return 0;
 	}
 
-	int l = 0;
-	int r = 0;
-	int sum = ser[0];
-	int minLen = std::numeric_limits<int>::max();
+	//에라스토테네스의 체
+	std::vector<ull> primes = Sieve(N);
+
+	//투 포인터
+	ull max = (ull)primes.size() - 1;
+	ull l = 0;
+	ull r = 0;
+	ull sum = primes[0];
+	ull ans_count = 0;
 	while (true) {
-		//S에 도달하지 못했는데 더이상 진행 불가능할 경우 break
-		if (sum < S) {
-			if (r < N) {
-				sum += ser[++r];
+		if (sum < N) {
+			if (r < max) {
+				sum += primes[++r];
 			}
-			else {
-				break;
+			else { break; }
+		}
+		else if (N < sum) {
+			if (l <= r) {
+				sum -= primes[l]; ++l;
 			}
+			else { break; }
 		}
-		//S를 넘어섰다면 부분합 시작점을 오른쪽으로(sum이 S(양수)보다 크므로 무조건 양수이고, 이는 곧 l < r)
-		else {
-			minLen = std::min(minLen, r - l + 1);
-			sum -= ser[l]; ++l;
+		else { // sum == N
+			++ans_count;
+
+			if (r < max) {
+				sum += primes[++r];
+			}
+			else { break; }
+
+			if (l <= r) {
+				sum -= primes[l]; ++l;
+			}
+			else { break; }
 		}
 	}
-	
-	if (minLen == std::numeric_limits<int>::max()) {
-		std::cout << 0;
-	}
-	else {
-		std::cout << minLen;
-	}
+
+	std::cout << ans_count;
 
 	return 0;
 }
