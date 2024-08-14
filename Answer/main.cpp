@@ -5,73 +5,96 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 1644 (소수의 연속합) - 다른 분 해답 참고
+백준 1450 (냅색문제)
 */
 #include <vector>
-#include <cmath>
-using ull = unsigned long long;
-std::vector<ull> get_prefix_sum_primes(ull _n) {
-	std::vector<ull> ret;
-	ret.reserve(_n / ((ull)std::log(_n) + 1));
+using ll = long long;
+ll N, C, input[30];
 
-	std::vector<bool> sieve(_n + 1, true);
-	sieve[0] = sieve[1] = false;
-	for (ull i = 2; i * i <= _n; ++i) {
-		if (sieve[i]) {
-			for (ull j = i * i; j <= _n; j += i) {
-				sieve[j] = false;
-			}
-		}
+std::vector<ll> v1, v2;
+//start~end 사이의 짐으로 만들 수 있는 무게의 모든 부분집합을 만든다.
+void Insert(std::vector<ll>& v, ll start, ll end, ll sum) {
+	//v[start]값을 넣을때, 안넣을때 경우의 수별로 넣어준다.
+	if (start < end) {
+		Insert(v, start + 1, end, sum);
+		Insert(v, start + 1, end, sum + input[start]);
 	}
-
-	ret.push_back(0);
-	for (ull i = 2; i <= _n; ++i) {
-		if (sieve[i]) {
-			ret.push_back(i);
-			*(ret.end() - 1) += *(ret.end() - 2);
-		}
+	//start가 끝에 도달했을 경우 sum을 vector에 삽입
+	else {
+		v.push_back(sum);
 	}
-	
-	return ret;
 }
-ull N;
+void MergeSort(std::vector<ll>& temp, ll start, ll end) {
+	if (start >= end) { return; }
+
+	ll mid = (start + end) / 2;
+	MergeSort(temp, start, mid);
+	MergeSort(temp, mid + 1, end);
+
+	ll l = start, r = mid + 1;
+	ll cursor = 0;
+	while (l <= mid && r <= end) {
+		if (v2[l] < v2[r]) {
+			temp[cursor++] = v2[l++];
+		}
+		else {
+			temp[cursor++] = v2[r++];
+		}
+	}
+	for (; l <= mid;) {
+		temp[cursor++] = v2[l++];
+	}
+	for (; r <= end;) {
+		temp[cursor++] = v2[r++];
+	}
+
+	memcpy(v2.data() + start, temp.data(), sizeof(ll) * (end - start + 1));
+}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 	
-	std::cin >> N;
-	if (N <= 1) {
-		std::cout << 0;
-		return 0;
+	std::cin >> N >> C;
+	for (ll i = 0; i < N; ++i) {
+		std::cin >> input[i];
 	}
 
-	//에라스토테네스의 체
-	std::vector<ull> prefix_sum = get_prefix_sum_primes(N);
+	//반반 나눠서 만들수 있는 모든 무게조합을 만든다
+	ll half = N / 2;
+	Insert(v1, 0, half, 0);
+	Insert(v2, half, N, 0);
+	
+	//v2는 정렬한다
+	std::vector<ll> temp(v2.size());
+	MergeSort(temp, 0, v2.size() - 1);
 
-	//투 포인터
-	ull max = (ull)prefix_sum.size() - 1;
-	ull l = 0;
-	ull r = 1;
-	ull sum = prefix_sum[0];
-	ull ans_count = 0;
-	while (r <= max) {
-		ull part_sum = prefix_sum[r] - prefix_sum[l];
+	//v1 + v2 해서 C보다 적으면 (==) v2[a] = C - v1[b] 가방에 담을 수 있는 경우의 수가 된다
+	ll ans = 0;
+	for (ll i = 0; i < (ll)v1.size(); ++i) {
+		ll remain_capacity = C - v1[i];
+		if (remain_capacity < 0) { continue; }
 
-		if(part_sum < N) {
-			++r;
+		//오랜만에 쓰는 이분탐색 parametric search
+		ll start = 0, end = (ll)v2.size() - 1, finalIdx = 0;
+		while (start <= end) {
+			ll mid = (start + end) / 2;
+
+			//마지막 mid 위치를 기록한다
+			if (v2[mid] <= remain_capacity) {
+				start = mid + 1;
+				
+				finalIdx = mid;
+			}
+			else {
+				end = mid - 1;
+			}
 		}
-		else if (N < part_sum) {
-			++l;
-		}
-		else {
-			++ans_count;
-			++l;
-			++r;
-		}
+
+		//냅색에 담을수 있는 짐의 조합들을 모두 추가
+		ans += finalIdx + 1;
 	}
-
-	std::cout << ans_count;
+	std::cout << ans;
 
 	return 0;
 }
