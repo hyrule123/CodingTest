@@ -5,67 +5,45 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 12852(1로 만들기 2)
-//참고문항: 1463번 (1로 만들기) 복습
+백준 14002 (가장 긴 증가하는 부분 수열 4) : 갯수가 1000개 이므로 O(N^2) 방식으로 가능
 */
-/* 아이디어
-1부터 시작
-1을 더하기, 2를 곱하기, 3을 더하기 -> 먼저 N에 도착하면 그 경로를 출력
-경로 기록 방법: 최단거리가 갱신될 때 해당 최단거리를 어떤 연산으로 도달했는지 기록
-*/
-constexpr int arrSize = (int)1e6 + 1;
-enum class e { add1, mul2, mul3 };
-struct trail {
-	int shortestCount; //가장 적은 연산횟수
-	e type;	//어떤 연산을 통해서 값에 도달했는지
-};
-trail dp[arrSize]; 
-int N;
-
-inline void memo(int idx, int val, e type) {
-	if (idx <= N && val < dp[idx].shortestCount) {
-		dp[idx].shortestCount = val;
-		dp[idx].type = type;
-	}
-}
+#include <stack>
+int N, arr[1001], dp[1001];
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
 	std::cin >> N;
-	for (int i = 0; i <= N; ++i) {
-		dp[i].shortestCount = (int)1e9;
+	for (int i = 0; i < N; ++i) {
+		std::cin >> arr[i];
+		dp[i] = 1;
 	}
-	dp[1].shortestCount = 0;
+
+	int longest = 1;
 	for (int i = 1; i < N; ++i) {
-		int next = dp[i].shortestCount + 1;
-
-		memo(i + 1, next, e::add1);
-		memo(i * 2, next, e::mul2);
-		memo(i * 3, next, e::mul3);
+		for (int j = 0; j < i; ++j) {
+			if (arr[j] < arr[i]) {
+				dp[i] = std::max(dp[i], dp[j] + 1);
+				longest = std::max(longest, dp[i]);
+			}
+		}
 	}
-	int shortest = dp[N].shortestCount;
-	std::cout << shortest << '\n';
 
-	//연산 기록을 타고 1까지 내려간다.
-	for (int i = N; i >= 1;) {
-		std::cout << i << ' ';
-
-		switch (dp[i].type)
-		{
-		case e::add1:
-			i -= 1;
-			break;
-		case e::mul2:
-			i /= 2;
-			break;
-		case e::mul3:
-			i /= 3;
-			break;
-		default:
+	std::cout << longest << '\n';
+	std::stack<int> log;
+	for (int i = N - 1; i >= 0; --i) {
+		if (dp[i] == longest) {
+			--longest;
+			log.push(arr[i]);
+		}
+		if (longest == 0) {
 			break;
 		}
+	}
+	while (false == log.empty()) {
+		std::cout << log.top() << ' ';
+		log.pop();
 	}
 
 	return 0;
