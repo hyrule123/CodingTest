@@ -5,97 +5,69 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 14002 (가장 긴 증가하는 부분 수열 5) : 복습
+백준 9252 (LCS 2) : LCS 문제에 역추적 추가
 */
 /*
-* 배열의 길이가 100만개 이므로 O(N^2) 방식으로는 해결이 불가능.
-* O(N * logN) 알고리즘을 활용해야 해결 가능하다.
-* dp[i]의 의미: 길이 i짜리 '가장 긴 증가하는 부분수열(LIS)'의 맨 끝 값 중 가장 작은 값
-* ex) 1, 2, 3, 5, 4 -> dp[4]에는 1234와 1235 중 마지막이 작은 수이므로 4가 들어가면 됨
+* https://seongjuk.tistory.com/entry/%EC%B5%9C%EC%9E%A5-%EA%B3%B5%ED%86%B5-%EB%B6%80%EB%B6%84-%EC%88%98%EC%97%B4-LCS-Longest-Common-Subsequence-%EA%B3%BC-%EC%97%AD%EC%B6%94%EC%A0%81
+* -> 요 사이트가 제일 잘 이해가는듯
+* 2차원 DP 배열을 사용.
+* dp[i][j] : A 문자열의 i번째까지 문자열과 B 문자열의 j번째까지 문자열로 만들 수 있는 부분 문자열의 최장 길이
 */
+char a[1002], b[1002];
+int dp[1002][1002], len_a, len_b;
+
 #include <stack>
-
-constexpr int cap = (int)1e6 + 1;
-int N, dp[cap], dp_end = 1;
-
-//maxLen: input 값으로 길이 몇 짜리 LIS를 만들었는지를 기록
-struct input_trace { int input, lis_len; };
-input_trace input_traces[cap];
-
-//return value: val로 만들 수 있는 LIS의 길이
-int insert_dp(int val) {
-	int ret = -1;
-
-	//같을 경우 스킵
-	if (dp[dp_end] == val) {}
-
-	//dp의 마지막 값보다 클 시에는 새로 추가
-	else if (dp[dp_end - 1] < val) {
-		dp[dp_end] = val;
-		ret = dp_end;
-		++dp_end;
-	}
-
-	//dp의 마지막 값보다 작을 시에는 parametric search를 통해 들어갈 자리를 찾는다.
-	else {
-		//parametric search
-		int start = 0, end = dp_end, foundIdx{};
-		while (start <= end) {
-			int mid = (start + end) / 2;
-			if (val <= dp[mid]) {
-				end = mid - 1;
-				foundIdx = mid;
-			}
-			else {
-				start = mid + 1;
-			}
-		}
-
-		dp[foundIdx] = val;
-		ret = foundIdx;
-	}
-	return ret;
-}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N;
-	dp[0] = std::numeric_limits<int>::min();
-	input_traces[0].input = dp[0];
-	int longest_LIS = 1;
-	for (int i = 1; i <= N; ++i) {
-		std::cin >> input_traces[i].input;
-		dp[dp_end] = std::numeric_limits<int>::min();
+	//한칸 띄고 읽어준다.
+	//0번째는 널문자가 아닌 아무 문자로 채워준다
+	a[0] = '_'; b[0] = '_';
+	std::cin.getline(a + 1, 1001);
+	std::cin.getline(b + 1, 1001);
 
-		//input 값으로 만들 수 있는 LIS의 길이를 추가로 기록한다.
-		input_traces[i].lis_len = insert_dp(input_traces[i].input);
+	//길이 가져옴(0번째 문자는 제외)
+	len_a = (int)strlen(a) - 1;
+	len_b = (int)strlen(b) - 1;
 
-		if (longest_LIS < input_traces[i].lis_len) {
-			longest_LIS = input_traces[i].lis_len;
+	for (int i = 1; i <= len_a; ++i) {
+		for (int j = 1; j <= len_b; ++j) {
+			//같은 문자를 발견한 경우 dp[i-1][j-1]의 값 + 1을 해준다.
+			if (a[i] == b[j]) {
+				dp[i][j] = dp[i - 1][j - 1] + 1;
+			}
+			//다른 문자일 경우 이전 문자열 중 큰 값을 가져온다.
+			else {
+				dp[i][j] = std::max(dp[i - 1][j], dp[i][j - 1]);
+			}
 		}
 	}
 
-	//역주적(back trace)
-	int cur_len = longest_LIS;
-	//LIS의 길이를 구했으므로 더이상 dp 배열은 필요가 없다 -> 재사용한다.
+	//역추적
+	std::stack<char> ans;
+	int i = len_a, j = len_b;
+	while (i >= 1 && j >= 1) {
+		//[i][j-1] 또는 [i-1][j]와 [i][j]가 같은 경우: 이 문자는 LCS에 포함되지 않았다.
+		//포함되면 +1이 되므로
+		if (dp[i][j] == dp[i][j - 1]) {
+			--j;
+		}
+		else if (dp[i][j] == dp[i - 1][j]) {
+			--i;
+		}
 
-	//역순으로 돌아주면서
-	for (int i = N; i >= 1; --i) {
-
-		//가장 긴 LIS 길이를 만들 수 있는 값부터 하나씩 정답으로 기록한다.
-		if (cur_len == input_traces[i].lis_len) {
-			dp[cur_len] = input_traces[i].input;
-			--cur_len;
-
-			if (cur_len == 0) { break; }
+		//다른 경우: LCS에 포함되었음 -> 좌측 상단 대각선 방향으로 이동
+		else {
+			ans.push(a[i]);
+			--i; --j;
 		}
 	}
-	//답을 출력
-	std::cout << longest_LIS << '\n';
-	for (int i = 1; i <= longest_LIS; ++i) {
-		std::cout << dp[i] << ' ';
+
+	std::cout << ans.size() << '\n';
+	while (false == ans.empty()) {
+		std::cout << ans.top(); ans.pop();
 	}
 
 	return 0;
