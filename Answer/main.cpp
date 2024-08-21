@@ -5,70 +5,75 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 9252 (LCS 2) : LCS 문제에 역추적 추가
+백준 2618 (경찰차)
 */
-/*
-* https://seongjuk.tistory.com/entry/%EC%B5%9C%EC%9E%A5-%EA%B3%B5%ED%86%B5-%EB%B6%80%EB%B6%84-%EC%88%98%EC%97%B4-LCS-Longest-Common-Subsequence-%EA%B3%BC-%EC%97%AD%EC%B6%94%EC%A0%81
-* -> 요 사이트가 제일 잘 이해가는듯
-* 2차원 DP 배열을 사용.
-* dp[i][j] : A 문자열의 i번째까지 문자열과 B 문자열의 j번째까지 문자열로 만들 수 있는 부분 문자열의 최장 길이
-*/
-char a[1002], b[1002];
-int dp[1002][1002], len_a, len_b;
+//memo[i][j] 1번이 i위치, 2번이 j위치에 있을 때 max(i, j) + 1 ~ case_n번 사건을 해결하는 데 필요한 최소 거리
 
-#include <stack>
+constexpr int MAX = 1024;
+int map_size, case_n, memo[MAX][MAX];	
+struct coord { int x, y; };
+coord case_pos[MAX];
+
+inline int ABS(int i) { if (i < 0) { i = -i; } return i; }
+inline int dist(const coord& a, const coord& b) {
+	return ABS(b.x - a.x) + ABS(b.y - a.y);
+}
+
+int nearest_dist(int last_1, int last_2) {
+	//두 경찰차가 해결한 마지막 사건 + 1이 다음 사건 번호
+	int next = std::max(last_1, last_2) + 1;
+	if (next == case_n) { return 0; }
+	else if (memo[last_1][last_2] != -1) { return memo[last_1][last_2]; }
+
+	//각각 경찰차가 next로 이동할 때의 거리를 구한다.
+	int dist1 = dist(case_pos[last_1], case_pos[next]);
+	int dist2 = dist(case_pos[last_2], case_pos[next]);
+	
+	//다음으로 두 경찰차의 목적지에 대한 DFS 시행
+	//1번 경찰차가 next로 이동한 경우
+	int total_dist1 = dist1 + nearest_dist(next, last_2);
+	int total_dist2 = dist2 + nearest_dist(last_1, next);
+
+	memo[last_1][last_2] = std::min(total_dist1, total_dist2);
+	return memo[last_1][last_2];
+}
+
+void trace_back(int last_1, int last_2) {
+	int next = std::max(last_1, last_2) + 1;
+	if (next == case_n) { return; }
+
+	int dist1 = dist(case_pos[last_1], case_pos[next]);
+	int dist2 = dist(case_pos[last_2], case_pos[next]);
+
+	if (dist1 + memo[next][last_2] < dist2 + memo[last_1][next]) {
+		std::cout << 1 << '\n';
+		trace_back(next, last_2);
+	}
+	else {
+		std::cout << 2 << '\n';
+		trace_back(last_1, next);
+	}
+}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	//한칸 띄고 읽어준다.
-	//0번째는 널문자가 아닌 아무 문자로 채워준다
-	a[0] = '_'; b[0] = '_';
-	std::cin.getline(a + 1, 1001);
-	std::cin.getline(b + 1, 1001);
+	memset(memo, -1, sizeof(memo));
 
-	//길이 가져옴(0번째 문자는 제외)
-	len_a = (int)strlen(a) - 1;
-	len_b = (int)strlen(b) - 1;
+	std::cin >> map_size >> case_n;
+	
+	//0번 1번 항목에는 경찰차의 첫 시작 위치를 저장, 2번부터 실제 input
+	case_n += 2;
+	case_pos[0] = { 1, 1 };
+	case_pos[1] = { map_size, map_size };
 
-	for (int i = 1; i <= len_a; ++i) {
-		for (int j = 1; j <= len_b; ++j) {
-			//같은 문자를 발견한 경우 dp[i-1][j-1]의 값 + 1을 해준다.
-			if (a[i] == b[j]) {
-				dp[i][j] = dp[i - 1][j - 1] + 1;
-			}
-			//다른 문자일 경우 이전 문자열 중 큰 값을 가져온다.
-			else {
-				dp[i][j] = std::max(dp[i - 1][j], dp[i][j - 1]);
-			}
-		}
+	for (int i = 2; i < case_n; ++i) {
+		std::cin >> case_pos[i].x >> case_pos[i].y;
 	}
 
-	//역추적
-	std::stack<char> ans;
-	int i = len_a, j = len_b;
-	while (i >= 1 && j >= 1) {
-		//[i][j-1] 또는 [i-1][j]와 [i][j]가 같은 경우: 이 문자는 LCS에 포함되지 않았다.
-		//포함되면 +1이 되므로
-		if (dp[i][j] == dp[i][j - 1]) {
-			--j;
-		}
-		else if (dp[i][j] == dp[i - 1][j]) {
-			--i;
-		}
-
-		//다른 경우: LCS에 포함되었음 -> 좌측 상단 대각선 방향으로 이동
-		else {
-			ans.push(a[i]);
-			--i; --j;
-		}
-	}
-
-	std::cout << ans.size() << '\n';
-	while (false == ans.empty()) {
-		std::cout << ans.top(); ans.pop();
-	}
+	std::cout << nearest_dist(0, 1) << '\n';
+	trace_back(0, 1);
 
 	return 0;
 }
