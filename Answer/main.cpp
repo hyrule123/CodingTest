@@ -5,112 +5,115 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 13913 (숨바꼭질 4)
+백준 9019 (DSLR)
 */
-//N은 현재 위치에서 3가지 선택지를 가진다
-//-1, +1, *2
-//최단 거리를 구해야 하므로 BFS를 사용
-//BFS가 이미 들렀던 곳은 최단거리 -> 다시 들를 필요가 없다.(메모할 공간이 필요)
-//
-#include <queue>
-#include <stack>
-constexpr int MAX = 100001;
-int N, K;
-enum move_type {
-	NONE, mul2, sub1, add1
-};
-struct m { 
-	int time = -1, type = NONE; //어떤 방식으로 해당 위치에 도달했는지
-};
-m memo[MAX];	//dp[i]: N->i로 가는 데 걸린 시간
+template <typename T>
+struct Queue {
+	bool empty() { return size == 0; }
+	bool full() { return cap == size; }
+	void resize(int _cap) {
+		if (_cap <= cap) { return; }
 
-struct travel {
-	int pos, time;
-	move_type type;
-};
-std::queue<travel> trace;
-
-void BFS() {
-	trace.push({ N, 0 });
-
-	while (false == trace.empty()) {
-		travel t = trace.front();
-		trace.pop();
-
-		if (memo[t.pos].time != -1) { continue; }
-
-		memo[t.pos].time = t.time;
-		memo[t.pos].type = t.type;
-		if (t.pos == K) {
-			break;
+		T* temp = new T[_cap];
+		if (cont) {
+			if (false == empty()) {
+				if (start < end) {
+					memcpy(temp, cont + start, sizeof(T) * size);
+				}
+				else {
+					int front_part_size = cap - start;
+					memcpy(temp, cont + start, sizeof(T) * front_part_size);
+					memcpy(temp + front_part_size, cont, end);
+				}
+			}
+			delete[] cont;
 		}
-
-		//*2 했을 때 도착값보다 2 이상 크다면 차라리 -1 하고 * 2 하는게 더 빠름
-		//ex) 현재 7, 목적지 11: 7 -> 6 -> 12 -> 11
-		travel next;
-		next.time = t.time + 1;
-
-		next.pos = t.pos * 2;
-		if (next.pos < MAX && next.pos <= K + 2) {
-			next.type = mul2;
-			trace.push(next);
-		}
-
-		next.pos = t.pos - 1;
-		if (0 <= next.pos) {
-			next.type = sub1;
-			trace.push(next);
-		}
-
-		next.pos = t.pos + 1;
-		if (next.pos <= K) {
-			next.type = move_type::add1;
-			trace.push(next);
-		}
+		cont = temp;
+		cap = _cap;
+		start = 0;
+		end = size;
 	}
+	
+	int next(int i) { if (++i >= cap) { i -= cap; } return i; }
+	void push(const T& t) { 
+		if (full()) { resize(cap * 2); } 
+		cont[end] = t;
+		end = next(end);
+		++size;
+	}
+	T top() {
+		return cont[start];
+	}
+	void pop() {
+		start = next(start);
+		--size;
+	}
+
+	T* cont{};
+	int cap{}, size{}, start{}, end{};
+};
+
+struct record {
+	int count; char type;
+};
+struct q_data {
+	int idx; 
+	record t;
+};
+Queue<q_data> q;
+record dp[10000]; //dp[i]: 숫자 i를 만들기 한 연산 횟수
+int T, A, B;
+
+void reset() {
+	A = B = 0;
+	memset(dp, -1, sizeof(dp));
 }
 
-//K부터 기록을 역순으로 타고 N으로 이동하면서 stack에 넣는다
-void trace_back() {
-	std::stack<int> ans;
-	int pos = K;
-	while (pos != N) {
-		ans.push(pos);
-
-		switch (memo[pos].type)
-		{
-		case move_type::mul2:
-			pos /= 2;
-			break;
-		case move_type::sub1:
-			pos += 1;
-			break;
-		case move_type::add1:
-			pos -= 1;
-			break;
-		default:
-			return;
-		}
-	}
-
-	std::cout << N << ' ';
-	while (false == ans.empty()) {
-		std::cout << ans.top() << ' ';
-		ans.pop();
-	}
+int D(int i) {
+	return i * 2 % 10000;
 }
+int S(int i) {
+	i -= 1;
+	if (i < 0) { i = 9999; }
+	return i;
+}
+int L(int i) {
+	i *= 10;
+	int first_digit = i / 10000;
+	i = i - first_digit * 10000 + first_digit;
+	return i;
+}
+int R(int i) {
+	i = i + (i % 10) * 10000;
+	i /= 10;
+	return i;
+}
+
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> N >> K;
+	std::cin >> T;
+	while (T--) {
+		reset();
+		std::cin >> A >> B;
+	}
 
-	//BFS
-	BFS();
-	//최단시간 출력
-	std::cout << memo[K].time << '\n';
-	trace_back();
+	Queue<int> q;
+	q.resize(1000);
+	for (int i = 0; i < 10000; ++i) {
+		q.push(i);
+	}
+
+	for (int i = 0; i < 10000; ++i) {
+		int r = q.top(); q.pop();
+
+		if (r != i) {
+			int a = 1;
+		}
+	}
+	
 
 	return 0;
 }
