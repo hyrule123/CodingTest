@@ -7,6 +7,7 @@
 /*
 백준 9019 (DSLR)
 */
+#include <stack>
 template <typename T>
 struct Queue {
 	bool empty() { return size == 0; }
@@ -23,7 +24,7 @@ struct Queue {
 				else {
 					int front_part_size = cap - start;
 					memcpy(temp, cont + start, sizeof(T) * front_part_size);
-					memcpy(temp + front_part_size, cont, end);
+					memcpy(temp + front_part_size, cont, sizeof(T) * end);
 				}
 			}
 			delete[] cont;
@@ -49,24 +50,28 @@ struct Queue {
 		--size;
 	}
 
+	void clear() {
+		size = start = end = 0;
+	}
+
 	T* cont{};
 	int cap{}, size{}, start{}, end{};
 };
 
 struct record {
-	int count; char type;
+	int prev; bool visited; char type;
 };
-struct q_data {
-	int idx; 
-	record t;
-};
-Queue<q_data> q;
-record dp[10000]; //dp[i]: 숫자 i를 만들기 한 연산 횟수
+std::stack<char> ans;
+Queue<int> q;
+//memo[i]: i 방문 여부, 어디서 i로 방문했는지, 어떤 연산을 통해 방문했는지를 기록
+record memo[10000]; 
 int T, A, B;
 
 void reset() {
+	q.resize(1024);
+	q.clear();
 	A = B = 0;
-	memset(dp, -1, sizeof(dp));
+	memset(memo, 0, sizeof(memo));
 }
 
 int D(int i) {
@@ -89,6 +94,48 @@ int R(int i) {
 	return i;
 }
 
+void write_memo(int from, int to, char type) {
+	//DSLR 모두 10000 미만 값이 보장되므로 범위 확인은 필요 없다
+	//방문하지 않았을 경우 이전 인덱스와 어떤 타입을 통해 도착했는지를 저장
+	if (memo[to].visited == false) {
+		memo[to].visited = true;
+		memo[to].prev = from;
+		memo[to].type = type;
+		q.push(to);
+	}
+
+
+}
+
+void BFS() {
+	q.push(A);
+	memo[A].visited = true;
+
+	while (false == q.empty()) {
+		int idx = q.top(); q.pop();
+
+		if (idx == B) { break; }
+		
+		write_memo(idx, D(idx), 'D');
+		write_memo(idx, S(idx), 'S');
+		write_memo(idx, L(idx), 'L');
+		write_memo(idx, R(idx), 'R');
+	}
+}
+
+void trace_back() {
+	int pos = B;
+	while (pos != A) {
+		ans.push(memo[pos].type);
+		pos = memo[pos].prev;
+	}
+
+	while (false == ans.empty()) {
+		std::cout << ans.top();
+		ans.pop();
+	}
+	std::cout << '\n';
+}
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
@@ -98,22 +145,10 @@ int main() {
 	while (T--) {
 		reset();
 		std::cin >> A >> B;
-	}
 
-	Queue<int> q;
-	q.resize(1000);
-	for (int i = 0; i < 10000; ++i) {
-		q.push(i);
+		BFS();
+		trace_back();
 	}
-
-	for (int i = 0; i < 10000; ++i) {
-		int r = q.top(); q.pop();
-
-		if (r != i) {
-			int a = 1;
-		}
-	}
-	
 
 	return 0;
 }
