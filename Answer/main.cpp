@@ -5,53 +5,98 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 2618 (경찰차)
+백준 13913 (숨바꼭질 4)
 */
-//memo[i][j] 1번이 i위치, 2번이 j위치에 있을 때 max(i, j) + 1 ~ case_n번 사건을 해결하는 데 필요한 최소 거리
+//N은 현재 위치에서 3가지 선택지를 가진다
+//-1, +1, *2
+//최단 거리를 구해야 하므로 BFS를 사용
+//BFS가 이미 들렀던 곳은 최단거리 -> 다시 들를 필요가 없다.(메모할 공간이 필요)
+//
+#include <queue>
+#include <stack>
+constexpr int MAX = 100001;
+int N, K;
+enum move_type {
+	NONE, mul2, sub1, add1
+};
+struct m { 
+	int time = -1, type = NONE; //어떤 방식으로 해당 위치에 도달했는지
+};
+m memo[MAX];	//dp[i]: N->i로 가는 데 걸린 시간
 
-constexpr int MAX = 1024;
-int map_size, case_n, memo[MAX][MAX];	
-struct coord { int x, y; };
-coord case_pos[MAX];
+struct travel {
+	int pos, time;
+	move_type type;
+};
+std::queue<travel> trace;
 
-inline int ABS(int i) { if (i < 0) { i = -i; } return i; }
-inline int dist(const coord& a, const coord& b) {
-	return ABS(b.x - a.x) + ABS(b.y - a.y);
-}
+void BFS() {
+	trace.push({ N, 0 });
 
-int nearest_dist(int last_1, int last_2) {
-	//두 경찰차가 해결한 마지막 사건 + 1이 다음 사건 번호
-	int next = std::max(last_1, last_2) + 1;
-	if (next == case_n) { return 0; }
-	else if (memo[last_1][last_2] != -1) { return memo[last_1][last_2]; }
+	while (false == trace.empty()) {
+		travel t = trace.front();
+		trace.pop();
 
-	//각각 경찰차가 next로 이동할 때의 거리를 구한다.
-	int dist1 = dist(case_pos[last_1], case_pos[next]);
-	int dist2 = dist(case_pos[last_2], case_pos[next]);
-	
-	//다음으로 두 경찰차의 목적지에 대한 DFS 시행
-	//1번 경찰차가 next로 이동한 경우
-	int total_dist1 = dist1 + nearest_dist(next, last_2);
-	int total_dist2 = dist2 + nearest_dist(last_1, next);
+		if (memo[t.pos].time != -1) { continue; }
 
-	memo[last_1][last_2] = std::min(total_dist1, total_dist2);
-	return memo[last_1][last_2];
-}
+		memo[t.pos].time = t.time;
+		memo[t.pos].type = t.type;
+		if (t.pos == K) {
+			break;
+		}
 
-void trace_back(int last_1, int last_2) {
-	int next = std::max(last_1, last_2) + 1;
-	if (next == case_n) { return; }
+		//*2 했을 때 도착값보다 2 이상 크다면 차라리 -1 하고 * 2 하는게 더 빠름
+		//ex) 현재 7, 목적지 11: 7 -> 6 -> 12 -> 11
+		travel next;
+		next.time = t.time + 1;
 
-	int dist1 = dist(case_pos[last_1], case_pos[next]);
-	int dist2 = dist(case_pos[last_2], case_pos[next]);
+		next.pos = t.pos * 2;
+		if (next.pos < MAX && next.pos <= K + 2) {
+			next.type = mul2;
+			trace.push(next);
+		}
 
-	if (dist1 + memo[next][last_2] < dist2 + memo[last_1][next]) {
-		std::cout << 1 << '\n';
-		trace_back(next, last_2);
+		next.pos = t.pos - 1;
+		if (0 <= next.pos) {
+			next.type = sub1;
+			trace.push(next);
+		}
+
+		next.pos = t.pos + 1;
+		if (next.pos <= K) {
+			next.type = move_type::add1;
+			trace.push(next);
+		}
 	}
-	else {
-		std::cout << 2 << '\n';
-		trace_back(last_1, next);
+}
+
+//K부터 기록을 역순으로 타고 N으로 이동하면서 stack에 넣는다
+void trace_back() {
+	std::stack<int> ans;
+	int pos = K;
+	while (pos != N) {
+		ans.push(pos);
+
+		switch (memo[pos].type)
+		{
+		case move_type::mul2:
+			pos /= 2;
+			break;
+		case move_type::sub1:
+			pos += 1;
+			break;
+		case move_type::add1:
+			pos -= 1;
+			break;
+		default:
+			return;
+		}
+	}
+
+	std::cout << N << ' ';
+	while (false == ans.empty()) {
+		std::cout << ans.top() << ' ';
+		ans.pop();
 	}
 }
 
@@ -59,21 +104,13 @@ int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	memset(memo, -1, sizeof(memo));
+	std::cin >> N >> K;
 
-	std::cin >> map_size >> case_n;
-	
-	//0번 1번 항목에는 경찰차의 첫 시작 위치를 저장, 2번부터 실제 input
-	case_n += 2;
-	case_pos[0] = { 1, 1 };
-	case_pos[1] = { map_size, map_size };
-
-	for (int i = 2; i < case_n; ++i) {
-		std::cin >> case_pos[i].x >> case_pos[i].y;
-	}
-
-	std::cout << nearest_dist(0, 1) << '\n';
-	trace_back(0, 1);
+	//BFS
+	BFS();
+	//최단시간 출력
+	std::cout << memo[K].time << '\n';
+	trace_back();
 
 	return 0;
 }
