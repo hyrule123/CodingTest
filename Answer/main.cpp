@@ -10,55 +10,68 @@
 #include <vector>
 
 template <typename T>
-struct cq {
+struct pq {
+	void Insert(const T& t) {
+		cont.push_back(t);
 
-	bool empty() { return size == 0; }
-	bool full() { return cap == size; }
-	void reserve(int newcap) {
-		if (newcap <= cap) { return; }
+		size_t cur = cont.size() - 1;
+		while (0 < cur) {
+			size_t parent = (cur - 1) / 2;
 
-		T* temp = new T[newcap];
-		if (cont) {
-			if (false == empty()) {
-				if (start < end) {
-					memcpy(temp, cont + start, sizeof(T) * size);
-				}
-				else {
-					int start_part_size = cap - start;
-					memcpy(temp, cont + start, sizeof(T) * start_part_size);
-					memcpy(temp + start_part_size, cont, sizeof(T) * end);
-				}
+			if (cont[cur] < cont[parent]) {
+				std::swap(cont[parent], cont[cur]);
+				cur = parent;
 			}
-			delete[] cont;
+			else {
+				break;
+			}
 		}
-
-		cont = temp;
-		cap = newcap;
-		start = 0;
-		end = size;
 	}
-	int next(int cur) { if (++cur >= cap) { cur -= cap; } return cur; }
 
-	void push(const T& t) {
-		if (full()) { reserve(cap * 2); }
-		cont[end] = t;
-		end = next(end);
-		++size;
+	T top() { return cont.front(); }
+	void pop() {
+		std::swap(cont.front(), cont.back());
+		
+		cont.resize(cont.size() - 1);
+		if (cont.empty()) { return; }
+
+		size_t cur = 0;
+		size_t end = cont.size() / 2;
+		while (cur < end) {
+			size_t min_idx = cur;
+			size_t left = cur * 2 + 1;
+			size_t right = left + 1;
+
+			if (left < cont.size() && cont[left] < cont[min_idx]) {
+				min_idx = left;
+			}
+			if (right < cont.size() && cont[right] < cont[min_idx]) {
+				min_idx = right;
+			}
+
+			if (cur != min_idx) {
+				std::swap(cont[cur], cont[min_idx]);
+				cur = min_idx;
+			}
+			else {
+				break;
+			}
+		}
 	}
-	T top() { return cont[start];}
-	void pop() { start = next(start); --size; }
 
-	T* cont{};
-	int cap{}, size{}, start{}, end{};
+	std::vector<T> cont;
 };
 
-int n_node, n_edge, dep, dest;
 struct edge { int end, cost; };
+int n_node, n_edge, dep, dest;
 std::vector<edge> edges[1001];
-cq<int> q;
+int visited[1001];
+pq<int> q;
 
 void djikstra() {
 	
+
+
 }
 
 int main() {
@@ -66,6 +79,8 @@ int main() {
 	LOCAL_IO;
 
 	//input
+	memset(visited, -1, sizeof(visited));
+
 	std::cin >> n_node >> n_edge;
 	for (int i = 0; i < n_edge; ++i) {
 		int from, to, cost; std::cin >> from >> to >> cost;
@@ -73,24 +88,12 @@ int main() {
 	}
 	std::cin >> dep >> dest;
 
-	q.reserve(1);
-	for (int i = 0; i < 50; ++i) {
-		q.push(i);
+	for (int i = 100; i > 0; --i) {
+		q.Insert(i);
 	}
-	for (int i = 0; i < 25; ++i) {
+	while (false == q.cont.empty()) {
 		std::cout << q.top() << '\n'; q.pop();
 	}
-
-	for (int i = 0; i < 50; ++i) {
-		q.push(i);
-	}
-
-	while (false == q.empty()) {
-		std::cout << q.top() << '\n'; q.pop();
-	}
-
-	
-	
 
 	djikstra();
 
