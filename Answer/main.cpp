@@ -5,150 +5,94 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 9019 (DSLR)
+백준 11779 (최소비용 구하기 2)
 */
-#include <stack>
+#include <vector>
+
 template <typename T>
-struct Queue {
+struct cq {
+
 	bool empty() { return size == 0; }
 	bool full() { return cap == size; }
-	void resize(int _cap) {
-		if (_cap <= cap) { return; }
+	void reserve(int newcap) {
+		if (newcap <= cap) { return; }
 
-		T* temp = new T[_cap];
+		T* temp = new T[newcap];
 		if (cont) {
 			if (false == empty()) {
 				if (start < end) {
 					memcpy(temp, cont + start, sizeof(T) * size);
 				}
 				else {
-					int front_part_size = cap - start;
-					memcpy(temp, cont + start, sizeof(T) * front_part_size);
-					memcpy(temp + front_part_size, cont, sizeof(T) * end);
+					int start_part_size = cap - start;
+					memcpy(temp, cont + start, sizeof(T) * start_part_size);
+					memcpy(temp + start_part_size, cont, sizeof(T) * end);
 				}
 			}
 			delete[] cont;
 		}
+
 		cont = temp;
-		cap = _cap;
+		cap = newcap;
 		start = 0;
 		end = size;
 	}
-	
-	int next(int i) { if (++i >= cap) { i -= cap; } return i; }
-	void push(const T& t) { 
-		if (full()) { resize(cap * 2); } 
+	int next(int cur) { if (++cur >= cap) { cur -= cap; } return cur; }
+
+	void push(const T& t) {
+		if (full()) { reserve(cap * 2); }
 		cont[end] = t;
 		end = next(end);
 		++size;
 	}
-	T top() {
-		return cont[start];
-	}
-	void pop() {
-		start = next(start);
-		--size;
-	}
-
-	void clear() {
-		size = start = end = 0;
-	}
+	T top() { return cont[start];}
+	void pop() { start = next(start); --size; }
 
 	T* cont{};
 	int cap{}, size{}, start{}, end{};
 };
 
-struct record {
-	int prev; bool visited; char type;
-};
-std::stack<char> ans;
-Queue<int> q;
-//memo[i]: i 방문 여부, 어디서 i로 방문했는지, 어떤 연산을 통해 방문했는지를 기록
-record memo[10000]; 
-int T, A, B;
+int n_node, n_edge, dep, dest;
+struct edge { int end, cost; };
+std::vector<edge> edges[1001];
+cq<int> q;
 
-void reset() {
-	q.resize(1024);
-	q.clear();
-	A = B = 0;
-	memset(memo, 0, sizeof(memo));
-}
-
-int D(int i) {
-	return i * 2 % 10000;
-}
-int S(int i) {
-	i -= 1;
-	if (i < 0) { i = 9999; }
-	return i;
-}
-int L(int i) {
-	i *= 10;
-	int first_digit = i / 10000;
-	i = i - first_digit * 10000 + first_digit;
-	return i;
-}
-int R(int i) {
-	i = i + (i % 10) * 10000;
-	i /= 10;
-	return i;
-}
-
-void write_memo(int from, int to, char type) {
-	//DSLR 모두 10000 미만 값이 보장되므로 범위 확인은 필요 없다
-	//방문하지 않았을 경우 이전 인덱스와 어떤 타입을 통해 도착했는지를 저장
-	if (memo[to].visited == false) {
-		memo[to].visited = true;
-		memo[to].prev = from;
-		memo[to].type = type;
-		q.push(to);
-	}
-
-
-}
-
-void BFS() {
-	q.push(A);
-	memo[A].visited = true;
-
-	while (false == q.empty()) {
-		int idx = q.top(); q.pop();
-
-		if (idx == B) { break; }
-		
-		write_memo(idx, D(idx), 'D');
-		write_memo(idx, S(idx), 'S');
-		write_memo(idx, L(idx), 'L');
-		write_memo(idx, R(idx), 'R');
-	}
-}
-
-void trace_back() {
-	int pos = B;
-	while (pos != A) {
-		ans.push(memo[pos].type);
-		pos = memo[pos].prev;
-	}
-
-	while (false == ans.empty()) {
-		std::cout << ans.top();
-		ans.pop();
-	}
-	std::cout << '\n';
+void djikstra() {
+	
 }
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	std::cin >> T;
-	while (T--) {
-		reset();
-		std::cin >> A >> B;
-
-		BFS();
-		trace_back();
+	//input
+	std::cin >> n_node >> n_edge;
+	for (int i = 0; i < n_edge; ++i) {
+		int from, to, cost; std::cin >> from >> to >> cost;
+		edges[from].push_back({ dep, cost });
 	}
+	std::cin >> dep >> dest;
+
+	q.reserve(1);
+	for (int i = 0; i < 50; ++i) {
+		q.push(i);
+	}
+	for (int i = 0; i < 25; ++i) {
+		std::cout << q.top() << '\n'; q.pop();
+	}
+
+	for (int i = 0; i < 50; ++i) {
+		q.push(i);
+	}
+
+	while (false == q.empty()) {
+		std::cout << q.top() << '\n'; q.pop();
+	}
+
+	
+	
+
+	djikstra();
 
 	return 0;
 }
