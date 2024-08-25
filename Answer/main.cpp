@@ -5,32 +5,43 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 1167 (트리의 지름) : DFS 버전
+백준 1167 (트리의 지름) : BFS 버전
 */
 /*
 * 트리의 지름 구하는 법
-1. 임의의 노드로부터 제일 먼 곳에 있는 노드 A를 DFS를 통해 구한다.
+1. 임의의 노드로부터 제일 먼 곳에 있는 노드 A를 DFS 또는 BFS를 통해 구한다.
 2. 노드 A로부터 제일 먼 곳에 있는 노드 B와의 거리가 트리의 지름이 된다.
 */
 #include <vector>
 #include <bitset>
+#include <queue>
 struct edge { int to, dist; };
 int V;
 std::vector<edge> nodes[100001];
 std::bitset<100001> visited;
-int farthest_node = -1, max_dist = -1;
-void DFS(int node, int acc_dist) {
-	visited[node] = true;
+std::queue<edge> q;
+edge BFS(int from) {
+	visited.reset();
+	q.push({ from, 0 });
+	visited[from] = true;
 
-	if (max_dist < acc_dist) {
-		max_dist = acc_dist;
-		farthest_node = node;
+	//BFS를 통해 제일 먼 노드 번호와 거리를 구한다.
+	edge farthest = { -1, -1 };
+	while (false == q.empty()) {
+		edge cur = q.front(); q.pop();
+
+		if (farthest.dist < cur.dist) {
+			farthest = cur;
+		}
+
+		for (const edge& e : nodes[cur.to]) {
+			if (visited[e.to]) { continue; }
+			visited[e.to] = true;
+			q.push({ e.to, cur.dist + e.dist });
+		}
 	}
 
-	for (const edge& e : nodes[node]) {
-		if (visited[e.to]) { continue; }
-		DFS(e.to, acc_dist + e.dist);
-	}
+	return farthest;
 }
 
 int main() {
@@ -50,16 +61,10 @@ int main() {
 		}
 	}
 
-	//1번 노드로부터 제일 먼 노드 A를 구한다.
-	DFS(1, 0);
-	int farthest_from_1 = farthest_node;
-	farthest_node = -1;
-	max_dist = -1;
-	visited.reset();
+	edge farthest_from_1 = BFS(1);
 
-	//A로부터 제일 먼 노드를 구하고, 그 거리를 출력하면 그게 트리의 지름이 된다.
-	DFS(farthest_from_1, 0);
-	std::cout << max_dist;
+	edge diameter = BFS(farthest_from_1.to);
+	std::cout << diameter.dist;
 
 	return 0;
 }
