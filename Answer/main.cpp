@@ -5,46 +5,155 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 5639 (이진 검색 트리)
+백준 4803 (트리)
 */
 /*
 * 전위 순회한 결과가 주어진다 -> 루트부터 시작해서 왼쪽, 오른쪽 순서로
 */
-constexpr int MAX = 10001;
-int n_node, pre_order[MAX];
+#include <vector>
+#include <bitset>
 
-void insert_btree(int pre_start, int pre_end) {
-	if (pre_start > pre_end) { return; }
+template <typename T>
+struct cq {
+	bool empty() { return size == 0; }
+	bool full() { return cap == size; }
+	void reserve(int c) {
+		if (c <= cap) { return; }
 
-	//역순으로 순회를 돌아주면서현재 루트노드보다 최초로 작은 값이 나오는 지점을 기록한다.
-	//루트노드 왼쪽은 무조건 루트노드보다 작은 값들만 모여있고
-	// 오른쪽은 무조건 루트노드보다 큰 값들만 모여있다
-	//이 분기점을 기준으로 왼쪽, 오른쪽 나눠서 DFS 호출
-	int div_part = pre_end;
-	for (int i = pre_end; i >= pre_start + 1; --i) {
-		if (pre_order[i] < pre_order[pre_start]) {
-			div_part = i;
-			break;
+		T* temp = new T[c];
+		if (cont) {
+			if (false == empty()) {
+				if (start < end) {
+					memcpy(temp, cont + start, sizeof(T) * size);
+				}
+				else {
+					int start_part_size = cap - start;
+					memcpy(temp, cont + start, sizeof(T) * start_part_size);
+					memcpy(temp + start_part_size, cont, sizeof(T) * end);
+				}
+			}
+
+			delete[] cont;
+		}
+
+		cont = temp;
+		cap = c;
+		start = 0;
+		end = size;
+	}
+	int next(int i) { if (++i >= cap) { i -= cap; } return i; }
+	void push(const T& _t) { 
+		if (full()) { reserve(cap * 2); }
+		cont[end] = _t;
+		end = next(end);
+		++size;
+	}
+	T pop() {
+		T ret = cont[start];
+		start = next(start);
+		--size;
+		return ret;
+	}
+	void clear() { start = end = size = 0; }
+
+	T* cont{};
+	int cap{}, size{}, start{}, end{};
+};
+
+constexpr int MAX = 501;
+int case_num, n_node, n_edge;
+std::vector<int> graph[MAX];
+std::bitset<MAX> visited;
+cq<int> q;
+void reset() {
+	n_node = 0;
+	n_edge = 0;
+	for (int i = 0; i < MAX; ++i) {
+		graph[i].clear();
+	}
+	visited.reset();
+	q.clear();
+	q.reserve(512);
+}
+
+bool is_tree_BFS(int node) {
+	q.push(node);
+
+	bool ret = true;
+	while (false == q.empty()) {
+		int cur = q.pop();
+
+		//이번 노드를 방문처리하기 전에 이미 방문한 노드인지 확인해본다.
+		//혹시나 이미 방문돼있는 노드일 경우 회로가 존재하는 것.
+		if (visited[cur]) {
+			ret = false;
+		}
+		
+		//방문처리
+		visited[cur] = true;
+
+		//방문처리 안 된 노드에 대해 큐에 삽입.
+		for (int next : graph[cur]) {
+			if (false == visited[next]) {
+				q.push(next);
+			}
 		}
 	}
 
-	//좌측
-	insert_btree(pre_start + 1, div_part);
+	return ret;
+}
 
-	//우측
-	insert_btree(div_part + 1, pre_end);
+void print_ans(int cur_case, int n_tree) {
+	std::cout << "Case " << cur_case << ": ";
 
-	//포스트오더이므로 자신에 대한 출력은 제일 마지막에
-	std::cout << pre_order[pre_start] << '\n';
+	if (n_tree == 0) {
+		std::cout << "No trees.";
+	}
+	else if (n_tree == 1) {
+		std::cout << "There is one tree.";
+	}
+	else {
+		std::cout << "A forest of " << n_tree << " trees.";
+	}
+
+	std::cout << '\n';
 }
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	int idx = 0;
-	while (std::cin >> pre_order[++idx]) { ++n_node; }
+	int case_num = 0;
+	while(true){
+		reset();
+		++case_num;
 
-	insert_btree(1, n_node);
+		std::cin >> n_node >> n_edge;
+		if (n_node == 0 && n_edge == 0) {
+			break;
+		}
+
+		for (int e = 1; e <= n_edge; ++e) {
+			int a, b; std::cin >> a >> b;
+			graph[a].push_back(b);
+			graph[b].push_back(a);
+		}
+
+		//단일 노드로 구성된 그래프도 '트리'라고 부를 수 있다.
+		/*
+		* 예제 입력의 첫번째 케이스는 노드가 6개인데 4번 노드까지만 회로가 없는 연결이 있다.
+		* 5, 6번 노드는 아무 노드와도 연결되어있지 않은 단일 노드이다.
+		* -> 트리 3개
+		*/
+		int n_tree = 0;
+		for (int n = 1; n <= n_node; ++n) {
+			if (false == visited[n]) {
+				if (is_tree_BFS(n)) { ++n_tree; }
+			}
+		}
+
+		print_ans(case_num, n_tree);
+	}
+
 	return 0;
 }
