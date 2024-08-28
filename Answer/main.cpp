@@ -5,151 +5,61 @@
 #include <limits>
 #include <cstring> //memset
 /*
-백준 4803 (트리)
+백준 1717 (집합의 표현): 유니온 파인드 기초 문제
 */
-#include <vector>
-#include <bitset>
-
-template <typename T>
-struct cq {
-	bool empty() { return size == 0; }
-	bool full() { return cap == size; }
-	void reserve(int c) {
-		if (c <= cap) { return; }
-
-		T* temp = new T[c];
-		if (cont) {
-			if (false == empty()) {
-				if (start < end) {
-					memcpy(temp, cont + start, sizeof(T) * size);
-				}
-				else {
-					int start_part_size = cap - start;
-					memcpy(temp, cont + start, sizeof(T) * start_part_size);
-					memcpy(temp + start_part_size, cont, sizeof(T) * end);
-				}
-			}
-
-			delete[] cont;
-		}
-
-		cont = temp;
-		cap = c;
-		start = 0;
-		end = size;
+#define UNI 0
+#define INT 1
+constexpr int MAX = 1'000'000;
+int n_set, n_operation, sets[MAX]; //sets[i] = j: i는 j와 같은 집합에 속해있다.
+int find_group(int elem) {
+	/*
+	재귀 형태로 sets[elem]은 어느 그룹에 속하는지를 찾고, 자신도 그 그룹 번호로 바꾼다
+	1-2-3이라고 할때 sets[1] = 2, sets[2] = 3, sets[3] = 3 이라면
+	find_group(1) -> find_group(2) -> find_group(3) -> return 3 -> sets[2] = 3 -> sets[1] = 3
+	이렇게 되면 차후에 재귀 횟수를 줄일 수 있다.(최적화)
+	*/
+	if (elem != sets[elem]) {
+		sets[elem] = find_group(sets[elem]);
 	}
-	int next(int i) { if (++i >= cap) { i -= cap; } return i; }
-	void push(const T& _t) { 
-		if (full()) { reserve(cap * 2); }
-		cont[end] = _t;
-		end = next(end);
-		++size;
-	}
-	T pop() {
-		T ret = cont[start];
-		start = next(start);
-		--size;
-		return ret;
-	}
-	void clear() { start = end = size = 0; }
-
-	T* cont{};
-	int cap{}, size{}, start{}, end{};
-};
-
-constexpr int MAX = 501;
-int case_num, n_node, n_edge;
-std::vector<int> graph[MAX];
-std::bitset<MAX> visited;
-cq<int> q;
-void reset() {
-	n_node = 0;
-	n_edge = 0;
-	for (int i = 0; i < MAX; ++i) {
-		graph[i].clear();
-	}
-	visited.reset();
-	q.clear();
-	q.reserve(512);
-}
-
-bool is_tree_BFS(int node) {
-	q.push(node);
-
-	bool ret = true;
-	while (false == q.empty()) {
-		int cur = q.pop();
-
-		//이번 노드를 방문처리하기 전에 이미 방문한 노드인지 확인해본다.
-		//혹시나 이미 방문돼있는 노드일 경우 회로가 존재하는 것.
-		if (visited[cur]) {
-			ret = false;
-		}
-		
-		//방문처리
-		visited[cur] = true;
-
-		//방문처리 안 된 노드에 대해 큐에 삽입.
-		for (int next : graph[cur]) {
-			if (false == visited[next]) {
-				q.push(next);
-			}
-		}
-	}
-
-	return ret;
-}
-
-void print_ans(int cur_case, int n_tree) {
-	std::cout << "Case " << cur_case << ": ";
-
-	if (n_tree == 0) {
-		std::cout << "No trees.";
-	}
-	else if (n_tree == 1) {
-		std::cout << "There is one tree.";
-	}
-	else {
-		std::cout << "A forest of " << n_tree << " trees.";
-	}
-
-	std::cout << '\n';
+	return sets[elem];
 }
 
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
+	
+	std::cin >> n_set >> n_operation;
+	for (int i = 0; i <= n_set; ++i) {
+		sets[i] = i;
+	}
+	for (int i = 1; i <= n_operation; ++i) {
+		int op_type, a, b; std::cin >> op_type >> a >> b;
 
-	int case_num = 0;
-	while(true){
-		reset();
-		++case_num;
+		//무조건 a쪽을 작은쪽으로 둔다.
+		if (b < a) { std::swap(a, b); }
 
-		std::cin >> n_node >> n_edge;
-		if (n_node == 0 && n_edge == 0) {
+		int group_a = find_group(a);
+		int group_b = find_group(b);
+		
+		switch (op_type) {
+		case UNI: {
+			//둘이 속한 집합이 다를 경우 작은쪽의 원소를 다른쪽과 동일하게 변경
+			if (group_a != group_b) {
+				sets[group_a] = group_b;
+			}
 			break;
 		}
-
-		for (int e = 1; e <= n_edge; ++e) {
-			int a, b; std::cin >> a >> b;
-			graph[a].push_back(b);
-			graph[b].push_back(a);
-		}
-
-		//단일 노드로 구성된 그래프도 '트리'라고 부를 수 있다.
-		/*
-		* 예제 입력의 첫번째 케이스는 노드가 6개인데 4번 노드까지만 회로가 없는 연결이 있다.
-		* 5, 6번 노드는 아무 노드와도 연결되어있지 않은 단일 노드이다.
-		* -> 트리 3개
-		*/
-		int n_tree = 0;
-		for (int n = 1; n <= n_node; ++n) {
-			if (false == visited[n]) {
-				if (is_tree_BFS(n)) { ++n_tree; }
+		case INT: {
+			if (group_a == group_b) {
+				std::cout << "YES\n";
 			}
-		}
+			else {
+				std::cout << "NO\n";
+			}
 
-		print_ans(case_num, n_tree);
+			break;
+		}
+		}
 	}
 
 	return 0;
