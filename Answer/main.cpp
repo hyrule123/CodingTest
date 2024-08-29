@@ -8,67 +8,77 @@
 백준 4195 (친구 네트워크)
 */
 
-#include <string>
 #include <vector>
 constexpr int MAX = 120'119, p1 = 31, p2 = 53;
-using str = std::string;
+struct str {
+	char s[21];
+	int len;
+
+	void clear() {
+		s[0] = '\0';
+		len = 0;
+	}
+
+	bool operator ==(const str& other) const {
+		if (len != other.len) {
+			return false;
+		}
+		for (int i = 0; i < len; ++i) {
+			if (s[i] != other.s[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+};
+std::istream& operator>>(std::istream& stream, str& string) {
+	stream >> string.s;
+	string.len = (int)strlen(string.s);
+	return stream;
+}
 struct pair {
-	std::string id;
+	str id;
 	int group_hash;
-	int friend_count = 1;
+	int friend_count;
 };
 
 struct hash_map {
-	static int hash1(const str& p) {
+	static int str_hash(const str& p) {
 		int ret = 0;
 
-		for (int i = 0; p[i] != '\0'; ++i) {
-			ret = (ret * p1 + p[i]) % MAX;
+		for (int i = 0; i < p.len; ++i) {
+			ret = (ret * p1 + p.s[i]) % MAX;
 		}
 
 		return ret;
 	}
-	static int hash2(const str& p) {
-		int ret = 0;
 
-		for (int i = 0; p[i] != '\0'; ++i) {
-			ret = (ret * p2 + p[i]) % MAX;
-		}
-
-		return ret;
-	}
 	void clear() {
-		for (int i = 0; i < MAX; ++i) {
-			cont[i].id.clear();
-			cont[i].group_hash = i;
-			cont[i].friend_count = 1;
-		}
+		memset(cont, 0, sizeof(cont));
 	}
 
 	int insert(const str& key) {
-		int hash = hash1(key);
+		int hash = str_hash(key);
 
-		if (cont[hash].id.empty()) {
-			cont[hash].id = key;
-		}
-		else if (cont[hash].id == key) {
-		}
-		//해시 충돌이 있을 경우 double hashing
-		else {
-			int h2 = hash2(key);
-					
-			while (true) {
-				hash = (hash + h2) % MAX;
-				
-				if (cont[hash].id.empty()) {
-					cont[hash].id = key;
-					break;
-				}
-				else if(cont[hash].id == key) {
-					break;
-				}
+		//linear probing
+		while (true) {
+			if (cont[hash].id.len == 0) {
+				cont[hash].id = key;
+				cont[hash].group_hash = hash;
+				cont[hash].friend_count = 1;
+				return hash;
+			}
+			else if (cont[hash].id == key) {
+				return hash;
+			}
+			++hash;
+			if (hash >= MAX) {
+				hash -= MAX;
 			}
 		}
+
+		cont[hash].id = key;
 
 		//들어간 컨테이너 인덱스(해시값)을 반환한다.
 		return hash;
@@ -87,10 +97,7 @@ void reset() {
 
 int find_group(int hash) {
 	if (map.cont[hash].group_hash != hash) {
-		int prev = map.cont[hash].group_hash;
 		map.cont[hash].group_hash = find_group(map.cont[hash].group_hash);
-		//새로 갱신되는 그룹쪽으로 그룹원을 이동시킨다
-		map.cont[hash].friend_count += map.cont[prev].friend_count;
 	}
 
 	return map.cont[hash].group_hash;
@@ -122,7 +129,6 @@ int main() {
 					std::swap(group_a, group_b);
 				}
 				map.cont[group_a].group_hash = group_b;
-
 				map.cont[group_b].friend_count += map.cont[group_a].friend_count;
 			}
 			
