@@ -8,12 +8,11 @@
 백준 4195 (친구 네트워크)
 */
 
-constexpr int MAX = 120011, p1 = 31, p2 = 53;
+#include <vector>
+constexpr int MAX = 200'003, p1 = 31, p2 = 53;
 struct str {
 	char s[21];
 	int len;
-	
-	bool empty() { return len == 0; }
 
 	void clear() {
 		s[0] = '\0';
@@ -40,25 +39,16 @@ std::istream& operator>>(std::istream& stream, str& string) {
 }
 struct pair {
 	str id;
-	int group;
+	int group_hash;
 	int friend_count;
 };
 
 struct hash_map {
-	static int hash1(const str& p) {
-		int ret = 1;
+	static int str_hash(const str& p) {
+		int ret = 0;
 
 		for (int i = 0; i < p.len; ++i) {
 			ret = (ret * p1 + p.s[i]) % MAX;
-		}
-
-		return ret;
-	}
-	static int hash2(const str& p) {
-		int ret = 1;
-
-		for (int i = 0; i < p.len; ++i) {
-			ret = (ret * p2 + p.s[i]) % MAX;
 		}
 
 		return ret;
@@ -69,35 +59,28 @@ struct hash_map {
 	}
 
 	int insert(const str& key) {
-		int hash = hash1(key);
+		int hash = str_hash(key);
 
-		if (cont[hash].id.empty()) {
-			cont[hash].id = key;
-			cont[hash].friend_count = 1;
-			cont[hash].group = hash;
-		}
-		else if (cont[hash].id == key) {
-		}
-		//해시 충돌이 있을 경우 double hashing
-		else {
-			int h2 = hash2(key);
-
-			while (true) {
-				hash = (hash + h2) % MAX;
-
-				if (cont[hash].id.empty()) {
-					cont[hash].id = key;
-					cont[hash].friend_count = 1;
-					cont[hash].group = hash;
-					break;
-				}
-				else if (cont[hash].id == key) {
-					break;
-				}
+		//linear probing
+		while (true) {
+			if (cont[hash].id.len == 0) {
+				cont[hash].id = key;
+				cont[hash].group_hash = hash;
+				cont[hash].friend_count = 1;
+				return hash;
+			}
+			else if (cont[hash].id == key) {
+				return hash;
+			}
+			++hash;
+			if (hash >= MAX) {
+				hash -= MAX;
 			}
 		}
 
-		//들어간 해시값을 반환한다.
+		cont[hash].id = key;
+
+		//들어간 컨테이너 인덱스(해시값)을 반환한다.
 		return hash;
 	}
 
@@ -113,10 +96,11 @@ void reset() {
 }
 
 int find_group(int hash) {
-	if (map.cont[hash].group != hash) {
-		map.cont[hash].group = find_group(map.cont[hash].group);
+	if (map.cont[hash].group_hash != hash) {
+		map.cont[hash].group_hash = find_group(map.cont[hash].group_hash);
 	}
-	return map.cont[hash].group;
+
+	return map.cont[hash].group_hash;
 }
 
 int main() {
@@ -141,13 +125,14 @@ int main() {
 
 			//그룹이 다를 경우 그룹을 합친다
 			if (group_a != group_b) {
-				if (group_b > group_a) { std::swap(group_a, group_b); }
-
-				//그룹과 그룹원 수 병합
-				map.cont[group_a].group = group_b;
+				if (group_a > group_b) {
+					std::swap(group_a, group_b);
+				}
+				map.cont[group_a].group_hash = group_b;
 				map.cont[group_b].friend_count += map.cont[group_a].friend_count;
 			}
 
+			//합쳐진 그룹원 수를 출력
 			std::cout << map.cont[group_b].friend_count << '\n';
 		}
 	}
