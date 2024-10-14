@@ -5,146 +5,131 @@
 #include <limits>
 #include <cstring> //memset
 
-#include <vector>
-#include <algorithm>
-#include <cmath>
-
-template <typename T>
-struct priority_queue {
-	priority_queue(int _cap) : cap(_cap), size(0) { q = new T[_cap]; }
-	~priority_queue() { if (q) { delete[] q; } }
-
-	void insert(const T& t) {
-		q[size] = t;
-		int cur = size;
-		++size;
-
-		int parent = (cur - 1) / 2;
-		while (0 <= parent) {
-			if (q[cur] < q[parent]) {
-				std::swap(q[cur], q[parent]);
-				cur = parent;
-				parent = (cur - 1) / 2;
-			}
-			else {
-				break;
-			}
-		}
-	}
-
-	T pop() {
-		T ret = q[0];
-
-		if (0 < size) {
-			std::swap(q[0], q[--size]);
-		}
-
-		build_heap();
-
-		return ret;
-	}
-
-	void build_heap() {
-		int parent = 0;
-
-		while (parent < size) {
-			int left = parent * 2 + 1, right = left + 1, smallest = parent;
-
-			if (left < size && q[left] < q[smallest]) {
-				smallest = left;
-			}
-			if (right < size && q[right] < q[smallest]) {
-				smallest = right;
-			}
-
-			if (parent != smallest) {
-				std::swap(q[parent], q[smallest]);
-				parent = smallest;
-			}
-			else {
-				break;
-			}
-		}
-	}
-
-	void clear() {
-		size = 0;
-	}
-	bool empty() { return size == 0; }
-
-	T* q;
-	int cap, size;
-};
-
-struct coord {
-	float x, y;
-	coord operator-(const coord& other) {
-		return { this->x - other.x, this->y - other.y };
-	}
-
-	float length(const coord& other) {
-		coord dist = *this - other;
-		return std::sqrt(dist.x * dist.x + dist.y * dist.y);
-	}
-};
-
-struct edge {
-	float dist;
-	int dest;
-	bool operator < (const edge& other) const {
-		return this->dist < other.dist;
-	}
-};
-
-int n;
-std::vector<coord> nodes;
-std::vector<bool> visited;
-
-float Prim_MST() {
-	float ret = 0;
-	priority_queue<edge> pq(10000);
-	int edge_count = 0;
-
-	visited[0] = true;
-
-	//0번에서 갈 수 있는 간선을 전부 계산해서 PQ에 넣어준다
-	for (int i = 1; i < (int)nodes.size(); ++i) {
-		pq.insert({ nodes[0].length(nodes[i]), i });
-	}
-
-	//edge_count가 n-1에 도달하면 Spanning Tree가 만들어진거임
-	while (edge_count < n - 1) {
-		edge e = pq.pop();
-
-		if (visited[e.dest]) { continue; }
-
-		//방문 처리하고 해당 간선 길이를 추가
-		visited[e.dest] = true;
-		ret += e.dist;
-		++edge_count;
-
-		//해당 노드에서 이동할 수 있는 간선을 추가(이미 방문했던 노드는 제외)
-		for (int i = 0; i < (int)nodes.size(); ++i) {
-			if (visited[i]) { continue; }
-			pq.insert({ nodes[e.dest].length(nodes[i]), i });
-		}
-	}
-
-	return ret;
-}
-
+void solve();
 int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
+	solve();
+	return 0;
+}
 
-	std::cin >> n;
-	nodes.resize(n);
-	visited.resize(n);
-	for (int i = 0; i < n; ++i) {
-		std::cin >> nodes[i].x >> nodes[i].y;
+#include <vector>
+#include <cmath>
+#include <algorithm>
+#include <unordered_set>
+using ll = long long;
+struct edge {
+	double dist;
+	int a, b;
+	auto operator < (const edge& other) const {
+		return this->dist < other.dist;
+	}
+};
+struct set_info { int root, rank; };
+struct node {
+	ll x, y;
+	double dist(const node& other) {
+		ll xx = this->x - other.x;
+		ll yy = this->y - other.y;
+		return std::sqrt(xx * xx + yy * yy);
+	}
+};
+
+int N, M;
+std::vector<node> nodes;
+std::vector<set_info> disjoint_set;
+std::vector<edge> edges;
+
+int find_union(int n) {
+	if (disjoint_set[n].root != n) {
+		disjoint_set[n].root = find_union(disjoint_set[n].root);
+	}
+	return disjoint_set[n].root;
+}
+
+void make_union(int a, int b) {
+	if (a == b) { return; }
+
+	//height가 높은 쪽에 붙여준다.
+	if (disjoint_set[a].rank < disjoint_set[b].rank) {
+		disjoint_set[a].root = b;
+	}
+	else {
+		disjoint_set[b].root = a;
 	}
 
-	std::cout << Prim_MST();
+	//같다면, root 노드가 가서 붙은 쪽의 height를 1 늘려준다.
+	//이 코드에서는 같을 때 b가 a에 가서 붙었으므로 a를 늘려주면 된다.
+	if (disjoint_set[a].rank == disjoint_set[b].rank) {
+		++(disjoint_set[a].rank);
+	}
+}
 
-	return 0;
+
+void solve()
+{
+	std::cin >> N >> M;
+	nodes.resize(N + 1);
+	disjoint_set.resize(N + 1);
+	edges.reserve(N * N);
+	
+	int remaining_edges = N - 1;
+	
+	for (int i = 1; i <= N; ++i) {
+		std::cin >> nodes[i].x >> nodes[i].y;
+		disjoint_set[i].root = i;
+		disjoint_set[i].rank = 0;
+	}
+
+	for (int i = 1; i <= M; ++i) {
+		int a, b; std::cin >> a >> b;
+		a = find_union(a);
+		b = find_union(b);
+
+		if (a == b) {
+			continue;
+		}
+
+		//union이 일어 났으면 사이클 없는 간선이 연결되었다는 뜻
+		//이러면 찾아야 할 edge 수가 하나 적어진다.
+		--remaining_edges;
+		make_union(a, b);
+	}
+
+	for (int i = 1; i <= N; ++i) {
+		int group_i = find_union(i);
+
+		for (int j = i + 1; j <= N; ++j) {
+			int group_j = find_union(j);
+
+			if (group_i == group_j) {
+				continue;
+			}
+			
+			//같은 그룹에 속하지 않은 노드 사이의 거리를 구해서 배열에 넣어준다.
+			edges.push_back({ nodes[i].dist(nodes[j]), i, j });
+		}
+	}
+	
+	//정렬 하고
+	std::sort(edges.begin(), edges.end());
+
+	double total = 0.f;
+	for (const edge& e : edges) {
+		int g_a = find_union(e.a);
+		int g_b = find_union(e.b);
+
+		if (g_a == g_b) { continue; }
+
+		total += e.dist;
+
+		//모든 edge를 다 찾았으면 중단
+		if (--remaining_edges == 0) {
+			break;
+		}
+
+		make_union(g_a, g_b);
+	}
+
+	printf("%.2lf", total);
 }
