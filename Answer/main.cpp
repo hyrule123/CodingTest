@@ -11,7 +11,7 @@
 
 template <typename T>
 struct priority_queue {
-	priority_queue(size_t _cap): cap(_cap), size(0) { q = new T[_cap]; }
+	priority_queue(int _cap) : cap(_cap), size(0) { q = new T[_cap]; }
 	~priority_queue() { if (q) { delete[] q; } }
 
 	void insert(const T& t) {
@@ -76,53 +76,58 @@ struct priority_queue {
 	int cap, size;
 };
 
-struct coord{
+struct coord {
 	float x, y;
 	coord operator-(const coord& other) {
 		return { this->x - other.x, this->y - other.y };
 	}
 
-	float lengthsquared(const coord& other) {
+	float length(const coord& other) {
 		coord dist = *this - other;
-		return dist.x * dist.x + dist.y * dist.y;
+		return std::sqrt(dist.x * dist.x + dist.y * dist.y);
 	}
 };
+
 struct edge {
-	float cost_squared, a, b;
-};
-struct set_info {
-	int parent, rank;
+	float dist;
+	int dest;
+	bool operator < (const edge& other) const {
+		return this->dist < other.dist;
+	}
 };
 
 int n;
 std::vector<coord> nodes;
 std::vector<bool> visited;
 
-float prim_MST() {
+float Prim_MST() {
 	float ret = 0;
-	priority_queue<float> pq(10000);
+	priority_queue<edge> pq(10000);
 	int edge_count = 0;
 
 	visited[0] = true;
 
-	for (size_t i = 1; i < nodes.size(); ++i) {
-		pq.insert(nodes[0].lengthsquared(nodes[i]));
+	//0번에서 갈 수 있는 간선을 전부 계산해서 PQ에 넣어준다
+	for (int i = 1; i < (int)nodes.size(); ++i) {
+		pq.insert({ nodes[0].length(nodes[i]), i });
 	}
 
-	while (edge_count != n - 1) {
-		pq.pop();
-	}
+	//edge_count가 n-1에 도달하면 Spanning Tree가 만들어진거임
+	while (edge_count < n - 1) {
+		edge e = pq.pop();
 
+		if (visited[e.dest]) { continue; }
 
-	for (size_t i = 0; i < nodes.size(); ++i) {
-		for (size_t j = i + 1; j < nodes.size(); ++j) {
-			if (visited[j]) { continue; }
+		//방문 처리하고 해당 간선 길이를 추가
+		visited[e.dest] = true;
+		ret += e.dist;
+		++edge_count;
 
-			pq.insert(nodes[i].lengthsquared(nodes[j]));
+		//해당 노드에서 이동할 수 있는 간선을 추가(이미 방문했던 노드는 제외)
+		for (int i = 0; i < (int)nodes.size(); ++i) {
+			if (visited[i]) { continue; }
+			pq.insert({ nodes[e.dest].length(nodes[i]), i });
 		}
-
-		
-
 	}
 
 	return ret;
@@ -139,14 +144,7 @@ int main() {
 		std::cin >> nodes[i].x >> nodes[i].y;
 	}
 
-	priority_queue<int> iq(100);
-	for (int i = 99; i >= 0; --i) {
-		iq.insert(i);
-	}
-	while (false == iq.empty()) {
-		std::cout << iq.pop() << '\n';
-	}
-	
+	std::cout << Prim_MST();
 
 	return 0;
 }
