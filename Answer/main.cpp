@@ -7,87 +7,122 @@
 
 #include <vector>
 #include <algorithm>
-int V, E;
-struct edge {
-	int cost, a, b;
-	bool operator<(const edge& _other) {
-		return this->cost < _other.cost;
+#include <cmath>
+
+template <typename T>
+struct priority_queue {
+	priority_queue(size_t _cap): cap(_cap), size(0) { q = new T[_cap]; }
+	~priority_queue() { if (q) { delete[] q; } }
+
+	void insert(const T& t) {
+		q[size] = t;
+		int cur = size;
+		++size;
+
+		int parent = (cur - 1) / 2;
+		while (0 <= parent) {
+			if (q[cur] < q[parent]) {
+				std::swap(q[cur], q[parent]);
+				cur = parent;
+				parent = (cur - 1) / 2;
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	T pop() {
+		T ret = q[0];
+
+		if (0 < size) {
+			std::swap(q[0], q[--size]);
+		}
+
+		build_heap();
+
+		return ret;
+	}
+
+	void build_heap() {
+		int parent = 0;
+
+		while (parent < size) {
+			int left = parent * 2 + 1, right = left + 1, smallest = parent;
+
+			if (left < size && q[left] < q[smallest]) {
+				smallest = left;
+			}
+			if (right < size && q[right] < q[smallest]) {
+				smallest = right;
+			}
+
+			if (parent != smallest) {
+				std::swap(q[parent], q[smallest]);
+				parent = smallest;
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	void clear() {
+		size = 0;
+	}
+	bool empty() { return size == 0; }
+
+	T* q;
+	int cap, size;
+};
+
+struct coord{
+	float x, y;
+	coord operator-(const coord& other) {
+		return { this->x - other.x, this->y - other.y };
+	}
+
+	float lengthsquared(const coord& other) {
+		coord dist = *this - other;
+		return dist.x * dist.x + dist.y * dist.y;
 	}
 };
-std::vector<edge> edges;
-std::vector<int> disjoint_set;
-std::vector<int> rank;
+struct edge {
+	float cost_squared, a, b;
+};
+struct set_info {
+	int parent, rank;
+};
 
-int find_union(int node) {
-	if (disjoint_set[node] != node) {
-		disjoint_set[node] = find_union(disjoint_set[node]);
-	}
-	return disjoint_set[node];
-}
+int n;
+std::vector<coord> nodes;
+std::vector<bool> visited;
 
-void sort(int start, int end) {
-	static std::vector<edge> temp(edges.size());
-	if (start >= end) { return; }
+float prim_MST() {
+	float ret = 0;
+	priority_queue<float> pq(10000);
+	int edge_count = 0;
 
-	const int mid = (start + end) / 2;
-	sort(start, mid);
-	sort(mid + 1, end);
+	visited[0] = true;
 
-	int l = start, r = mid + 1, temp_idx = 0;
-	while (l <= mid && r <= end) {
-		if (edges[l] < edges[r]) {
-			temp[temp_idx++] = edges[l++];
-		}
-		else {
-			temp[temp_idx++] = edges[r++];
-		}
+	for (size_t i = 1; i < nodes.size(); ++i) {
+		pq.insert(nodes[0].lengthsquared(nodes[i]));
 	}
 
-	for (; l <= mid;) {
-		temp[temp_idx++] = edges[l++];
-	}
-	for (; r <= end; ) {
-		temp[temp_idx++] = edges[r++];
+	while (edge_count != n - 1) {
+		pq.pop();
 	}
 
-	memcpy(edges.data() + start, temp.data(), sizeof(edge) * ((end - start) + 1));
-}
 
-int Kruskal_MST() {
-	int ret = 0;
-	int edge_counts = 0;
+	for (size_t i = 0; i < nodes.size(); ++i) {
+		for (size_t j = i + 1; j < nodes.size(); ++j) {
+			if (visited[j]) { continue; }
 
-	for (int i = 0; i < E; ++i) {
-		const edge& e = edges[i];
-		int p_a = find_union(e.a);
-		int p_b = find_union(e.b);
-
-		//루트 노드가 같으면 사이클이 생성되므로 스킵
-		if (p_a == p_b) {
-			continue;
-		}
-			
-		//루트 노드 통합
-		//rank가 작은 쪽에 붙인다.
-		if (rank[p_a] < rank[p_b]) {
-			disjoint_set[p_a] = p_b;
-		}
-		else{
-			disjoint_set[p_b] = p_a;
+			pq.insert(nodes[i].lengthsquared(nodes[j]));
 		}
 
-		if(rank[p_a] == rank[p_b])
-		{
-			++(rank[p_a]);
-		}
 		
-		ret += e.cost;
-		++edge_counts;
 
-		//간선의 갯수가 노드 -1개가 되면 스패닝 트리가 완성된 것
-		if (V - 1 == edge_counts) {
-			break;
-		}
 	}
 
 	return ret;
@@ -97,26 +132,21 @@ int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false);
 	LOCAL_IO;
 
-	//입력
-	std::cin >> V >> E;
-	edges.resize(E);
-
-	//disjoint set 초기화
-	disjoint_set.resize(V + 1);
-	rank.resize(V + 1, 0);
-	for (int i = 1; i <= V; ++i) {
-		disjoint_set[i] = i;
-	}
-	//edge 입력 받음
-	for (int i = 0; i < E; ++i) {
-		std::cin >> edges[i].a >> edges[i].b >> edges[i].cost;
+	std::cin >> n;
+	nodes.resize(n);
+	visited.resize(n);
+	for (int i = 0; i < n; ++i) {
+		std::cin >> nodes[i].x >> nodes[i].y;
 	}
 
-	//edge 정렬
-	sort(0, (int)edges.size() - 1);
-
-	//Kruskal MST
-	std::cout << Kruskal_MST();
+	priority_queue<int> iq(100);
+	for (int i = 99; i >= 0; --i) {
+		iq.insert(i);
+	}
+	while (false == iq.empty()) {
+		std::cout << iq.pop() << '\n';
+	}
+	
 
 	return 0;
 }
