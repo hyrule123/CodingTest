@@ -14,62 +14,57 @@ int main() {
 }
 
 #include <vector>
-#include <array>
-//참고: 벨만-포드 알고리즘은 기록을 누적시키고 누적된 기록끼리 합산시키므로 값이 매우 커질 수 있음에 주의
-using ll = long long;
-constexpr ll INF = std::numeric_limits<ll>::max();
-ll dp[501];//1~500
-struct edge {
-	ll dest, dist;
+#include <memory>
+struct node {
+	node* parent;
+	std::vector<std::unique_ptr<node>> childs;
+	int val;
 };
-ll N, M;
-std::array<std::vector<edge>, 501> graph;
+std::vector<std::vector<int>> graph;
+std::vector<int> dp;	//노드 i의 서브트리 개수가 몇개인지
+int N, R, Q;
+std::unique_ptr<node> make_tree_recursive(int cur, int parent) {
+	std::unique_ptr<node> ret = std::make_unique<node>();
+	ret->val = cur;
+	
+	for (int i = 0; i < (int)graph[cur].size(); ++i) {
+		if (graph[cur][i] == parent) { continue; }
+		
+		//재귀호출
+		ret->childs.push_back(make_tree_recursive(graph[cur][i], cur));
+		ret->childs.back().get()->parent = ret.get();
+	}
 
+	return ret;
+}
+
+int count_subtree(node* cur) {
+	if (nullptr == cur) { return 0; }
+
+	dp[cur->val] = 1;
+	for (const auto& child : cur->childs) {
+		dp[cur->val] += count_subtree(child.get());
+	}
+
+	return dp[cur->val];
+}
 
 void solve() {
-	std::cin >> N >> M;
-	for (ll i = 1; i <= N; ++i) {
-		dp[i] = INF;
+	std::cin >> N >> R >> Q;
+	graph.resize(N + 1);
+	dp.resize(N + 1, -1);
+	for (int i = 0; i < N - 1; ++i) {
+		int a, b; std::cin >> a >> b;
+		graph[a].push_back(b);
+		graph[b].push_back(a);
 	}
-	for (ll i = 1; i <= M; ++i) {
-		ll a, b, c; std::cin >> a >> b >> c;
-		graph[a].push_back({ b, c });
-	}
+	
+	std::unique_ptr<node> root = make_tree_recursive(R, 0);
+	count_subtree(root.get());
 
-	dp[1] = 0;
-	//노드 수 - 1회 만큼 반복
-	for (ll t = 1; t <= N - 1; ++t) {
-
-		//Edge 순회
-		for (ll i = 1; i <= N; ++i) {
-			const auto& edges = graph[i];
-			for (const auto& e : edges) {
-				if (dp[i] == INF) { continue; }
-
-				//i 노드에서 dest 노드로 가는게 기존 방법보다 더 빠르게 갈수 있을 경우 갱신
-				if (dp[e.dest] > dp[i] + e.dist) {
-					dp[e.dest] = dp[i] + e.dist;
-				}
-			}
-		}
-	}
-
-	//마지막 체크 순회
-	for (ll i = 1; i <= N; ++i) {
-		const auto& edges = graph[i];
-		for (const auto& e : edges) {
-			if (dp[i] == INF) { continue; }
-
-			//아직도 경로가 감소 중이면(무한 감소 사이클이 있으면)
-			//-1 출력하고 바로 리턴
-			if (dp[e.dest] > dp[i] + e.dist) {
-				std::cout << -1; return;
-			}
-		}
-	}
-
-	//2번 도시부터 가는데 얼마나 걸리는지 출력
-	for (ll i = 2; i <= N; ++i) {
-		std::cout << (dp[i] == INF ? -1 : dp[i]) << '\n';
+	//dp에 저장된 서브트리 출력
+	for (int i = 0; i < Q; ++i) {
+		int q; std::cin >> q;
+		std::cout << dp[q] << '\n';
 	}
 }
