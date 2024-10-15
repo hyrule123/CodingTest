@@ -14,83 +14,159 @@ int main() {
 }
 
 #include <vector>
+#include <stack>
+#include <queue>
 #include <algorithm>
-struct set_info {
-	int group, rank;
-};
+#define NODE_START 2
+
 struct edge {
-	int a, b, cost;
-	bool operator < (const edge& e) const {
-		return this->cost < e.cost;
+	int from, to, dist;
+
+	//for priority queue
+	auto operator < (const edge& other) const {
+		return this->dist > other.dist;
 	}
 };
-std::vector<set_info> disjoint_set;
-std::vector<edge> edges;
 
-int find_union(int n) {
-	if (disjoint_set[n].group != n) {
-		disjoint_set[n].group = find_union(disjoint_set[n].group);
+int R, C;
+
+struct coord {
+	constexpr coord(int _r, int _c) : r(_r), c(_c) { }
+	int r, c;
+	void operator += (const coord& cod) {
+		r += cod.r;
+		c += cod.c;
 	}
-	return disjoint_set[n].group;
+	coord operator + (const coord& cod) {
+		return { this->r + cod.r, this->c + cod.c };
+	}
+	bool valid() {
+		return (0 <= r && 0 <= c && r < R && c < C);
+	}
+};
+
+constexpr coord directions[4] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+std::vector<std::vector<int>> map;
+std::vector<std::vector<coord>> nodes;
+std::priority_queue<edge> pq;
+
+void make_nodes(int r, int c, int node_num) {
+	std::stack<coord> dfs;
+	dfs.push({ r, c });
+	if ((int)nodes.size() <= node_num)
+	{
+		nodes.resize(node_num + 1);
+	}
+
+	while (false == dfs.empty()) {
+		coord cod = dfs.top(); dfs.pop();
+
+		if (cod.valid() && map[cod.r][cod.c] == 1) {
+			map[cod.r][cod.c] = node_num;
+
+			//edge 만들때 쓰기 위한 nodes
+			nodes[node_num].push_back(cod);
+
+			for (auto dir : directions) {
+				dfs.push(cod + dir);
+			}
+		}
+	}
 }
-void make_union(int a, int b) {
-	if (a == b) { return; }
 
-	if (disjoint_set[a].rank < disjoint_set[b].rank) {
-		disjoint_set[a].group = b;
-	}
-	else {
-		disjoint_set[b].group = a;
-	}
-
-	if (disjoint_set[a].rank == disjoint_set[b].rank) {
-		++(disjoint_set[a].rank);
+void create_graph() {
+	//0이랑 1은 쓰고있으니까 NODE_START(2)부터 시작
+	int node_num = NODE_START;
+	for (int r = 0; r < R; ++r) {
+		for (int c = 0; c < C; ++c) {
+			if (1 == map[r][c]) {
+				make_nodes(r, c, node_num);
+				++node_num;
+			}
+		}
 	}
 }
 
-int Kruskal_MST(int node_count) {
-	int cost = 0;
-	--node_count;
-	std::sort(edges.begin(), edges.end());
+edge make_path(coord cur_cod, const coord& dir, int cur_node_num) {
+	edge ret{};
+	ret.from = cur_node_num;
 
-	for (const edge& e : edges) {
-		int pa = find_union(e.a);
-		int pb = find_union(e.b);
-		if (pa == pb) { continue; }
+	while (true) {
+		cur_cod += dir;
 
-		cost += e.cost;
+		if (false == cur_cod.valid()) { break; }
 
-		--node_count;
-		if (node_count == 0) { break; }
+		//0(바다)일 시 계속 나아간다
+		if (map[cur_cod.r][cur_cod.c] == 0) {
+			ret.dist += 1;
+			continue;
+		}
 
-		make_union(pa, pb);
+		//자신과 같은 노드번호가 있을경우 break(섬을 가로질러서 가고있는것->최단거리가 될수없음)
+		if (map[cur_cod.r][cur_cod.c] == cur_node_num) {
+			break;
+		}
+		//0이 아니면서 현재 노드 번호도 아니면 새 노드와 연결된 것
+		else {
+			ret.to = map[cur_cod.r][cur_cod.c];
+			break;
+		}
 	}
 
-	return cost;
+	return ret;
+}
+
+void insert_edges(int node_num) {
+	if (node_num >= nodes.size()) { return; }
+	
+	for (const coord& c : nodes[node_num]) {
+		for (auto dir : directions) {
+			edge e = make_path(c, dir, node_num);
+
+			//연결되면서 거리가 1 이상일 경우에만 간선이 될 수 있다
+			if (e.to != 0 && e.dist > 1) { pq.push(e); }
+		}
+	}
+}
+
+int Prim_MST() {
+	int total_dist = 0;
+
+	int edge_count = (int)nodes.size() - NODE_START - 1;
+
+	std::vector<bool> visited(nodes.size());
+	visited[NODE_START] = true;
+
+	insert_edges(NODE_START);
+	while (false == pq.empty() && 0 < edge_count) {
+		edge e = pq.top(); pq.pop();
+
+		if (visited[e.to]) { continue; }
+
+		visited[e.to] = true;
+		
+		--edge_count;
+		total_dist += e.dist;
+		insert_edges(e.to);
+	}
+
+	//길이 전부 놓여지지 않았을 경우 -1을 출력한다.
+	if (edge_count != 0) {
+		total_dist = -1;
+	}
+	return total_dist;
 }
 
 void solve()
 {
-	int m, n;
-	while (true) {
-		std::cin >> m >> n;
-		if (m == 0 && n == 0) { break; }
+	std::cin >> R >> C;
+	map.resize(R, std::vector<int>(C));
 
-		edges.clear();
-		edges.resize(n);
-		disjoint_set.clear();
-		disjoint_set.reserve(m);
-		for (int i = 0; i < m; ++i) {
-			disjoint_set.push_back({ i, 0 });
+	for (int r = 0; r < R; ++r) {
+		for (int c = 0; c < C; ++c) {
+			std::cin >> map[r][c];
 		}
-
-		int total_cost = 0;
-		for (int i = 0; i < n; ++i) {
-			std::cin >> edges[i].a >> edges[i].b >> edges[i].cost;
-			total_cost += edges[i].cost;
-		}
-
-		int min_cost = Kruskal_MST(m);
-		std::cout << total_cost - min_cost << '\n';
 	}
+	create_graph();
+	std::cout << Prim_MST();
 }
