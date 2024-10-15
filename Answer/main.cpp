@@ -7,7 +7,7 @@
 
 void solve();
 
-int main() { 
+int main() {
 	std::cin.tie(nullptr); std::cin.sync_with_stdio(false); LOCAL_IO;
 	solve();
 	return 0;
@@ -15,100 +15,102 @@ int main() {
 
 #include <vector>
 #include <stack>
-#include <queue>
 #include <algorithm>
-#define NODE_START 2
-
-struct edge {
-	int from, to, dist;
-
-	//for priority queue
-	auto operator < (const edge& other) const {
-		return this->dist > other.dist;
-	}
-};
-
-int R, C;
+#define LAND -2
+#define NONE -3
+int map[100][100], R, C;
 
 struct coord {
 	constexpr coord(int _r, int _c) : r(_r), c(_c) { }
 	int r, c;
-	void operator += (const coord& cod) {
-		r += cod.r;
-		c += cod.c;
+
+	coord operator + (const coord& other) {
+		return { r + other.r, c + other.c };
 	}
-	coord operator + (const coord& cod) {
-		return { this->r + cod.r, this->c + cod.c };
+	void operator +=(const coord& other) {
+		r += other.r;
+		c += other.c;
 	}
 	bool valid() {
 		return (0 <= r && 0 <= c && r < R && c < C);
 	}
 };
+constexpr coord directions[] = { {0, 1}, {0, -1}, {1, 0}, {-1, 0} };
 
-constexpr coord directions[4] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
-std::vector<std::vector<int>> map;
-std::vector<std::vector<coord>> nodes;
-std::priority_queue<edge> pq;
-
-void make_nodes(int r, int c, int node_num) {
-	std::stack<coord> dfs;
-	dfs.push({ r, c });
-	if ((int)nodes.size() <= node_num)
-	{
-		nodes.resize(node_num + 1);
+struct edge {
+	int from, to, dist;
+	auto operator <(const edge& other) const {
+		return dist < other.dist;
 	}
+	//목적지가 유효한 노드 인덱스이며, 길이가 1 이상이어야 함
+	bool valid() {
+		return (0 <= to && 1 < dist);
+	}
+};
 
-	while (false == dfs.empty()) {
-		coord cod = dfs.top(); dfs.pop();
+struct set_info {
+	int group, rank;
+};
 
-		if (cod.valid() && map[cod.r][cod.c] == 1) {
-			map[cod.r][cod.c] = node_num;
+//start 위치부터 연결된 섬 좌표를 싹 넣어서 반환(하나의 노드 생성)
+std::vector<coord> create_node(int node_idx, const coord& start) {
+	std::vector<coord> ret;
+	std::stack<coord> stk;
 
-			//edge 만들때 쓰기 위한 nodes
-			nodes[node_num].push_back(cod);
+	//start부터 시작해서 bfs로 노드 면적 계산
+	stk.push(start);
+	while (false == stk.empty()) {
+		coord cod = stk.top(); stk.pop();
+		if (cod.valid() && map[cod.r][cod.c] == LAND) {
+			map[cod.r][cod.c] = node_idx;
+			ret.push_back(cod);
 
+			//상하좌우 탐색
 			for (auto dir : directions) {
-				dfs.push(cod + dir);
+				stk.push(cod + dir);
 			}
 		}
 	}
+	return ret;
 }
 
-void create_graph() {
-	//0이랑 1은 쓰고있으니까 NODE_START(2)부터 시작
-	int node_num = NODE_START;
+std::vector<std::vector<coord>> create_nodes() {
+	std::vector<std::vector<coord>> ret;
+
+	//노드 생성
 	for (int r = 0; r < R; ++r) {
 		for (int c = 0; c < C; ++c) {
-			if (1 == map[r][c]) {
-				make_nodes(r, c, node_num);
-				++node_num;
+			if (map[r][c] == LAND) {
+				ret.push_back(create_node((int)ret.size(), { r, c }));
 			}
 		}
 	}
+
+	return ret;
 }
 
-edge make_path(coord cur_cod, const coord& dir, int cur_node_num) {
-	edge ret{};
-	ret.from = cur_node_num;
+edge find_edge(coord cod, const coord& dir, int cur_node) {
+	edge ret;
+	ret.from = cur_node;
+	ret.to = NONE;
+	ret.dist = 0;
 
 	while (true) {
-		cur_cod += dir;
+		cod += dir;
+		if (false == cod.valid()) { break; }
 
-		if (false == cur_cod.valid()) { break; }
-
-		//0(바다)일 시 계속 나아간다
-		if (map[cur_cod.r][cur_cod.c] == 0) {
-			ret.dist += 1;
+		if (map[cod.r][cod.c] == NONE) {
+			++ret.dist;
 			continue;
 		}
 
-		//자신과 같은 노드번호가 있을경우 break(섬을 가로질러서 가고있는것->최단거리가 될수없음)
-		if (map[cur_cod.r][cur_cod.c] == cur_node_num) {
+		//현재 노드일 경우 (섬을 가로질러 가고있는 경우: 최단거리 불가능)
+		if (map[cod.r][cod.c] == cur_node) {
 			break;
 		}
-		//0이 아니면서 현재 노드 번호도 아니면 새 노드와 연결된 것
+		//다른 노드일 경우: 도착
 		else {
-			ret.to = map[cur_cod.r][cur_cod.c];
+			ret.to = map[cod.r][cod.c];
 			break;
 		}
 	}
@@ -116,57 +118,91 @@ edge make_path(coord cur_cod, const coord& dir, int cur_node_num) {
 	return ret;
 }
 
-void insert_edges(int node_num) {
-	if (node_num >= nodes.size()) { return; }
-	
-	for (const coord& c : nodes[node_num]) {
-		for (auto dir : directions) {
-			edge e = make_path(c, dir, node_num);
+std::vector<edge> link_possible_edges(const std::vector<std::vector<coord>>& nodes) {
+	std::vector<edge> ret;
 
-			//연결되면서 거리가 1 이상일 경우에만 간선이 될 수 있다
-			if (e.to != 0 && e.dist > 1) { pq.push(e); }
+	for (int i = 0; i < (int)nodes.size(); ++i) {
+		for (const auto& cod : nodes[i]) {
+			for (auto dir : directions) {
+				//지정한 방향으로 쭉 이동하면서 연결될수 있는 노드를 찾는다.
+				edge e = find_edge(cod, dir, i);
+
+				//유효한 간선일 경우에만 추가
+				if (e.valid()) {
+					ret.push_back(e);
+				}
+			}
 		}
 	}
+
+	return ret;
 }
 
-int Prim_MST() {
-	int total_dist = 0;
-
-	int edge_count = (int)nodes.size() - NODE_START - 1;
-
-	std::vector<bool> visited(nodes.size());
-	visited[NODE_START] = true;
-
-	insert_edges(NODE_START);
-	while (false == pq.empty() && 0 < edge_count) {
-		edge e = pq.top(); pq.pop();
-
-		if (visited[e.to]) { continue; }
-
-		visited[e.to] = true;
-		
-		--edge_count;
-		total_dist += e.dist;
-		insert_edges(e.to);
+int find_union(std::vector<set_info>& disjoint_set, int idx) {
+	if (disjoint_set[idx].group != idx) {
+		disjoint_set[idx].group = find_union(disjoint_set, disjoint_set[idx].group);
+	}
+	return disjoint_set[idx].group;
+}
+void make_union(std::vector<set_info>& disjoint_set, int group_a, int group_b) {
+	if (disjoint_set[group_a].rank < disjoint_set[group_b].rank) {
+		disjoint_set[group_a].group = group_b;
+	}
+	else {
+		disjoint_set[group_b].group = group_a;
 	}
 
-	//길이 전부 놓여지지 않았을 경우 -1을 출력한다.
-	if (edge_count != 0) {
-		total_dist = -1;
+	if (disjoint_set[group_a].rank == disjoint_set[group_b].rank) {
+		++(disjoint_set[group_a].rank);
 	}
-	return total_dist;
 }
 
-void solve()
-{
+int Kruskal_MST(std::vector<edge>& edges, int nodes_count) {
+	int min_dist = 0;
+	int edges_left = nodes_count - 1;
+
+	//union-find 준비
+	std::vector<set_info> disjoint_set;
+	disjoint_set.resize(nodes_count);
+	for (int i = 0; i < nodes_count; ++i) {
+		disjoint_set[i].group = i;
+		disjoint_set[i].rank = 0;
+	}
+
+	//정렬 후 Kruskal 돌린다
+	std::sort(edges.begin(), edges.end());
+	for (const edge& e : edges) {
+		int ga = find_union(disjoint_set, e.from);
+		int gb = find_union(disjoint_set, e.to);
+
+		if (ga == gb) { continue; }
+		make_union(disjoint_set, ga, gb);
+
+		//거리 추가
+		min_dist += e.dist;
+
+		//모든 간선 연결이 완료되면 중단
+		--edges_left;
+		if (edges_left == 0) { break; }
+	}
+
+	//전부 연결하지 못했을 경우 -1을 반환한다.
+	if (edges_left != 0) {
+		min_dist = -1;
+	}
+	return min_dist;
+}
+
+void solve() {
 	std::cin >> R >> C;
-	map.resize(R, std::vector<int>(C));
 
 	for (int r = 0; r < R; ++r) {
 		for (int c = 0; c < C; ++c) {
 			std::cin >> map[r][c];
+			map[r][c] += NONE;
 		}
 	}
-	create_graph();
-	std::cout << Prim_MST();
+	std::vector<std::vector<coord>> nodes = create_nodes();
+	std::vector<edge> edges = link_possible_edges(nodes);
+	std::cout << Kruskal_MST(edges, (int)nodes.size());
 }
