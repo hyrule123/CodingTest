@@ -13,44 +13,57 @@ int main() {
 	return 0;
 }
 
-//Prim Algorithm 사용
 #include <vector>
-#include <queue>
-
+#include <algorithm>
+struct set_info {
+	int group, rank;
+};
 struct edge {
-	int dest, cost;
-	auto operator < (const edge& other) const {
-		//부호를 반대로 줬음(Priority queue)
-		return this->cost > other.cost;
+	int a, b, cost;
+	bool operator < (const edge& e) const {
+		return this->cost < e.cost;
 	}
 };
-std::vector<std::vector<edge>> graph;
+std::vector<set_info> disjoint_set;
+std::vector<edge> edges;
 
-int MST_Prim() {
-	std::priority_queue<edge> pq;
-	std::vector<bool> visited;
-	visited.resize(graph.size(), false);
-	int cost = 0;
+int find_union(int n) {
+	if (disjoint_set[n].group != n) {
+		disjoint_set[n].group = find_union(disjoint_set[n].group);
+	}
+	return disjoint_set[n].group;
+}
+void make_union(int a, int b) {
+	if (a == b) { return; }
 
-	visited[0] = true;
-	for (const auto& e : graph[0]) {
-		pq.push({ e.dest, e.cost });
+	if (disjoint_set[a].rank < disjoint_set[b].rank) {
+		disjoint_set[a].group = b;
+	}
+	else {
+		disjoint_set[b].group = a;
 	}
 
-	//종료조건: n-1개의 간선 연결
-	const int end_cond = (int)graph.size() - 1;
-	int edges_count = 0;
-	while (false == pq.empty() && edges_count < end_cond) {
-		edge e = pq.top(); pq.pop();
+	if (disjoint_set[a].rank == disjoint_set[b].rank) {
+		++(disjoint_set[a].rank);
+	}
+}
 
-		if (visited[e.dest]) { continue; }
-		
-		visited[e.dest] = true;//방문하지 않았을 경우 연결
-		++edges_count;//연결 카운트 ++
-		cost += e.cost;//비용 합산
-		for (const auto& next_e : graph[e.dest]) {
-			pq.push({ next_e.dest, next_e.cost });
-		}
+int Kruskal_MST(int node_count) {
+	int cost = 0;
+	--node_count;
+	std::sort(edges.begin(), edges.end());
+
+	for (const edge& e : edges) {
+		int pa = find_union(e.a);
+		int pb = find_union(e.b);
+		if (pa == pb) { continue; }
+
+		cost += e.cost;
+
+		--node_count;
+		if (node_count == 0) { break; }
+
+		make_union(pa, pb);
 	}
 
 	return cost;
@@ -58,24 +71,26 @@ int MST_Prim() {
 
 void solve()
 {
+	int m, n;
 	while (true) {
-		int m, n, total_cost = 0;
 		std::cin >> m >> n;
 		if (m == 0 && n == 0) { break; }
 
-		graph.clear();
-		graph.resize(m);
-		
-		for (int i = 0; i < n; ++i) {
-			int a, b, cost; std::cin >> a >> b >> cost;
-			graph[a].push_back({ b, cost });
-			graph[b].push_back({ a, cost });
-			total_cost += cost;
+		edges.clear();
+		edges.resize(n);
+		disjoint_set.clear();
+		disjoint_set.reserve(m);
+		for (int i = 0; i < m; ++i) {
+			disjoint_set.push_back({ i, 0 });
 		}
 
-		int min_cost = MST_Prim();
-		//총비용에서 빼준다
+		int total_cost = 0;
+		for (int i = 0; i < n; ++i) {
+			std::cin >> edges[i].a >> edges[i].b >> edges[i].cost;
+			total_cost += edges[i].cost;
+		}
+
+		int min_cost = Kruskal_MST(m);
 		std::cout << total_cost - min_cost << '\n';
 	}
-
 }
