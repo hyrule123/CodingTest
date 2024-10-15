@@ -13,57 +13,69 @@ int main() {
 	return 0;
 }
 
+//Prim Algorithm 사용
 #include <vector>
-#include <string>
-#include <stack>
-std::vector<std::vector<int>> LCS;
-std::string s1, s2;
+#include <queue>
+
+struct edge {
+	int dest, cost;
+	auto operator < (const edge& other) const {
+		//부호를 반대로 줬음(Priority queue)
+		return this->cost > other.cost;
+	}
+};
+std::vector<std::vector<edge>> graph;
+
+int MST_Prim() {
+	std::priority_queue<edge> pq;
+	std::vector<bool> visited;
+	visited.resize(graph.size(), false);
+	int cost = 0;
+
+	visited[0] = true;
+	for (const auto& e : graph[0]) {
+		pq.push({ e.dest, e.cost });
+	}
+
+	//종료조건: n-1개의 간선 연결
+	const int end_cond = (int)graph.size() - 1;
+	int edges_count = 0;
+	while (false == pq.empty() && edges_count < end_cond) {
+		edge e = pq.top(); pq.pop();
+
+		if (visited[e.dest]) { continue; }
+		
+		visited[e.dest] = true;//방문하지 않았을 경우 연결
+		++edges_count;//연결 카운트 ++
+		cost += e.cost;//비용 합산
+		for (const auto& next_e : graph[e.dest]) {
+			pq.push({ next_e.dest, next_e.cost });
+		}
+	}
+
+	return cost;
+}
 
 void solve()
 {
-	s1 = " ";
-	s2 = " ";
-	std::string input;
-	std::cin >> input;
-	s1 += input;
-	std::cin >> input;
-	s2 += input;
+	while (true) {
+		int m, n, total_cost = 0;
+		std::cin >> m >> n;
+		if (m == 0 && n == 0) { break; }
 
-	//row: s1, col: s2
-	LCS.resize(s1.size(), std::vector<int>(s2.size(), 0));
-
-	for (size_t i = 1; i < s1.size(); ++i) {
-		for (size_t j = 1; j < s2.size(); ++j) {
-			//동일 값을 발견한 경우 대각선 방향 + 1
-			if (s1[i] == s2[j]) {
-				LCS[i][j] = LCS[i - 1][j - 1] + 1;
-			}
-			//동일 값이 없는 경우 r-1 혹은 c-1에서 큰 값을 들고온다
-			else {
-				LCS[i][j] = std::max(LCS[i - 1][j], LCS[i][j - 1]);
-			}
+		graph.clear();
+		graph.resize(m);
+		
+		for (int i = 0; i < n; ++i) {
+			int a, b, cost; std::cin >> a >> b >> cost;
+			graph[a].push_back({ b, cost });
+			graph[b].push_back({ a, cost });
+			total_cost += cost;
 		}
+
+		int min_cost = MST_Prim();
+		//총비용에서 빼준다
+		std::cout << total_cost - min_cost << '\n';
 	}
 
-	int LCS_len = LCS.back().back();
-	std::stack<char> reverse;
-	int r = (int)s1.size() - 1, c = (int)s2.size() - 1;
-	while (reverse.size() < LCS_len) {
-		//우선순위는 상관없다. 위 또는 왼쪽에 동일값이 있을 경우 이동
-		if (LCS[r - 1][c] == LCS[r][c]) {
-			--r;
-		}
-		else if (LCS[r][c - 1] == LCS[r][c]) {
-			--c;
-		}
-		else {
-			reverse.push(s1[r]);
-			--r; --c;
-		}
-	}
-
-	std::cout << reverse.size() << '\n';
-	while (false == reverse.empty()) {
-		std::cout << reverse.top(); reverse.pop();
-	}
 }
