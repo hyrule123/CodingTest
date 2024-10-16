@@ -14,26 +14,27 @@ int main() {
 }
 
 #include <vector>
-constexpr int MAX = 1'000'000, exclude = 0, include = 1;
-
 int N;
-std::vector<std::vector<int>> nodes;
-int dp[MAX][2];
+struct node {
+	int weight;
+	std::vector<int> link;
+};
+std::vector<node> nodes;
+int dp[10001][2];
+constexpr int exclude = 0, include = 1;
 
-void dp_recursive(int cur, int par) {
+void recursive_DP(int cur, int par) {
 	dp[cur][exclude] = 0;
-	dp[cur][include] = 1;
+	dp[cur][include] = nodes[cur].weight;
 
-	for (int next : nodes[cur]) {
+	for (int next : nodes[cur].link) {
 		if (next != par) {
-			dp_recursive(next, cur);
+			recursive_DP(next, cur);
 
-			//내가 얼리어댑터가 아니라면 인접 노드는 반드시 얼리어댑터여야 함
-			dp[cur][exclude] += dp[next][include];
-
-			//내가 얼리어댑터라면 인접 노드가 얼리어댑터여도 되고 아니어도 됨
-			//둘중 작은 값을 적용
-			dp[cur][include] += std::min(dp[next][exclude], dp[next][include]);
+			//조건 3: 선정되지 못한 마을에 경각심을 불러일으키기 위해서, '우수 마을'로 선정되지 못한 마을은 적어도 하나의 '우수 마을'과는 인접해 있어야 한다.
+			// -> 우수마을 인구수가 최대값이 되기 위해서는 연결 노드 중 최소 한개는 우수마을이여야 함.
+			dp[cur][exclude] += std::max(dp[next][exclude], dp[next][include]);
+			dp[cur][include] += dp[next][exclude];
 		}
 	}
 }
@@ -42,14 +43,15 @@ void solve()
 {
 	std::cin >> N;
 	nodes.resize(N + 1);
-
-	//두번째 줄부터 N-1개의 줄에는
-	for (int i = 1; i < N; ++i){
-		int a, b; std::cin >> a >> b;
-		nodes[a].push_back(b);
-		nodes[b].push_back(a);
+	for (int i = 1; i <= N; ++i) {
+		std::cin >> nodes[i].weight;
 	}
-	dp_recursive(1, 0);
-
-	std::cout << std::min(dp[1][exclude], dp[1][include]);
+	for (int i = 1; i <= N - 1; ++i) {
+		int a, b; std::cin >> a >> b;
+		nodes[a].link.push_back(b);
+		nodes[b].link.push_back(a);
+	}
+	
+	recursive_DP(1, 0);
+	std::cout << std::max(dp[1][exclude], dp[1][include]);
 }
