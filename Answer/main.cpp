@@ -46,17 +46,14 @@ bool is_bolock(float left, float mid, float right) {
 	//cos 45 == sin 45
 	constexpr float cos45 = 0.70710678118f;
 
-	//설명: left 좌표를 기준으로
-	const vec l = { 0, left };
-	vec left_to_right = { right, 0 };
-	vec left_to_mid = { mid * cos45, mid * cos45 };
+	//삼각형의 밑변 벡터
+	vec left_to_right = { right, -left };
 
-	//상대벡터 2개를 생성한다.
-	left_to_right -= l;
-	left_to_mid -= l;
+	//삼각형의 밑변 오른쪽 꼭지점 -> 밑변에서 마주보는 꼭지점 벡터
+	vec right_to_mid = { mid * cos45 - right, mid * cos45 };
 
 	//외적값이 양수면 볼록 삼각형이다.
-	return 0.0f <= left_to_right.cross(left_to_mid);
+	return 0.0f <= left_to_right.cross(right_to_mid);
 }
 
 bool test_case() {
@@ -80,7 +77,7 @@ void solve() {
 	}
 
 	int ans = 0;
-	//
+	//STL 순열 함수는 do를 사용해야함
 	do {
 		if (test_case()) {
 			++ans;
