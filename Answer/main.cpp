@@ -13,41 +13,48 @@ int main() {
 	return 0;
 }
 
-#include <vector>
-#include <cmath>
-//shoelace formula.(식이 신발끈 메는것처럼 생김)
-//https://mathworld.wolfram.com/PolygonArea.html
-struct coord {
-	double x, y;
+//1  1  1
+//x1 y1 z1
+//x2 y2 z2
+struct coord { 
+	double x, y, z; 
+	coord cross(const coord& other) {
+		return { y * other.z - other.y * z, z * other.x - other.z * x, x * other.y - other.x * y };
+	}
+
+	friend std::istream& operator>>(std::istream& str, coord& c) {
+		str >> c.x >> c.y;
+		c.z = 0;
+		return str;
+	}
+	void operator -= (const coord& c) {
+		x -= c.x; y -= c.y;
+	}
 };
-double round_precision(double val, double precision) {
-	return std::round(val / precision) * precision;
-}
 
-std::vector<coord> polygon;
-int N;
+
 void solve() {
-	std::cin >> N;
-	polygon.resize(N);
+	coord vec1{}, vec2{}, temp{};
 	
-	for (int i = 0; i < N; ++i) {
-		std::cin >> polygon[i].x >> polygon[i].y;
+	std::cin >> vec1 >> vec2 >> temp;
+	vec1 -= vec2;
+	vec2 -= temp;
+
+	//외적의 Z값 
+	// 양수 = 반시계방향
+	// 음수 = 시계방향
+	// 0 = 일직선
+	coord cross = vec1.cross(vec2);
+
+	constexpr double epsilon = std::numeric_limits<double>::epsilon();
+
+	if (std::abs(cross.z) < epsilon) {
+		std::cout << 0;
 	}
-
-	double area = 0;
-	for (size_t i = 0; i < polygon.size() - 1; ++i) {
-		area += (polygon[i].x * polygon[i + 1].y - polygon[i + 1].x * polygon[i].y);
+	else if (0 <= cross.z) {
+		std::cout << 1;
 	}
-
-	//Xn * Y1 - X1 * Yn 
-	area += (polygon.back().x * polygon.front().y - polygon.front().x * polygon.back().y);
-
-	//* 1/2
-	area *= 0.5;
-
-	//Note that the area of a convex polygon is defined to be positive if the points are arranged in a counterclockwise order and negative if they are in clockwise order (Beyer 1987).
-	area = std::abs(area);
-	area = round_precision(area, 0.1);
-
-	printf("%.1lf", area);
+	else {
+		std::cout << -1;
+	}
 }
