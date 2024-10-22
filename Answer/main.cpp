@@ -13,78 +13,77 @@ int main() {
 	return 0;
 }
 
-#include <array>
-#include <vector>
-#include <algorithm>
-#include <cmath>
-std::array<int, 8> order = { 0, 1, 2, 3, 4, 5, 6, 7 };
-float stats[8];
-
-
-
-struct vec {
-	float x, y;
-	void operator -= (const vec& other) {
-		x -= other.x;
-		y -= other.y;
+#include <unordered_map>
+#include <string>
+constexpr int board_size = 8;
+struct coord {
+	int x, y;
+	coord operator +(const coord& other) {
+		return { this->x + other.x, this->y + other.y };
 	}
-	float cross(const vec& other) {
-		return (x * other.y - other.x * y);
+	bool operator != (const coord& other) {
+		return { this->x != other.x || this->y != other.y };
+	}
+	bool valid() {
+		return { 0 <= x && 0 <= y && x < board_size && y < board_size };
 	}
 };
 
-/*
-* left->right 벡터에서 left->mid 벡터를 외적했을때
-|\
-| \ * <- mid가 여깄으면 반시계 방향이므로 양수: 볼록
-|* \ <- mid가 여깄으면 시계 방향이므로: 오목
-|   \
----------
-*/
-//1사분면에다 놓고 테스트할 예정, 시계방향 순서대로 입력
-bool is_bolock(float left, float mid, float right) {
-	//cos 45 == sin 45
-	constexpr float cos45 = 0.70710678118f;
+std::unordered_map<std::string, coord> directions;
+coord king_pos, stone_pos;
 
-	//삼각형의 밑변 벡터
-	vec left_to_right = { right, -left };
+void push(const coord& dir) {
+	coord next_king_pos = king_pos + dir;
 
-	//삼각형의 밑변 오른쪽 꼭지점 -> 밑변에서 마주보는 꼭지점 벡터
-	vec right_to_mid = { mid * cos45 - right, mid * cos45 };
+	//밀고 난 위치가 올바르지 않을경우 이동 취소
+	if (false == next_king_pos.valid()) {
+		return;
+	}
 
-	//외적값이 양수면 볼록 삼각형이다.
-	return 0.0f <= left_to_right.cross(right_to_mid);
+	//돌을 밀지 않았으면 여기서 중단
+	if (stone_pos != next_king_pos) {
+		king_pos = next_king_pos;
+		return;
+	}
+
+	//돌을 민다
+	coord next_stone_pos = stone_pos + dir;
+
+	//돌의 밀고난 위치가 올바르지 않을경우 이동 취소
+	if (false == next_stone_pos.valid()) {
+		return;
+	}
+
+	//돌을 밀었으면 위치 갱신
+	king_pos = next_king_pos;
+	stone_pos = next_stone_pos;
 }
 
-bool test_case() {
-	for (int i = 0; i < 8; ++i) {
-		float left = stats[order[i]];
-		float mid = stats[order[(i + 1) % 8]];
-		float right = stats[order[(i+ 2) % 8]];
+void solve()
+{
+	directions["R"] = { 0, 1 };
+	directions["L"] = { 0, -1 };
+	directions["B"] = { -1, 0 };
+	directions["T"] = { 1, 0 };
+	directions["RT"] = { 1, 1 };
+	directions["LT"] = { 1, -1 };
+	directions["RB"] = { -1, 1 };
+	directions["LB"] = { -1, -1 };
 
-		//하나라도 오목일경우 false
-		if (false == is_bolock(left, mid, right)) {
-			return false;
-		}
+	int row; 
+	char col;
+	std::cin >> col >> row;
+	king_pos = { row - 1, (int)(col - 'A')};
+	std::cin >> col >> row;
+	stone_pos = { row - 1, (int)(col - 'A')};
+
+	int moves; std::cin >> moves;
+	while (moves--) {
+		std::string input; std::cin >> input;
+
+		push(directions[input]);
 	}
 
-	return true;
-}
-
-void solve() {
-	for (float& s : stats) {
-		std::cin >> s;
-	}
-
-	int ans = 0;
-	//STL 순열 함수는 do를 사용해야함
-	do {
-		if (test_case()) {
-			++ans;
-		}
-	}
-	//아래 코드는 매번 순열 조합에 따라서 숫자를 배열한다.
-	while (std::next_permutation(order.begin(), order.end()));
-
-	std::cout << ans;
+	std::cout << (char)(king_pos.y + 'A') << king_pos.x + 1 << '\n'
+		<< (char)(stone_pos.y + 'A') << stone_pos.x + 1;
 }
