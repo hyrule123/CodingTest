@@ -69,8 +69,5 @@
     <ClInclude Include="Template\Baekjoon_Template.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Template\Programmers_Template.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
