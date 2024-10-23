@@ -1,72 +1,61 @@
-#ifndef LOCAL
-#define LOCAL_IO (void)0
-#endif
-#include <iostream>
-#include <limits>
-#include <cstring> //memset
-
-void solve();
-
-int main() {
-    std::cin.tie(nullptr); std::cin.sync_with_stdio(false); LOCAL_IO;
-    solve();
-    return 0;
-}
-
-//red-black tree를 사용하는 set을 통해 이중 우선순위큐 구현
 #include <string>
 #include <vector>
-#include <map>
+#include <bitset>
+#include <algorithm>
 using namespace std;
+constexpr int maxsize = 10000000;
+bitset<maxsize> is_prime;
+void erastothenes() {
+    is_prime.flip();
+    is_prime[0] = false;
+    is_prime[1] = false;
 
-map<int, int> dpq;
-void pop_max() {
-    if (dpq.empty()) { return; }
-    auto iter = --(dpq.end());
-    --(iter->second);
-    if (iter->second <= 0) {
-        dpq.erase(iter);
+    for (int i = 2; i < maxsize; ++i) {
+        if (is_prime[i]) {
+            for (int j = i * 2; j < maxsize; j += i) {
+                is_prime[j] = false;
+            }
+        }
     }
 }
 
-void pop_min() {
-    if (dpq.empty()) { return; }
-    auto iter = dpq.begin();
-    --(iter->second);
-    if (iter->second <= 0) {
-        dpq.erase(iter);
+int solution(string numbers) {
+    int answer = 0;
+
+    erastothenes();
+
+    sort(numbers.begin(), numbers.end());
+    for (char c : numbers) {
+        if (is_prime[c - '0']) {
+            is_prime[c - '0'] = false;
+            ++answer;
+        }
     }
+
+    do
+    {
+        for (size_t i = 2; i <= numbers.size(); ++i) {
+            string_view numstr(numbers.data(), i);
+            
+            int num = 0;
+            for (char c : numstr) {
+                num *= 10;
+                num += (int)(c - '0');
+            }
+            
+            if (is_prime[num]) {
+                is_prime[num] = false;
+                ++answer;
+            }
+        }
+
+    } while (next_permutation(numbers.begin(), numbers.end()));
+
+    return answer;
 }
 
-int T, k;
-void solve() {
-    std::cin >> T;
-    while (T--) {
-        dpq.clear();
+int main() {
+    auto ans = solution("011");
 
-        std::cin >> k;
-        while (k--) {
-            char type; int input;
-            std::cin >> type >> input;
-
-            if (type == 'I') {
-                dpq[input] += 1;
-            }
-            else {
-                if (-1 == input) {
-                    pop_min();
-                }
-                else {
-                    pop_max();
-                }
-            }
-        }
-
-        if (dpq.empty()) {
-            std::cout << "EMPTY\n";
-        }
-        else {
-            std::cout << (--dpq.end())->first << ' ' << (dpq.begin())->first << '\n';
-        }
-    }
+    return 0;
 }

@@ -1,4 +1,4 @@
-//399949993 Å×½ºÆ®ÇØº¼°Í
+//399949993 ï¿½×½ï¿½Æ®ï¿½Øºï¿½ï¿½ï¿½
 
 
 constexpr inline bool IsPrime(size_t _num) {
@@ -10,7 +10,7 @@ constexpr inline bool IsPrime(size_t _num) {
     // We only need to check divisors up to sqrt(n)
     //int maxDivisor = sqrt(_num);
 
-    // We start from 5 and increment by 6 (since all primes greater than 3 are of the form 6k ¡¾ 1)
+    // We start from 5 and increment by 6 (since all primes greater than 3 are of the form 6k ï¿½ï¿½ 1)
     for (int i = 5; i * i <= _num; i += 6) {
         if (_num % i == 0 || _num % (i + 2) == 0) {
             return false; // If n is divisible by i or i+2, then it's not prime
@@ -29,7 +29,7 @@ using ull = std::uint64_t;
 inline std::vector<bool> RangedErastothenes(ull _start, ull _end) {
     std::vector<bool> sieve{};
     sieve.reserve(_end + 1);
-    sieve.resize(_start, false); //start±îÁö´Â ÃøÁ¤ x
+    sieve.resize(_start, false); //startï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ x
     sieve.resize(_end + 1, true);
 
     if (sieve.size() >= 2) {
@@ -38,12 +38,12 @@ inline std::vector<bool> RangedErastothenes(ull _start, ull _end) {
     }
 
     for (size_t p = 2, pPow2{}; (pPow2 = p * p) <= _end; ++p) {
-        //½ÃÀÛÁ¡ = start ÀÌÈÄÀÇ ÃÖÃÊ pÀÇ ¹è¼ö ¶Ç´Â pÀÇ Á¦°ö
-        //start + p - 1 : p¸¦ ´õÇØÁÖ°í, p¸¦ ´õÇØÁáÀ» ¶§ ³ª´²¶³¾îÁö¸é ¾ÈµÇ´Ï±î 1À» »©ÁÜ -> ¸òÀÌ 1 ´õ ´Ã¾î³ª´Â°É ¹æÁö
-        //p·Î ³ª´²ÁØ µÚ ´Ù½Ã p¸¦ °öÇØÁÖ¸é ÃÖÃÊ pÀÇ ¹è¼ö°¡ µÈ´Ù.
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ = start ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ pï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ pï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //start + p - 1 : pï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö°ï¿½, pï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÇ´Ï±ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -> ï¿½ï¿½ï¿½ï¿½ 1 ï¿½ï¿½ ï¿½Ã¾î³ªï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½
+        //pï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ù½ï¿½ pï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ ï¿½ï¿½ï¿½ï¿½ pï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È´ï¿½.
         ull current = std::max((_start + p - 1) / p * p, pPow2);
 
-        //pÀÇ ¹è¼öµéÀ» ¸ðÁ¶¸® false Ã³¸®ÇÑ´Ù.
+        //pï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ false Ã³ï¿½ï¿½ï¿½Ñ´ï¿½.
         for (size_t i = current; i <= _end; i += p) {
             sieve[i] = false;
         }
