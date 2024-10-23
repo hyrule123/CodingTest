@@ -1,34 +1,37 @@
 #include <string>
 #include <vector>
-#include <bitset>
 #include <algorithm>
+#include <unordered_map>
 using namespace std;
-constexpr int maxsize = 10000000;
-bitset<maxsize> is_prime;
-void erastothenes() {
-    is_prime.flip();
-    is_prime[0] = false;
-    is_prime[1] = false;
+bool is_prime(int n) {
+    if (n <= 1) { return false; }
+    else if (n <= 3) { return true; }
+    
+    if (n % 2 == 0 || n % 3 == 0) { return false; }
 
-    for (int i = 2; i < maxsize; ++i) {
-        if (is_prime[i]) {
-            for (int j = i * 2; j < maxsize; j += i) {
-                is_prime[j] = false;
-            }
+    for (int i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0) {
+            return false;
         }
     }
+
+    return true;
 }
 
 int solution(string numbers) {
     int answer = 0;
 
-    erastothenes();
+    unordered_map<int, bool> found;
 
     sort(numbers.begin(), numbers.end());
     for (char c : numbers) {
-        if (is_prime[c - '0']) {
-            is_prime[c - '0'] = false;
-            ++answer;
+        int i = (int)(c - '0');
+        if (false == found[i]) {
+            found[i] = true;
+
+            if (is_prime(c - '0')) {
+                ++answer;
+            }
         }
     }
 
@@ -43,9 +46,12 @@ int solution(string numbers) {
                 num += (int)(c - '0');
             }
             
-            if (is_prime[num]) {
-                is_prime[num] = false;
-                ++answer;
+            if (false == found[num]) {
+                found[num] = true;
+
+                if (is_prime(num)) {
+                    ++answer;
+                }
             }
         }
 
