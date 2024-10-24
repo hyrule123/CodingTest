@@ -2,37 +2,46 @@
 #include <vector>
 using namespace std;
 
-constexpr int pow(int base, int exp) {
-    int ret = 1;
-    for (int i = 0; i < exp; ++i) {
-        ret *= base;
-    }
-    return ret;
-}
-
-//"A" 에서 "E"로 가는 경우의 수 ("A", "AA", ... "AUUUU", "E"): 5^4 + 5^3 + ... +  5^0
-//"AA"에서 "AE"로 가는 경우의 수 5^3 + 5^2 + 5^1 + 5^0 -> "A"->"E"로 가는 경우의 수에서 5를 나눠주면됨
-constexpr int a_to_e = 
-pow(5, 4) + 
-pow(5, 3) + 
-pow(5, 2) + 
-pow(5, 1) + 
-pow(5, 0);
-
-int solution(string word) {
+int solution(int n, vector<int> lost, vector<int> reserve) {
     int answer = 0;
 
-    const string_view chars = "AEIOU";
+    vector<int> states((size_t)(n + 1), 1);
 
-    //가장 앞자리수부터 몇번쨰인지 계산해서 더해준다
-    for (int i = 0, c = 1; i < (int)word.size(); ++i, c *= 5) {
-        answer += chars.find(word[i]) * a_to_e / c;
+    //체육복 여벌 있으면 +1
+    for (int i : reserve) {
+        ++(states[i]);
+    }
+    //잃어버렸으면 -1(여벌 있는데 잃어버렸을수도 있음)
+    for (int i : lost) {
+        --(states[i]);
+    }
+    for (int i = 1; i <= n; ++i) {
+        //체육복 없으면
+        if (states[i] == 0) {
+            //일단 앞에서 빌려본다(앞은 이미 지나갔으므로)
+            if (states[i - 1] == 2) {
+                ++(states[i]);
+                --(states[i - 1]);
+                ++answer;   //빌렸으면 +1
+            }
+            //앞에 없으면 뒤에서 빌려본다
+            else if (states[i + 1] == 2) {
+                ++(states[i]);
+                --(states[i + 1]);
+                ++answer;
+            }
+
+        }
+        //있으면 +1
+        else {
+            ++answer;
+        }
     }
 
     return answer;
 }
 
 int main() {
-    auto ans = solution( "AAAE" );
+    auto ans = solution(5, {2, 4}, {1, 2, 3, 5});
     return 0;
 }
