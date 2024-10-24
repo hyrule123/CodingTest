@@ -1,72 +1,32 @@
 #include <string>
 #include <vector>
-
 using namespace std;
-char ctoi(char c) {
-    switch (c)
-    {
-    case 'A': return 1;
-    case 'E': return 2;
-    case 'I': return 3;
-    case 'O': return 4;
-    case 'U': return 5;
+
+constexpr int pow(int base, int exp) {
+    int ret = 1;
+    for (int i = 0; i < exp; ++i) {
+        ret *= base;
     }
-    return 0;
+    return ret;
 }
 
-struct word {
-    word(const string& str) {
-        for (size_t i = 0; i < str.size(); ++i) {
-            c[i] = ctoi(str[i]);
-            if (str[i]) {
-                last_idx = (int)i;
-            }
-        }
-    }
+//"A" 에서 "E"로 가는 경우의 수 ("A", "AA", ... "AUUUU", "E"): 5^4 + 5^3 + ... +  5^0
+//"AA"에서 "AE"로 가는 경우의 수 5^3 + 5^2 + 5^1 + 5^0 -> "A"->"E"로 가는 경우의 수에서 5를 나눠주면됨
+constexpr int a_to_e = 
+pow(5, 4) + 
+pow(5, 3) + 
+pow(5, 2) + 
+pow(5, 1) + 
+pow(5, 0);
 
-    word& operator ++() {
-        if (last_idx < 4) {
-            ++last_idx;
-            c[last_idx] = 1;
-        }
-        else {
-            while ((++c[last_idx]) == 6) {
-                c[last_idx] = 0;
+int solution(string word) {
+    int answer = 0;
 
-                if (last_idx == 0) {
-                    break;
-                }
-                --last_idx;
-            }
-        }
+    const string_view chars = "AEIOU";
 
-        return *this;
-    }
-
-    bool operator != (const word& w) {
-        for (int i = 0; i < 5; ++i) {
-            if (c[i] != w.c[i]) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    int last_idx = 0;
-    char c[8]{ 1, };
-};
-
-int solution(string _word) {
-    int answer = 1;
-    
-    word w(_word);
-    word A("A");
-
-    while (A != w) {
-        ++A;
-        ++answer;
+    //가장 앞자리수부터 몇번쨰인지 계산해서 더해준다
+    for (int i = 0, c = 1; i < (int)word.size(); ++i, c *= 5) {
+        answer += chars.find(word[i]) * a_to_e / c;
     }
 
     return answer;
