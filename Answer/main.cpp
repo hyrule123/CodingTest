@@ -1,42 +1,54 @@
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <cmath>
+#include <bitset>
 using namespace std;
 
-//https://school.programmers.co.kr/questions/52569
+int node_num;
+bitset<101> nodes[101];
 
-vector<vector<int>> dp; //i번째 던전까지 누적 사용한 피로도 j
-
-int solution(int k, vector<vector<int>> dungeons) {
-    constexpr int req = 0, use = 1;
-    sort(dungeons.begin(), dungeons.end(),
-        [](const vector<int>& a, const vector<int>& b)->bool {
-            return (a[req] - a[use]) < (b[req] - b[use]);
-        }
-        );
-
-    dp.resize(dungeons.size() + 1, vector<int>((size_t)(k + 1)));
-
-    for (size_t i = 1; i < dp.size(); ++i) {
-        for (size_t j = 1; j < dp[i].size(); ++j) {
-            size_t dungeon_idx = i - 1;
-            //i 던전에 필요한 피로도보다 j가 작으면 입장 x
-            if (j < dungeons[dungeon_idx][req]) {
-                dp[i][j] = dp[i - 1][j];
-            }
-            //i 던전에 입장 가능할 경우
-            // : 입장 안할때와 입장 했을 때중 더 많은 입장횟수 쪽을 선택
-            else {
-                dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - dungeons[dungeon_idx][use]] + 1);
-            }
+int dps(int node, int parent) {
+    int count = 1;
+    for (int i = 1; i <= node_num; ++i) {
+        if (nodes[node][i] && i != parent) {
+            count += dps(i, node);
         }
     }
+    return count;
+}
 
-    return dp.back().back();
+int solution(int n, vector<vector<int>> wires) {
+    int answer = (int)1e9;
+
+    node_num = n;
+
+    //bitset에 집어넣는다
+    for (const vector<int>& wire : wires) {
+        nodes[wire[0]][wire[1]] = true;
+        nodes[wire[1]][wire[0]] = true;
+    }
+
+    for (size_t i = 0; i < wires.size(); ++i) {
+        //확인하려는 전력망끼리 연결을 끊고
+        nodes[wires[i][0]][wires[i][1]] = false;
+        nodes[wires[i][1]][wires[i][0]] = false;
+
+        //끊은 전신주를 루트노드로 해서 연결된 전신주 갯수 계산
+        int left_count = dps(wires[i][0], 0);
+        int right_count = n - left_count;
+
+        //차이가 제일 적은 값을 대입
+        answer = min(answer, abs(left_count - right_count));
+
+        //다시 연결
+        nodes[wires[i][0]][wires[i][1]] = true;
+        nodes[wires[i][1]][wires[i][0]] = true;
+    }
+
+    return answer;
 }
 
 int main() {
-    auto ans = solution(80, { {80, 20}, {50, 40}, {30, 10} });
-
+    auto ans = solution(9, { {4, 7}, {1, 3}, {2, 3}, {3, 4}, {4, 5}, {4, 6}, {7, 8}, {7, 9}} );
     return 0;
 }
