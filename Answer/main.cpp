@@ -1,67 +1,27 @@
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <unordered_map>
+#include <cmath>
 using namespace std;
-bool is_prime(int n) {
-    if (n <= 1) { return false; }
-    else if (n <= 3) { return true; }
-    
-    if (n % 2 == 0 || n % 3 == 0) { return false; }
 
-    for (int i = 5; i * i <= n; i += 6) {
-        if (n % i == 0 || n % (i + 2) == 0) {
-            return false;
-        }
-    }
+vector<int> solution(int brown, int yellow) {
+    vector<int> answer;
 
-    return true;
-}
+    //근의 공식
+    int a = 1;
+    int b = -(brown + 4) / 2;
+    int c = brown + yellow;
+    int sqpart = (int)sqrt(b * b - 4 * a * c);
+    int y1 = (-b + sqpart) / 2 * a;
+    int y2 = (-b - sqpart) / 2 * a;
 
-int solution(string numbers) {
-    int answer = 0;
-
-    unordered_map<int, bool> found;
-
-    sort(numbers.begin(), numbers.end());
-    for (char c : numbers) {
-        int i = (int)(c - '0');
-        if (false == found[i]) {
-            found[i] = true;
-
-            if (is_prime(c - '0')) {
-                ++answer;
-            }
-        }
-    }
-
-    do
-    {
-        for (size_t i = 2; i <= numbers.size(); ++i) {
-            string_view numstr(numbers.data(), i);
-            
-            int num = 0;
-            for (char c : numstr) {
-                num *= 10;
-                num += (int)(c - '0');
-            }
-            
-            if (false == found[num]) {
-                found[num] = true;
-
-                if (is_prime(num)) {
-                    ++answer;
-                }
-            }
-        }
-
-    } while (next_permutation(numbers.begin(), numbers.end()));
+    answer.push_back(max(y1, y2));
+    answer.push_back(min(y1, y2));
 
     return answer;
 }
 
 int main() {
-    auto ans = solution("011");
+    auto ans = solution(24, 24);
 
     return 0;
 }
