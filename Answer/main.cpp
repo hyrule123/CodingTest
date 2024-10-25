@@ -1,39 +1,71 @@
-#include <string>
 #include <vector>
+#include <string>
 using namespace std;
 
-constexpr int p = 1'000'000'007;
-constexpr int BLOCK = -1;
-vector<vector<int>> memo;
+const int INF = (int)9e8;
 
-//m = col, n = row
-int solution(int m, int n, vector<vector<int>> puddles) {
-    memo.resize(n + 1, vector<int>((size_t)(m + 1)));
-    for (const vector<int>& pud : puddles) {
-        memo[pud[1]][pud[0]] = BLOCK;
+void init(vector<string> arr, vector<int>& nums, vector<string>& ops) {
+    // 숫자와 연산자로 나눠 저장
+    for (int i = 0; i < arr.size(); i++) {
+        if (i % 2 == 0) {
+            nums.push_back(stoi(arr[i]));
+        }
+        else {
+            ops.push_back(arr[i]);
+        }
     }
+}
 
-    //[1][1]을 1로 만들어주기 위해서 설정
-    memo[0][1] = 1;
-    for (int r = 1; r <= n; ++r) {
-        for (int c = 1; c <= m; ++c) {
-            //BLOCK은 이동 불가, BLOCK으로부터 오는것도 불가
-            if (memo[r][c] != BLOCK) {
-                if (memo[r - 1][c] != BLOCK) {
-                    memo[r][c] += memo[r - 1][c];
-                }
-                if (memo[r][c - 1] != BLOCK) {
-                    memo[r][c] += memo[r][c - 1];
-                }
-                memo[r][c] %= p;
+int solution(vector<string> arr)
+{
+
+    int answer = -1;
+    vector<int> nums;
+    vector<string> ops;
+
+    init(arr, nums, ops);
+
+    vector<vector<int>> max_dp(nums.size(), vector<int>(nums.size()));
+    vector<vector<int>> min_dp(nums.size(), vector<int>(nums.size()));
+
+    //step: 길이
+    for (int step = 0; step < nums.size(); step++) {
+        //i번쨰 행
+        for (int i = 0; i < nums.size() - step; i++) {
+            //[i][j]: i번 숫자부터 j번 숫자까지 괄호쳤을경우 나오는 최대값
+            int j = i + step;
+            if (step == 0) {
+                max_dp[i][j] = nums[i];
+                min_dp[i][j] = nums[i];
             }
+            else {
+                max_dp[i][j] = -INF;
+                min_dp[i][j] = INF;
+                for (int k = i; k < j; k++) {
+                    // dp(i,k) dp(k+1,j)
+                    // 연산자 검사 ops[k]
+                    if (ops[k] == "+") {
+                        //max = max + max
+                        max_dp[i][j] = max(max_dp[i][j], max_dp[i][k] + max_dp[k + 1][j]);
+                        //min = min + min
+                        min_dp[i][j] = min(min_dp[i][j], min_dp[i][k] + min_dp[k + 1][j]);
+                    }
+                    else {
+                        //max = max - min
+                        max_dp[i][j] = max(max_dp[i][j], max_dp[i][k] - min_dp[k + 1][j]);
+                        //min = min - max
+                        min_dp[i][j] = min(min_dp[i][j], min_dp[i][k] - max_dp[k + 1][j]);
+                    }
+                }
+            }
+
         }
     }
 
-    return memo[n][m];
+    answer = max_dp[0][nums.size() - 1];
+    return answer;
 }
-
 int main() {
-    auto ans = solution(4, 3, { {2, 2} });
+    auto ans = solution({ "1", "-", "3", "+", "5", "-", "8" });
     return 0;
 }
