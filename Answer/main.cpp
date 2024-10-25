@@ -1,48 +1,35 @@
 #include <string>
 #include <vector>
+#include <queue>
 using namespace std;
-constexpr int AB_size = (int)('Z' - 'A' + 1);
 
-int solution(string name) {
-    const int str_size = (int)name.size();
+string solution(string number, int k) {
+    string answer = "";
+    size_t ans_size = number.size() - k;
+    answer.resize(ans_size);
 
-    /*
-    좌우 확인 로직
-    1. name[i]에서 시작해서, 오른쪽으로 가장 가까운 'A'가 아닌 문자열을 찾는다.
-    2. 이 문자의 위치를 D라고 할 때
-    3. 다음 3가지 경우의 수 중 제일 작은 수를 구한다.
-        1. D와 상관 없이 그냥 0에서 끝까지 순회하는 경우: (단어길이) - 1
-        2. 0에서 i까지 오른쪽으로 이동했다가, 다시 왼쪽으로 돌아서 D까지 가는 경우
-            "BAABAAAAAAAAAABAAAA"
-        3. 0에서 i까지 왼쪽으로 이동했다가, 다시 오른쪽으로 돌아서 D까지 가는 경우
-            "BAAAABBAAAAAAABA"
-    */
-    int updown_min = 0;
-    int leftright_min = str_size - 1;//3-1 경우의 수
-    for (int i = 0; i < str_size; ++i) {
-        int updown = (int)(name[i] - 'A');
+    //number에서 탐색중인 인덱스 자리
+    size_t cursor = 0;
 
-        //상하 확인
-        if (name[i] != 'A') {
-            updown_min += min(updown, AB_size - updown);
-        }
-
-        int idx = i + 1;
-        //다음 A가 아닌 문자 위치 확인.
-        while (idx < str_size && name[idx] == 'A') {
-            ++idx;
-        }
+    //한글자씩 채워나간다.
+    for (size_t i = 0; i < ans_size; ++i) {
+        size_t max_idx = cursor;
         
-        //3-2 경우의 수
-        leftright_min = min(leftright_min, i * 2 + (str_size - idx));
+        //건너뛸 수 있는 최대 자리는 i + k개(현재 위치로부터 K개)
+        //시작 인덱스는 마지막 커서 자리 + 1
+        for (size_t j = cursor + 1; j <= i + k; ++j) {
+            if (number[max_idx] < number[j]) {
+                max_idx = j;
+            }
+        }
 
-        //3-3 경우의 수
-        leftright_min = min(leftright_min, (str_size - idx) * 2 + i);
+        cursor = max_idx + 1;
+        answer[i] = number[max_idx];
     }
 
-    return updown_min + leftright_min;
+    return answer;
 }
 int main() {
-    auto ans = solution("JAN");
+    auto ans = solution("179252841", 6);
     return 0;
 }
