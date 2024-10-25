@@ -1,46 +1,33 @@
 #include <string>
 #include <vector>
-#include <array>
+#include <stack>
 using namespace std;
 
-//연결된 사이클이므로 끊어줘야함
-//첫번째 집 감 -> 마지막 집 못감
-//첫번째 집 안감 -> 마지막 집 감
-struct choose {
-    array<int, 2> first_go, first_no;
-};
-vector<choose> dp;
-constexpr int NO = 0, GO = 1;
+int target_num, end_idx;
+vector<int>* nums;
 
-//이번 집을 터느냐 안터느냐
-int solution(vector<int> money) {
-    int answer = 0;
-
-    dp.resize(money.size());
-
-    //마지막 집 수동 설정
-    //첫 집을 안가는 경우에만 마지막 집을 방문한다는 선택지 가능
-    dp.back().first_no[GO] = money.back();
-
-    //마지막 전 집부터 차례대로 순회
-    for (int i = (int)money.size() - 2; 0 <= i; --i) {
-        dp[i].first_go[GO] = money[i];
-        dp[i].first_no[GO] = money[i];
-
-        //이번 집을 털면 다음 집은 못 턴다
-        dp[i].first_go[GO] += dp[i + 1].first_go[NO];
-        //안 털면 다음 집은 털어도되고 안털어도 된다
-        dp[i].first_go[NO] += max(dp[i + 1].first_go[GO], dp[i + 1].first_go[NO]);
-        dp[i].first_no[GO] += dp[i + 1].first_no[NO];
-        dp[i].first_no[NO] += max(dp[i + 1].first_no[GO], dp[i + 1].first_no[NO]);
+int recursive(int cur_idx, int sum) {
+    int cur_num = (*nums)[cur_idx];
+    if (cur_idx == end_idx) {
+        return (bool)(sum + cur_num == target_num || sum - cur_num == target_num);
     }
 
-    answer = max(dp[0].first_go[GO], dp[0].first_no[NO]);
+    int ret = recursive(cur_idx + 1, sum + cur_num);
+    ret += recursive(cur_idx + 1, sum - cur_num);
 
+    return ret;
+}
+
+int solution(vector<int> numbers, int target) {
+    nums = &numbers;
+    target_num = target;
+    end_idx = (int)numbers.size() - 1;
+
+    int answer = recursive(0, 0);
     return answer;
 }
 
 int main() {
-    auto ans = solution({ 1, 2, 3, 1 });
+    auto ans = solution({ 1, 1, 1, 1, 1 }, 3);
     return 0;
 }
