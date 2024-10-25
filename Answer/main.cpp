@@ -1,33 +1,36 @@
 #include <string>
 #include <vector>
-#include <stack>
 using namespace std;
+vector<bool> visited;
 
-int target_num, end_idx;
-vector<int>* nums;
+void recursive(int cur, int parent, const vector<vector<int>>& nodes) {
+    if (visited[cur]) { return; }
 
-int recursive(int cur_idx, int sum) {
-    int cur_num = (*nums)[cur_idx];
-    if (cur_idx == end_idx) {
-        return (bool)(sum + cur_num == target_num || sum - cur_num == target_num);
+    visited[cur] = true;
+
+    for (int i = 0; i < (int)nodes[cur].size(); ++i) {
+        if (i == parent || i == cur) { continue; }
+
+        if (nodes[cur][i] == 1) {
+            recursive(i, cur, nodes);
+        }
     }
-
-    int ret = recursive(cur_idx + 1, sum + cur_num);
-    ret += recursive(cur_idx + 1, sum - cur_num);
-
-    return ret;
 }
 
-int solution(vector<int> numbers, int target) {
-    nums = &numbers;
-    target_num = target;
-    end_idx = (int)numbers.size() - 1;
+int solution(int n, vector<vector<int>> computers) {
+    int answer = 0;
+    visited.resize(computers.size(), false);
+    for (size_t i = 0; i < computers.size(); ++i) {
+        if (visited[i] == false) {
+            ++answer;
+            recursive((int)i, -1, computers);
+        }
+    }
 
-    int answer = recursive(0, 0);
     return answer;
 }
 
 int main() {
-    auto ans = solution({ 1, 1, 1, 1, 1 }, 3);
+    auto ans = solution(3, {{1, 1, 0}, {1, 1, 1}, {0, 1, 1}} );
     return 0;
 }
