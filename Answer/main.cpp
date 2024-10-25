@@ -1,47 +1,48 @@
 #include <string>
 #include <vector>
 using namespace std;
+constexpr int AB_size = (int)('Z' - 'A' + 1);
 
-int solution(int n, vector<int> lost, vector<int> reserve) {
-    int answer = 0;
+int solution(string name) {
+    const int str_size = (int)name.size();
 
-    vector<int> states((size_t)(n + 1), 1);
+    /*
+    좌우 확인 로직
+    1. name[i]에서 시작해서, 오른쪽으로 가장 가까운 'A'가 아닌 문자열을 찾는다.
+    2. 이 문자의 위치를 D라고 할 때
+    3. 다음 3가지 경우의 수 중 제일 작은 수를 구한다.
+        1. D와 상관 없이 그냥 0에서 끝까지 순회하는 경우: (단어길이) - 1
+        2. 0에서 i까지 오른쪽으로 이동했다가, 다시 왼쪽으로 돌아서 D까지 가는 경우
+            "BAABAAAAAAAAAABAAAA"
+        3. 0에서 i까지 왼쪽으로 이동했다가, 다시 오른쪽으로 돌아서 D까지 가는 경우
+            "BAAAABBAAAAAAABA"
+    */
+    int updown_min = 0;
+    int leftright_min = str_size - 1;//3-1 경우의 수
+    for (int i = 0; i < str_size; ++i) {
+        int updown = (int)(name[i] - 'A');
 
-    //체육복 여벌 있으면 +1
-    for (int i : reserve) {
-        ++(states[i]);
-    }
-    //잃어버렸으면 -1(여벌 있는데 잃어버렸을수도 있음)
-    for (int i : lost) {
-        --(states[i]);
-    }
-    for (int i = 1; i <= n; ++i) {
-        //체육복 없으면
-        if (states[i] == 0) {
-            //일단 앞에서 빌려본다(앞은 이미 지나갔으므로)
-            if (states[i - 1] == 2) {
-                ++(states[i]);
-                --(states[i - 1]);
-                ++answer;   //빌렸으면 +1
-            }
-            //앞에 없으면 뒤에서 빌려본다
-            else if (states[i + 1] == 2) {
-                ++(states[i]);
-                --(states[i + 1]);
-                ++answer;
-            }
-
+        //상하 확인
+        if (name[i] != 'A') {
+            updown_min += min(updown, AB_size - updown);
         }
-        //있으면 +1
-        else {
-            ++answer;
+
+        int idx = i + 1;
+        //다음 A가 아닌 문자 위치 확인.
+        while (idx < str_size && name[idx] == 'A') {
+            ++idx;
         }
+        
+        //3-2 경우의 수
+        leftright_min = min(leftright_min, i * 2 + (str_size - idx));
+
+        //3-3 경우의 수
+        leftright_min = min(leftright_min, (str_size - idx) * 2 + i);
     }
 
-    return answer;
+    return updown_min + leftright_min;
 }
-
 int main() {
-    auto ans = solution(5, {2, 4}, {1, 2, 3, 5});
+    auto ans = solution("JAN");
     return 0;
 }
