@@ -1,62 +1,32 @@
 #include <string>
 #include <vector>
-#include <unordered_set>
 using namespace std;
 
-//dp[i]: N을 i번 사용했을때 결과 모음
-vector<unordered_set<int>> dp;
-int make_NN_N(int N, int digits) {
-    int ret = N;
+int clamp(int i, int min, int max) {
+    if (i < min) { return min; }
+    if (max <= i) { return max - 1; }
 
-    for (int i = 1; i < digits; ++i) {
-        ret *= 10;
-        ret += N;
-    }
-
-    return ret;
+    return i;
 }
 
-int solution(int N, int number) {
-    dp.resize(9);
-    
-    if (N == number) { return 1; }
+int solution(vector<vector<int>> triangle) {
+    int answer = 0;
 
-    //5를 한번써서 만들수있는건 N
-    dp[1].insert(N);
-
-    //최솟값이 8 이하일 경우까지만 계산(문제 조건)
-    for (int digits = 2; digits <= 8; ++digits) {
-
-        dp[digits].insert(make_NN_N(N, digits));
-
-        //ex. 3자리수일때: NNN, 1/2, 2/1
-        for (int i = 1; i < digits; ++i) {
-            for (int left : dp[i]) {
-                for (int right : dp[digits - i]) {
-                    dp[digits].insert(left + right);
-                    dp[digits].insert(left * right);
-                    
-                    //0은 안됨
-                    if (0 < left / right) {
-                        dp[digits].insert(left / right);
-                    }
-
-                    //음수는 안됨
-                    if (0 < left - right) {
-                        dp[digits].insert(left - right);
-                    }
-                }
-            }
-        }
-
-        if (dp[digits].find(number) != dp[digits].end()) {
-            return digits;
+    //역으로 생각해서 윗쪽의 좌/우 값중 큰걸 취사선택
+    for (int i = 1; i < (int)triangle.size(); ++i) {
+        for (int j = 0; j < (int)triangle[i].size(); ++j) {
+            int left = clamp(j - 1, 0, (int)triangle[i - 1].size());
+            int right = clamp(j, 0, (int)triangle[i - 1].size());
+            //부모: j-1, j 중 하나
+            triangle[i][j] += max(triangle[i - 1][left], triangle[i - 1][right]);
+            answer = max(answer, triangle[i][j]);
         }
     }
 
-    return -1;
+    return answer;
 }
+
 int main() {
-    auto ans = solution(5, 12);
+    auto ans = solution({{7}, {3, 8}, {8, 1, 0}, {2, 7, 4, 4}, {4, 5, 2, 6, 5}} );
     return 0;
 }
