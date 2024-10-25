@@ -1,72 +1,52 @@
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <functional>
+#include <queue>
 using namespace std;
 
-struct node {
-    int group, rank;
+struct edge {
+    int dest, cost;
+    auto operator <(const edge& other) const {
+        return this->cost > other.cost;
+    }
 };
+vector<vector<edge>> edges;
+vector<bool> visited;
+priority_queue<edge> pq;
 
 int solution(int nodes, vector<vector<int>> costs) {
-    int answer = 0;
+    int total_cost = 0;
 
-    //disjoint set 준비
-    vector<node> dj_set((size_t)(nodes + 1));
-    for (int i = 0; i < (int)dj_set.size(); ++i) {
-        dj_set[i].group = i;
+    edges.resize(nodes);
+    visited.resize(nodes);
+    for (const vector<int>& e : costs) {
+        edges[e[0]].push_back({ e[1], e[2] });
+        edges[e[1]].push_back({ e[0], e[2] });
     }
 
-    function<int(int)> find_union =
-        [&](int node)->int {
-        if (dj_set[node].group != node) {
-            dj_set[node].group = find_union(dj_set[node].group);
-            }
-        return dj_set[node].group;
-        };
+    //0부터 Prim MST
+    visited[0] = true;
+    for (const edge& e : edges[0]) {
+        pq.push(e);
+    }
 
-    function<void(int, int)> make_union =
-        [&](int group_a, int group_b)->void {
+    int left_edge = nodes - 1;
+    while (false == pq.empty()) {
+        edge e = pq.top(); pq.pop();
 
-        if (dj_set[group_a].rank < dj_set[group_b].rank) {
-            dj_set[group_a].group = group_b;
-        }
-        else {
-            dj_set[group_b].group = group_a;
-        }
-
-        if (dj_set[group_a].rank == dj_set[group_b].rank) {
-            dj_set[group_a].rank += 1;
-        }
-        };
-
-    //원 데이터 정렬
-    sort(costs.begin(), costs.end(), 
-        [](const vector<int>& a, const vector<int>& b)->bool
-        {
-            return a[2] < b[2];
-        }
-    );
-
-    //Kruskal MST
-    int max_edges = nodes - 1;
-    for (const vector<int>& edge : costs) {
-        int g_a = find_union(edge[0]);
-        int g_b = find_union(edge[1]);
-
-        //사이클이 형성되면 넣지 않는다.
-        if (g_a == g_b) { continue; }
-
-        answer += edge[2];
-        if (--max_edges == 0) {
+        if (visited[e.dest]) { continue; }
+        visited[e.dest] = true;
+        total_cost += e.cost;
+        --left_edge;
+        if (left_edge == 0) {
             break;
         }
-        
-        make_union(g_a, g_b);
+
+        for (const edge& next : edges[e.dest]) {
+            pq.push(next);
+        }
     }
 
-
-    return answer;
+    return total_cost;
 }
 
 int main() {
