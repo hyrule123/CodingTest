@@ -1,55 +1,32 @@
 #include <string>
 #include <vector>
-#include <queue>
+#include <algorithm>
 using namespace std;
 
-struct edge {
-    int dest, cost;
-    auto operator <(const edge& other) const {
-        return this->cost > other.cost;
-    }
-};
-vector<vector<edge>> edges;
-vector<bool> visited;
-priority_queue<edge> pq;
+int solution(vector<vector<int>> routes) {
+    int answer = 0;
 
-int solution(int nodes, vector<vector<int>> costs) {
-    int total_cost = 0;
-
-    edges.resize(nodes);
-    visited.resize(nodes);
-    for (const vector<int>& e : costs) {
-        edges[e[0]].push_back({ e[1], e[2] });
-        edges[e[1]].push_back({ e[0], e[2] });
-    }
-
-    //0부터 Prim MST
-    visited[0] = true;
-    for (const edge& e : edges[0]) {
-        pq.push(e);
-    }
-
-    int left_edge = nodes - 1;
-    while (false == pq.empty()) {
-        edge e = pq.top(); pq.pop();
-
-        if (visited[e.dest]) { continue; }
-        visited[e.dest] = true;
-        total_cost += e.cost;
-        --left_edge;
-        if (left_edge == 0) {
-            break;
+    //진출 지점 기준으로 정렬하고
+    sort(routes.begin(), routes.end(),
+        [](const vector<int>& a, const vector<int>& b)->bool
+        {
+            return a[1] < b[1];
         }
+        );
 
-        for (const edge& next : edges[e.dest]) {
-            pq.push(next);
+    //진입 지점 기준으로 비교
+    int last_cam_pos = -30001;
+    for (size_t i = 0; i < routes.size(); ++i) {
+        //마지막으로 설치한 카메라 위치가 진입지점보다 뒤쪽일 경우 진출 지점쪽에 새로 설치해야 한다
+        if (last_cam_pos < routes[i][0]) {
+            last_cam_pos = routes[i][1];
+            ++answer;
         }
     }
 
-    return total_cost;
+    return answer;
 }
-
 int main() {
-    auto ans = solution(4, {{0, 1, 1}, {0, 2, 2}, {1, 2, 5}, {1, 3, 1}, {2, 3, 8}});
+    auto ans = solution({ {-20, -15}, {-14, -5}, {-18, -13}, {-5, -3} });
     return 0;
 }
