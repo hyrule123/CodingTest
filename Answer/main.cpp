@@ -1,71 +1,46 @@
-#include <vector>
 #include <string>
+#include <vector>
+#include <array>
 using namespace std;
 
-const int INF = (int)9e8;
+//연결된 사이클이므로 끊어줘야함
+//첫번째 집 감 -> 마지막 집 못감
+//첫번째 집 안감 -> 마지막 집 감
+struct choose {
+    array<int, 2> first_go, first_no;
+};
+vector<choose> dp;
+constexpr int NO = 0, GO = 1;
 
-void init(vector<string> arr, vector<int>& nums, vector<string>& ops) {
-    // 숫자와 연산자로 나눠 저장
-    for (int i = 0; i < arr.size(); i++) {
-        if (i % 2 == 0) {
-            nums.push_back(stoi(arr[i]));
-        }
-        else {
-            ops.push_back(arr[i]);
-        }
-    }
-}
+//이번 집을 터느냐 안터느냐
+int solution(vector<int> money) {
+    int answer = 0;
 
-int solution(vector<string> arr)
-{
+    dp.resize(money.size());
 
-    int answer = -1;
-    vector<int> nums;
-    vector<string> ops;
+    //마지막 집 수동 설정
+    //첫 집을 안가는 경우에만 마지막 집을 방문한다는 선택지 가능
+    dp.back().first_no[GO] = money.back();
 
-    init(arr, nums, ops);
+    //마지막 전 집부터 차례대로 순회
+    for (int i = (int)money.size() - 2; 0 <= i; --i) {
+        dp[i].first_go[GO] = money[i];
+        dp[i].first_no[GO] = money[i];
 
-    vector<vector<int>> max_dp(nums.size(), vector<int>(nums.size()));
-    vector<vector<int>> min_dp(nums.size(), vector<int>(nums.size()));
-
-    //step: 길이
-    for (int step = 0; step < nums.size(); step++) {
-        //i번쨰 행
-        for (int i = 0; i < nums.size() - step; i++) {
-            //[i][j]: i번 숫자부터 j번 숫자까지 괄호쳤을경우 나오는 최대값
-            int j = i + step;
-            if (step == 0) {
-                max_dp[i][j] = nums[i];
-                min_dp[i][j] = nums[i];
-            }
-            else {
-                max_dp[i][j] = -INF;
-                min_dp[i][j] = INF;
-                for (int k = i; k < j; k++) {
-                    // dp(i,k) dp(k+1,j)
-                    // 연산자 검사 ops[k]
-                    if (ops[k] == "+") {
-                        //max = max + max
-                        max_dp[i][j] = max(max_dp[i][j], max_dp[i][k] + max_dp[k + 1][j]);
-                        //min = min + min
-                        min_dp[i][j] = min(min_dp[i][j], min_dp[i][k] + min_dp[k + 1][j]);
-                    }
-                    else {
-                        //max = max - min
-                        max_dp[i][j] = max(max_dp[i][j], max_dp[i][k] - min_dp[k + 1][j]);
-                        //min = min - max
-                        min_dp[i][j] = min(min_dp[i][j], min_dp[i][k] - max_dp[k + 1][j]);
-                    }
-                }
-            }
-
-        }
+        //이번 집을 털면 다음 집은 못 턴다
+        dp[i].first_go[GO] += dp[i + 1].first_go[NO];
+        //안 털면 다음 집은 털어도되고 안털어도 된다
+        dp[i].first_go[NO] += max(dp[i + 1].first_go[GO], dp[i + 1].first_go[NO]);
+        dp[i].first_no[GO] += dp[i + 1].first_no[NO];
+        dp[i].first_no[NO] += max(dp[i + 1].first_no[GO], dp[i + 1].first_no[NO]);
     }
 
-    answer = max_dp[0][nums.size() - 1];
+    answer = max(dp[0].first_go[GO], dp[0].first_no[NO]);
+
     return answer;
 }
+
 int main() {
-    auto ans = solution({ "1", "-", "3", "+", "5", "-", "8" });
+    auto ans = solution({ 1, 2, 3, 1 });
     return 0;
 }
