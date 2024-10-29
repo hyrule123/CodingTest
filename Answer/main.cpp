@@ -14,11 +14,38 @@ int main() {
 }
 
 using namespace std;
-
-#include <string>
 #include <unordered_map>
 #include <functional>
-constexpr string_view commands[] = { "add", "remove", "check", "toggle", "all", "empty" };
+
+//바로 hash로 변환하면 얼마나 빠를지
+struct str {
+	str() {}
+
+	str(const char* s) {
+		strcpy(cont.s, s);
+	}
+
+	union str_to_size_t {
+		size_t hash;
+		char s[8];
+	} cont{};
+
+	friend void operator >> (istream& i, str& st) {
+		st.cont.hash = 0;
+		i >> st.cont.s;
+	}
+
+	struct hasher {
+		size_t operator()(const str& s) const {
+			return s.cont.hash;
+		}
+	};
+
+	bool operator == (const str& s) const {
+		return cont.hash == s.cont.hash;
+	}
+};
+
 struct bitmask {
 
 	void add(int s) {
@@ -43,12 +70,11 @@ struct bitmask {
 	int mask{};
 };
 
-unordered_map<string, function<void()>> actions;
+unordered_map<str, function<void()>, str::hasher> actions;
 
 void solve() {
 	bitmask bm{};
 
-	//unordered_map으로 하면 얼마나 느린지 테스트용
 	actions["add"] =
 		[&]() ->void {
 		int val; cin >> val;
@@ -79,7 +105,7 @@ void solve() {
 		};
 
 	int N; cin >> N;
-	string incom;
+	str incom;
 	while (N--) {
 		cin >> incom;
 		actions[incom]();
