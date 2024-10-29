@@ -13,56 +13,62 @@ int main() {
 	return 0;
 }
 
-struct vector2 {
-	double x, y;
-	double cross(const vector2& o) const {
-		return x * o.y - o.x * y;
+using namespace std;
+
+#include <string>
+constexpr string_view commands[] = { "add", "remove", "check", "toggle", "all", "empty" };
+struct bitmask {
+
+	void add(int s) {
+		mask = mask | (1 << s);
 	}
-	vector2 operator - (const vector2& o) const {
-		return { x - o.x, y - o.y };
+	void remove(int s) {
+		mask = mask & ~(1 << s);
 	}
-	bool operator < (const vector2& o) const {
-		return x < o.x && y < o.y;
+	int check(int s) {
+		return !!(mask & (1 << s));
+	}
+	void toggle(int s) {
+		mask = mask ^ (1 << s);
+	}
+	void all() {
+		mask = 0xff'ff'ff'ff;
+	}
+	void empty() {
+		mask = 0;
 	}
 
-	friend std::istream& operator >> (std::istream& i, vector2& v) {
-		i >> v.x >> v.y;
-		return i;
-	}
+	int mask{};
 };
 
 void solve() {
-	vector2 as, ae, bs, be;
-	std::cin >> as >> ae >> bs >> be;
+	bitmask bm{};
+	int N; cin >> N;
+	string incom;
+	while (N--) {
+		cin >> incom;
 
-	vector2 line_a = ae - as;
-	vector2 line_b = be - bs;
-
-	//as->ae 벡터와 as->bs, as->be 벡터를 각각 외적 후 곱
-	double ccw1 = line_a.cross(bs - as) * line_a.cross(be - as);
-
-	//bs->be 벡터와 bs->as, bs->ae 벡터를 각각 외적 후 곱
-	double ccw2 = line_b.cross(as - bs) * line_b.cross(ae - bs);
-
-	//둘 다 0일 경우: 기울기가 같다
-	//선분의 최소값, 최대값을 구분해준 다음
-	//a선분의 최대 < b선분의 최소 || a선분의 최소 > b선분의 최대
-	if (ccw1 == 0.0 && ccw2 == 0.0) {
-		bool not_overlap_x = 
-			std::max(as.x, ae.x) < std::min(bs.x, be.x)
-			||
-			std::max(bs.x, be.x) < std::min(as.x, ae.x);
-
-		bool not_overlap_y = 
-			std::max(as.y, ae.y) < std::min(bs.y, be.y)
-			||
-			std::max(bs.y, be.y) < std::min(as.y, ae.y);
-
-		//접촉중이 아닌 경우를 !연산
-		std::cout << !(not_overlap_x || not_overlap_y);
-		return;
+		if (incom == "add") {
+			int val; cin >> val;
+			bm.add(val);
+		}
+		else if (incom == "remove") {
+			int val; cin >> val;
+			bm.remove(val);
+		}
+		else if (incom == "check") {
+			int val; cin >> val;
+			cout << bm.check(val) << '\n';
+		}
+		else if (incom == "toggle") {
+			int val; cin >> val;
+			bm.toggle(val);
+		}
+		else if (incom == "all") {
+			bm.all();
+		}
+		else if (incom == "empty") {
+			bm.empty();
+		}
 	}
-
-	//ccw 1과 2가 둘다 음수여야 교차한다는 뜻.
-	std::cout << (int)(ccw1 <= 0.0 && ccw2 <= 0.0);
 }
