@@ -69,5 +69,11 @@
     <ClInclude Include="Template\Baekjoon_Template.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Reference\Combination.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Reference\GCD_LCM.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -150,6 +150,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClInclude Include="Reference\Combination.h" />
+    <ClInclude Include="Reference\GCD_LCM.h" />
     <ClInclude Include="Template\Baekjoon_Template.h" />
     <ClInclude Include="Reference\BST\AVLTree.h" />
     <ClInclude Include="Reference\BST\MyAVLTree.h" />
