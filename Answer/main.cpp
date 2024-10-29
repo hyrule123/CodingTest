@@ -36,12 +36,12 @@ struct str {
 	}
 
 	struct hasher {
-		size_t operator()(const str& s) const {
+		size_t operator()(str s) const {
 			return s.cont.hash;
 		}
 	};
 
-	bool operator == (const str& s) const {
+	bool operator == (str s) const {
 		return cont.hash == s.cont.hash;
 	}
 };
