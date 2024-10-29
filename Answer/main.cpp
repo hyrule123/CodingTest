@@ -16,6 +16,8 @@ int main() {
 using namespace std;
 
 #include <string>
+#include <unordered_map>
+#include <functional>
 constexpr string_view commands[] = { "add", "remove", "check", "toggle", "all", "empty" };
 struct bitmask {
 
@@ -41,34 +43,45 @@ struct bitmask {
 	int mask{};
 };
 
+unordered_map<string, function<void()>> actions;
+
 void solve() {
 	bitmask bm{};
+
+	//unordered_map으로 하면 얼마나 느린지 테스트용
+	actions["add"] =
+		[&]() ->void {
+		int val; cin >> val;
+		bm.add(val);
+		};
+	actions["remove"] =
+		[&]() ->void {
+		int val; cin >> val;
+		bm.remove(val);
+		};
+	actions["check"] =
+		[&]() ->void {
+		int val; cin >> val;
+		cout << bm.check(val) << '\n';
+		};
+	actions["toggle"] =
+		[&]() ->void {
+		int val; cin >> val;
+		bm.toggle(val);
+		};
+	actions["all"] =
+		[&]() ->void {
+		bm.all();
+		};
+	actions["empty"] =
+		[&]() ->void {
+		bm.empty();
+		};
+
 	int N; cin >> N;
 	string incom;
 	while (N--) {
 		cin >> incom;
-
-		if (incom == "add") {
-			int val; cin >> val;
-			bm.add(val);
-		}
-		else if (incom == "remove") {
-			int val; cin >> val;
-			bm.remove(val);
-		}
-		else if (incom == "check") {
-			int val; cin >> val;
-			cout << bm.check(val) << '\n';
-		}
-		else if (incom == "toggle") {
-			int val; cin >> val;
-			bm.toggle(val);
-		}
-		else if (incom == "all") {
-			bm.all();
-		}
-		else if (incom == "empty") {
-			bm.empty();
-		}
+		actions[incom]();
 	}
 }
