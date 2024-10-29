@@ -44,16 +44,22 @@ void solve() {
 	//bs->be 벡터와 bs->as, bs->ae 벡터를 각각 외적 후 곱
 	double ccw2 = line_b.cross(as - bs) * line_b.cross(ae - bs);
 
-	//둘 다 0일 경우: 선분 겹침-> 아예 동떨어져 있거나 접촉
+	//둘 다 0일 경우: 기울기가 같다
 	//선분의 최소값, 최대값을 구분해준 다음
-	//최소값 < 최대값인지 확인
+	//a선분의 최대 < b선분의 최소 || a선분의 최소 > b선분의 최대
 	if (ccw1 == 0.0 && ccw2 == 0.0) {
-		//bs를 최댓값이라 간주
-		if (bs < as) { std::swap(as, bs); }
-		if (be < ae) { std::swap(ae, be); }
+		bool not_overlap_x = 
+			std::max(as.x, ae.x) < std::min(bs.x, be.x)
+			||
+			std::max(bs.x, be.x) < std::min(as.x, ae.x);
+
+		bool not_overlap_y = 
+			std::max(as.y, ae.y) < std::min(bs.y, be.y)
+			||
+			std::max(bs.y, be.y) < std::min(as.y, ae.y);
 
 		//접촉중이 아닌 경우를 !연산
-		std::cout << !(ae < bs || be < as);
+		std::cout << !(not_overlap_x || not_overlap_y);
 		return;
 	}
 
