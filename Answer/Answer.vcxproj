@@ -152,6 +152,7 @@
     </ClCompile>
     <ClInclude Include="Reference\Combination.h" />
     <ClInclude Include="Reference\GCD_LCM.h" />
+    <ClInclude Include="Reference\선분의 교차지점.h" />
     <ClInclude Include="Template\Baekjoon_Template.h" />
     <ClInclude Include="Reference\BST\AVLTree.h" />
     <ClInclude Include="Reference\BST\MyAVLTree.h" />

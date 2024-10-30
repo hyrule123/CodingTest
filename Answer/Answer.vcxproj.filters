@@ -75,5 +75,8 @@
     <ClInclude Include="Reference\GCD_LCM.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Reference\선분의 교차지점.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
