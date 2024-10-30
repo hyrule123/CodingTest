@@ -1,8 +1,8 @@
-using uint = std::uint32_t;
-uint GCD(uint _a, uint _b) {
+using ull = std::uint32_t;
+ull GCD(ull _a, ull _b) {
 
     while (_b != 0) {
-        uint r = _a % _b;
+        ull r = _a % _b;
         _a = _b;
         _b = r;
     }
@@ -10,7 +10,7 @@ uint GCD(uint _a, uint _b) {
     return _a;
 }
 
-uint LCM(uint _a, uint _b) {
+ull LCM(ull _a, ull _b) {
     //a * b / GCD(a,b) -> overflow 방지를 위해 a / gcd(a, b) * b
     return (_a / GCD(_a, _b) * _b);
 }

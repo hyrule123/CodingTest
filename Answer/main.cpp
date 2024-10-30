@@ -14,100 +14,39 @@ int main() {
 }
 
 using namespace std;
-#include <unordered_map>
-#include <functional>
-
-//바로 hash로 변환하면 얼마나 빠를지
-struct str {
-	str() {}
-
-	str(const char* s) {
-		strcpy(cont.s, s);
-	}
-
-	union str_to_size_t {
-		size_t hash;
-		char s[8];
-	} cont{};
-
-	friend void operator >> (istream& i, str& st) {
-		st.cont.hash = 0;
-		i >> st.cont.s;
-	}
-
-	struct hasher {
-		size_t operator()(str s) const {
-			return s.cont.hash;
-		}
-	};
-
-	bool operator == (str s) const {
-		return cont.hash == s.cont.hash;
-	}
-};
-
-struct bitmask {
-
-	void add(int s) {
-		mask = mask | (1 << s);
-	}
-	void remove(int s) {
-		mask = mask & ~(1 << s);
-	}
-	int check(int s) {
-		return !!(mask & (1 << s));
-	}
-	void toggle(int s) {
-		mask = mask ^ (1 << s);
-	}
-	void all() {
-		mask = 0xff'ff'ff'ff;
-	}
-	void empty() {
-		mask = 0;
-	}
-
-	int mask{};
-};
-
-unordered_map<str, function<void()>, str::hasher> actions;
+#include <algorithm>
+#include <vector>
+using ull = std::uint64_t;
 
 void solve() {
-	bitmask bm{};
+	ull stock, target; cin >> stock >> target;
+	vector<ull> wires; wires.resize(stock);
 
-	actions["add"] =
-		[&]() ->void {
-		int val; cin >> val;
-		bm.add(val);
-		};
-	actions["remove"] =
-		[&]() ->void {
-		int val; cin >> val;
-		bm.remove(val);
-		};
-	actions["check"] =
-		[&]() ->void {
-		int val; cin >> val;
-		cout << bm.check(val) << '\n';
-		};
-	actions["toggle"] =
-		[&]() ->void {
-		int val; cin >> val;
-		bm.toggle(val);
-		};
-	actions["all"] =
-		[&]() ->void {
-		bm.all();
-		};
-	actions["empty"] =
-		[&]() ->void {
-		bm.empty();
-		};
+	ull start = 1, end = 1;
+	for (ull& wire : wires) {
+		cin >> wire;
 
-	int N; cin >> N;
-	str incom;
-	while (N--) {
-		cin >> incom;
-		actions[incom]();
+		//end를 최대 길이로 설정해야하는 이유
+		//500, 500, 500, 500, 50005, 5개 필요
+		if (end < wire) {
+			end = wire;
+		}
 	}
+	
+	while (start <= end) {
+		ull mid = (start + end) / 2;
+		ull count = 0;
+
+		for (ull wire : wires) {
+			count += wire / mid;
+		}
+
+		if (count < target) {
+			end = mid - 1;
+		}
+		else {
+			start = mid + 1;
+		}
+	}
+	cout << end;
 }
