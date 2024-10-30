@@ -50,7 +50,8 @@ struct line_seg {
 	vec2 p[2];
 };
 
-int N, num_groups, max_group_size = -1;
+//v1 실패 원인: biggest_group_size를 0으로 잡았음
+int N, num_group, biggest_group_size = 1;
 vector<line_seg> lines;
 
 int find_group(int node) {
@@ -65,26 +66,30 @@ void union_group(int na, int nb) {
 
 	if (pa == pb) { return; }
 
-	--num_groups;
-	if (lines[na].rank < lines[nb].rank) {
-		lines[na].group = nb;
-		lines[nb].size += lines[na].size;
-		max_group_size = max(max_group_size, lines[nb].size);
+	//union이 발생했으므로 집합 개수 1개 감소
+	//v1 실패 원인: pa, pb를 사용한것이 아니라 na, nb를 사용
+	--num_group;
+	if (lines[pa].rank < lines[pb].rank) {
+		lines[pa].group = pb;
+
+		//사이즈 병합
+		lines[pb].size += lines[pa].size;
+		biggest_group_size = max(biggest_group_size, lines[pb].size);
 	}
 	else {
-		lines[nb].group = na;
-		lines[na].size += lines[nb].size;
-		max_group_size = max(max_group_size, lines[na].size);
+		lines[pb].group = pa;
+		lines[pa].size += lines[pb].size;
+		biggest_group_size = max(biggest_group_size, lines[pa].size);
 	}
 
-	if (lines[na].rank == lines[nb].rank) {
-		++(lines[na].rank);
+	if (lines[pa].rank == lines[pb].rank) {
+		++(lines[pa].rank);
 	}
 }
 
 void solve() {
 	cin >> N;
-	num_groups = N;
+	num_group = N;
 	lines.resize(N);
 	for (int i = 0; i < N; ++i) {
 		line_seg& l = lines[i];
@@ -110,21 +115,15 @@ void solve() {
 
 				//둘이 교차한다 -> 그룹 통일
 				if (!(no_intersect1 || no_intersect2)) {
-					int pa = find_group(i);
-					int pb = find_group(j);
-
-					union_group(pa, pb);
+					union_group(i, j);
 				}
 			}
 			//서로 한 점에서 교차 -> 그룹 통일
 			else if (ccw1 <= 0.0 && ccw2 <= 0.0) {
-				int pa = find_group(i);
-				int pb = find_group(j);
-
-				union_group(pa, pb);
+				union_group(i, j);
 			}
 		}
 	}
 
-	cout << num_groups << '\n' << max_group_size;
+	cout << num_group << '\n' << biggest_group_size;
 }
