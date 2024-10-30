@@ -30,7 +30,6 @@ struct vector2 {
 		return i;
 	}
 };
-
 void solve() {
 	vector2 as, ae, bs, be;
 	std::cin >> as >> ae >> bs >> be;
