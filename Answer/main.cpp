@@ -58,16 +58,11 @@ void solve() {
 			sector_1 = pi * r1 * r1 * (theta_1 / _2pi),
 			sector_2 = pi * r2 * r2 * (theta_2 / _2pi);
 
-		//3. 좌우 삼각형의 넓이를 구한다.
-		//유도과정
-		//3-1. 좌우 삼각형은 각각 두 변이 반지름인 이등변삼각형
-		//3-2. 반으로 잘라서 직각삼각형을 만들면 삼각함수를 통해 높이 h와 빗변 o/2를 구할수 있다
-		//3-3. h * o / 2 == 삼각형의 넓이 == a * cos(theta/2) * 2a * sin(theta/2) / 2
-		//3-4. 삼각함수의 합차공식을 사용하여 정리하면 
-		//a^2 * sin(theta) / 2
+		//3. 좌우 (이등변)삼각형의 넓이를 구한다.
+		//합차공식을 사용하면 아래 코드보다 더 간단한 연산으로도 가능함.
 		double
-			isosceles_1 = r1 * r1 * sin(theta_1) / 2.0,
-			isosceles_2 = r2 * r2 * sin(theta_2) / 2.0;
+			isosceles_1 = r1 * cos(theta_1 / 2.0) * sqrt(2 * r1 * r1 * (1.0 - cos(theta_1))) / 2.0,
+			isosceles_2 = r2 * cos(theta_2 / 2.0) * sqrt(2 * r2 * r2 * (1.0 - cos(theta_2))) / 2.0;
 
 		//4. 부채꼴 1 + 부채꼴 2 - 삼각형 1 - 삼각형 2 = 겹치는 부분
 		double ans = sector_1 + sector_2 - isosceles_1 - isosceles_2;
