@@ -14,42 +14,82 @@ int main() {
 	return 0;
 }
 
-#include <cmath>
-constexpr double allow_error = 10e-9;
+#include <vector>
+struct tree_info {
+	int num_holes{};
+	vector<int> holes{};
+};
+constexpr int NONE = -1;
+int N, K;
+int dp[101][21];
+vector<int> trees[101];
+
+//return: T 사용 횟수
+//아이디어: 이전 인덱스에서 현재 인덱스로 이동했을 때의 값을 가져온다
+void solve_dp() {
+	dp[0][1] = K;
+	for (int tree_idx = 1; tree_idx <= N; ++tree_idx) {
+		for (int cur_height : trees[tree_idx]) {
+			int& cur_dp = dp[tree_idx][cur_height];
+
+			//O
+			cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height]);
+
+			//A
+			if (1 <= cur_height - 1) {
+				cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height - 1]);
+			}
+			
+			//B
+			if (cur_height < 20) {
+				//*2를 해서 올라오는 것이므로 짝수일때만 가능
+				if (cur_height % 2 == 0) {
+					cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height / 2]);
+				}
+			}
+			//cur_height == 20일 떄
+			else {
+				//20은 O에서, 19는 A에서 처리했음
+				for (int j = 10; j <= 18; ++j) {
+					cur_dp = max(cur_dp, dp[tree_idx - 1][j]);
+				}
+			}
+
+			//C
+			if (cur_height + 1 <= 20) {
+				cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height + 1]);
+			}
+
+			//T: 이전 나무 구멍의 값 - 1(T를 1회 사용했으므로)
+			for (int prev_height : trees[tree_idx - 1]) {
+				cur_dp = max(cur_dp, dp[tree_idx - 1][prev_height] - 1);
+			}
+		}
+	}
+}
+
 
 void solve() {
-	double X, Y, D, T; cin >> X >> Y >> D >> T;
-	double dist_left = sqrt(X * X + Y * Y);
+	memset(dp, NONE, sizeof(int) * 101 * 21);
 
-	double sec{}, DpT = D / T;
+	cin >> N >> K;
 	
-	//혹시나 점프하는게 가성비 구릴지 모르니 확인
-	if (1.0 < DpT) {
-		//점프 이동거리보다 거리가 멀 경우 일단 원점에서 D 반경 안으로 접근
-		int moves = 0;
-		if (D <= dist_left) {
-			moves = (int)dist_left / (int)D;
+	trees[0].push_back(1);
+	for (int i = 1; i <= N; ++i) {
+		int M; cin >> M;
+		trees[i].resize(M);
+		for (int j = 0; j < M; ++j) {
+			cin >> trees[i][j];
 		}
-		
-		dist_left -= (double)moves * D;
-		double
-			//1. 거리 남기고 걸어오기
-			case_1 = (double)moves * T + dist_left,
-			//2. 한번 더 가서 돌아오기
-			case_2 = (double)(moves + 1) * T + abs(dist_left - D),
-			//3. 이등변삼각형 형태로 돌아오기
-				//남은 거리가 D * 2 이하이면 점프 두번 해서 오는 길이 반드시 존재한다.
-				//이등변삼각형 형태로 돌아서 오는 길이 반드시 존재
-				//원점에서 반지름 D인 원을 그리고, 마지막 출발점에서 반지름 D인 원을 그려보면 이해가 쉽다
-				//시작점이 범위 이내인 경우 최소 2번 이동해야 하고, 아닐 경우 moves + 1회 이동하면 됨
-			case_3 = T * max(2.0, (double)(moves + 1));
-
-		sec += min(case_1, min(case_2, case_3));
-	}
-	//점프하는게 걸어오는것보다 가성비가 구리다면
-	else{
-		sec += dist_left;
 	}
 
-	printf("%.9lf", sec);
+	
+	solve_dp();
+	int result = -1;
+	for (int remain : dp[N]) {
+		result = max(result, remain);
+	}
+
+	//사용횟수가 남아있을 경우 K - 사용횟수 출력, 아닐 시 -1 출력
+	cout << (0 <= result ? K - result : -1);
 }
