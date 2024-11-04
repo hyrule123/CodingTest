@@ -14,55 +14,42 @@ int main() {
 	return 0;
 }
 
-//https://www.slideshare.net/slideshow/baekjoon-online-judge-1019/52810015
-int digit_count[10]{};
-
-//135? 형태의 수, num = 135, digit_start = 2 -> 1350, 1351, ... 1359 -> 1, 3, 5가 9회 등장한다.
-//digit_start가 2이므로 1의 자리 수는 카운트하지 않는다
-void count(int num, int digit_level) {
-	while (num > 0) {
-		digit_count[num % 10] += digit_level;
-		num /= 10;
-	}
-}
-
-//핵심 아이디어
-//10 ~ 39 -> 0~9가 3번 반복된다. -> 시작 자릿수와 끝 자릿수를 각각 0, 9로 맞춘뒤 계산 가능
-//ex) 1 ~ 1234
-//1. 1230 ~ 1234 계산: 일의 자리
-//2. 120(0) ~ 122(9) 계산: 십의 자리
-//3. 10(0) ~ 11(9) 계산: 백의 자리
-//4. 0(0) ~ 0(9) 계산: 천의 자리
-
-void count_ranged(int start, int end, int cur_digit) {
-	//start를 0으로 맞춤(올리는동안의 숫자도 전부 반영)
-	while (start % 10 != 0 && start <= end) {
-		count(start, cur_digit);
-		++start;
-	}
-	if (end < start) { return; }
-	//마찬가지로 end도
-	while (end % 10 != 9 && start <= end) {
-		count(end, cur_digit);
-		--end;
-	}
-	//ex. 1130부터 1249 까지는 124 - 113 + 1 회 반복. 
-	//현재 자릿수만큼 더해준다.ex. (1130xx ~ 1249xx) == (1130 ~ 1249) * 100
-	int num_count = (end / 10 - start / 10 + 1) * cur_digit;
-	for (int i = 0; i < 10; ++i) {
-		digit_count[i] += num_count;
-	}
-
-	count_ranged(start / 10, end / 10, cur_digit * 10);
-}
+#include <cmath>
+constexpr double allow_error = 10e-9;
 
 void solve() {
-	int N;  cin >> N;
+	double X, Y, D, T; cin >> X >> Y >> D >> T;
+	double dist_left = sqrt(X * X + Y * Y);
 
-	//재귀
-	count_ranged(1, N, 1);
+	double sec{}, DpT = D / T;
 	
-	for (int i : digit_count) {
-		cout << i << ' ';
+	//혹시나 점프하는게 가성비 구릴지 모르니 확인
+	if (1.0 < DpT) {
+		//점프 이동거리보다 거리가 멀 경우 일단 원점에서 D 반경 안으로 접근
+		int moves = 0;
+		if (D <= dist_left) {
+			moves = (int)dist_left / (int)D;
+		}
+		
+		dist_left -= (double)moves * D;
+		double
+			//1. 거리 남기고 걸어오기
+			case_1 = (double)moves * T + dist_left,
+			//2. 한번 더 가서 돌아오기
+			case_2 = (double)(moves + 1) * T + abs(dist_left - D),
+			//3. 이등변삼각형 형태로 돌아오기
+				//남은 거리가 D * 2 이하이면 점프 두번 해서 오는 길이 반드시 존재한다.
+				//이등변삼각형 형태로 돌아서 오는 길이 반드시 존재
+				//원점에서 반지름 D인 원을 그리고, 마지막 출발점에서 반지름 D인 원을 그려보면 이해가 쉽다
+				//시작점이 범위 이내인 경우 최소 2번 이동해야 하고, 아닐 경우 moves + 1회 이동하면 됨
+			case_3 = T * max(2.0, (double)(moves + 1));
+
+		sec += min(case_1, min(case_2, case_3));
 	}
+	//점프하는게 걸어오는것보다 가성비가 구리다면
+	else{
+		sec += dist_left;
+	}
+
+	printf("%.9lf", sec);
 }
