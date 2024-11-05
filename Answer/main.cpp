@@ -14,82 +14,39 @@ int main() {
 	return 0;
 }
 
-#include <vector>
-struct tree_info {
-	int num_holes{};
-	vector<int> holes{};
-};
-constexpr int NONE = -1;
-int N, K;
-int dp[101][21];
-vector<int> trees[101];
+using uint = unsigned int;
+//dp[i][j]: 일꾼이 i + 1명 일 중일때, 각자 담당하고 있는 작업(bit flag)
+uint N, dp[21][1 << 21];
+constexpr uint INF = -1;
 
-//return: T 사용 횟수
-//아이디어: 이전 인덱스에서 현재 인덱스로 이동했을 때의 값을 가져온다
-void solve_dp() {
-	dp[0][1] = K;
-	for (int tree_idx = 1; tree_idx <= N; ++tree_idx) {
-		for (int cur_height : trees[tree_idx]) {
-			int& cur_dp = dp[tree_idx][cur_height];
+uint get_memo(uint cur, uint flag) {
+	if (dp[cur][flag] != INF) {
+		return dp[cur][flag];
+	}
 
-			//O
-			cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height]);
+	uint& ret = dp[cur][flag];
 
-			//A
-			if (1 <= cur_height - 1) {
-				cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height - 1]);
-			}
-			
-			//B
-			if (cur_height < 20) {
-				//*2를 해서 올라오는 것이므로 짝수일때만 가능
-				if (cur_height % 2 == 0) {
-					cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height / 2]);
-				}
-			}
-			//cur_height == 20일 떄
-			else {
-				//20은 O에서, 19는 A에서 처리했음
-				for (int j = 10; j <= 18; ++j) {
-					cur_dp = max(cur_dp, dp[tree_idx - 1][j]);
-				}
-			}
-
-			//C
-			if (cur_height + 1 <= 20) {
-				cur_dp = max(cur_dp, dp[tree_idx - 1][cur_height + 1]);
-			}
-
-			//T: 이전 나무 구멍의 값 - 1(T를 1회 사용했으므로)
-			for (int prev_height : trees[tree_idx - 1]) {
-				cur_dp = max(cur_dp, dp[tree_idx - 1][prev_height] - 1);
-			}
+	//내가 i일을 담당할 경우, 일 i는 내가 해야 되므로
+	for (uint i = 0; i < N; ++i) {
+		//i일을 flag에서 제외했을 때 최대값을 구한다.(만약 일 i를 시키지 않았다면 계산 x)
+		//ex)내가 0번일을 한다고 하면 111 -> 011 + 내가 i 일을 했을 때의 속도
+		if (flag & (1 << i)) {
+			ret = min(ret, get_memo(cur - 1, flag & ~(1 << i)) + get_memo(cur, 1 << i));
 		}
 	}
+
+	return ret;
 }
 
-
 void solve() {
-	memset(dp, NONE, sizeof(int) * 101 * 21);
-
-	cin >> N >> K;
-	
-	trees[0].push_back(1);
-	for (int i = 1; i <= N; ++i) {
-		int M; cin >> M;
-		trees[i].resize(M);
-		for (int j = 0; j < M; ++j) {
-			cin >> trees[i][j];
+	cin >> N;
+	memset(dp, -1, sizeof(uint) * 21 * (1ull << 21));
+	for (uint i = 0; i < N; ++i) {
+		for (uint j = 0; j < N; ++j) {
+			cin >> dp[i][1ull << j];
 		}
 	}
 
-	
-	solve_dp();
-	int result = -1;
-	for (int remain : dp[N]) {
-		result = max(result, remain);
-	}
-
-	//사용횟수가 남아있을 경우 K - 사용횟수 출력, 아닐 시 -1 출력
-	cout << (0 <= result ? K - result : -1);
+	//N명이 모두 각자 하나씩 일을 맡을 경우에 대한 dp값을 구해서 출력
+	cout << get_memo(N - 1, (1 << N) - 1);
 }
