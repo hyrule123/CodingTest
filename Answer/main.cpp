@@ -14,29 +14,40 @@ int main() {
 	return 0;
 }
 
-//개선판 - 코드 참고: https://www.acmicpc.net/source/86025722
+//백준 2098 (외판원 순회)
+//백준 1311 (할 일 정하기 1) 과 다른 점:
+// 1311: 일꾼을 붙이는 데 순서는 중요하지 않다. 각 일꾼 별로 최소값을 찾으면 된다.
+// 2098: 방문 순서에 따라 같은 도시를 방문했더라도 결과가 달라질 수 있다.ex)a-b-c-d, a-b-d-c
+
 using uint = unsigned int;
-//dp[i]: [플래그값] 인원이 일할 때 필요한 업무량의 최소값
-uint N, chart[21][21], dp[1 << 21];
-constexpr uint INF = -1;
+//dp[i][j]: i->방문한 노드들 마스킹 처리, j->마지막으로 도착한 도시 번호(ex. 1234->[0b1111][4], 1243->[0b1111][3])
+uint N, costs[16][16], dp[1 << 16][16];
+constexpr uint INF = (uint)1e9;
 
-uint get_memo(uint cur, uint flag) {
-	if (cur == INF) {
-		return 0;
+#include <string>
+uint TSP(uint visited_mask, uint cur) {
+	visited_mask |= 1 << cur;
+
+	//전부 순회를 다 돌았다면 시작 지점(여기서는 0 고정)되돌아올 수 있는지 확인한다.
+	if (visited_mask == (1 << N) - 1) {
+		//되돌알올 수 없다면 INF를 반환(
+		if (costs[cur][0] == 0) {
+			return INF;
+		}
+		return costs[cur][0];
 	}
 
-	if (dp[flag] != INF) {
-		return dp[flag];
-	}
+	uint& ret = dp[visited_mask][cur];
 
-	uint& ret = dp[flag];
+	if (ret == -1) {
+		ret = INF;
+		for (uint i = 0; i < N; ++i) {
+			if (cur == i) { continue; }
+			if (visited_mask & 1 << i) { continue; }
+			if (0 == costs[cur][i]) { continue; }	//0 == 이동 불가
 
-	//내가 i일을 담당할 경우, 일 i는 내가 해야 되므로
-	for (uint i = 0; i < N; ++i) {
-		//i일을 flag에서 제외했을 때 최대값을 구한다.(만약 일 i를 시키지 않았다면 계산 x)
-		//ex)내가 0번일을 한다고 하면 111 -> 011 + 내가 i 일을 했을 때의 속도
-		if (flag & (1 << i)) {
-			ret = min(ret, get_memo(cur - 1, flag & ~(1 << i)) + chart[cur][i]);
+			ret =
+				min(ret, TSP(visited_mask, i) + costs[cur][i]);
 		}
 	}
 
@@ -47,11 +58,10 @@ void solve() {
 	cin >> N;
 	for (uint i = 0; i < N; ++i) {
 		for (uint j = 0; j < N; ++j) {
-			cin >> chart[i][j];
+			cin >> costs[i][j];
 		}
 	}
 
-	memset(dp, -1, sizeof(uint) * (1ull << 21));
-	//N명이 모두 각자 하나씩 일을 맡을 경우에 대한 dp값을 구해서 출력
-	cout << get_memo(N - 1, (1 << N) - 1);
+	memset(dp, -1, sizeof(dp));
+	cout << TSP(0, 0);
 }
