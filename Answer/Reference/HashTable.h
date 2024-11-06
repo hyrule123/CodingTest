@@ -42,7 +42,7 @@ public:
 		
 		std::list<Pair>& bucket = m_container[hash];
 
-		//중복 검사 및 chaining
+		//chaining
 		auto iterEnd = bucket.end();
 		for (auto iter = bucket.begin(); iter != iterEnd; ++iter) {
 			if (iter->Key == _pair.Key) {
@@ -75,7 +75,7 @@ public:
 
 		std::list<Pair>& bucket = m_container[hash];
 
-		//순회돌면서 검색
+		
 		auto iterEnd = bucket.end();
 		for (auto iter = bucket.begin(); iter != iterEnd; ++iter) {
 			if (_key == iter->Key) {
@@ -83,7 +83,7 @@ public:
 			}
 		}
 
-		//못찾았다면 새로 하나 만들어서 반환
+		
 		bucket.push_back(Pair{ _key, {} });
 		return bucket.back().Value;
 	}

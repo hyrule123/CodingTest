@@ -12,7 +12,7 @@ double SQRT(double _num) {
     return a;
 }
 
-//최적화 버전(from geeksforgeeks)
+//from geeksforgeeks
 float squareRoot(float n)
 {
     /*We are using n itself as initial approximation

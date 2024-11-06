@@ -1,7 +1,4 @@
 #include <vector>
-//규칙: frontCursor은 endCursor 위치까지 이동가능.
-//endCursor은 frontCursor 하나 전까지만 이동가능.()
-//실제 capacity == cont.size() - 1
 struct CircleQueue {
     CircleQueue(size_t _size) : cont(_size + 1), frontCursor(0), endCursor(0), queueCapacity(_size) {}
 
