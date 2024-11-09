@@ -14,32 +14,85 @@ int main() {
 	return 0;
 }
 
-#include <deque>
-#include <bitset>
-int N, M;
-bitset<100001> types;
-deque<int> qs;
-void solve() {
-	cin >> N;
+#include <queue>
 
-	for (int i = 0; i < N; ++i) {
-		bool b; cin >> b;
-		types[i] = b;
+struct edge {
+	int to, dist;
+	bool operator < (const edge& o) const { return dist > o.dist; }
+};
+
+int N, E, v1, v2;
+vector<edge> edges[801];
+priority_queue<edge> pq;
+int memo[801];
+constexpr int INF = numeric_limits<int>::max();
+
+//from으로부터 모든 노드 사이의 거리를 계산
+void djikstra(int from) {
+	//기본 container로 vector 사용하므로 재사용
+	while (false == pq.empty()) {
+		pq.pop();
 	}
-	for (int i = 0; i < N; ++i) {
-		int input; cin >> input;
-		if (!types[i]) {
-			qs.push_back(input);
+	for (int& i : memo) {
+		i = INF;
+	}
+
+	pq.push({ from, 0 });
+	memo[from] = 0;
+
+	while (false == pq.empty()) {
+		edge t = pq.top(); pq.pop();
+
+		for (const edge& next : edges[t.to]) {
+			int next_dist = t.dist + next.dist;
+
+			//삽입 조건 확인
+			if (memo[next.to] > next_dist) {
+				memo[next.to] = next_dist;
+				pq.push({ next.to, next_dist });
+			}
 		}
 	}
+}
 
-	cin >> M;
-	int input;
-	for (int i = 0; i < M; ++i) {
-		cin >> input;
+//1->v1 v1->v2 v2->N, N->v1 v1->v2 v2->N
+void solve() {
+	cin >> N >> E;
+	for (int i = 0; i < E; ++i) {
+		int a, b, c; cin >> a >> b >> c;
+		edges[a].push_back({ b, c });
+		edges[b].push_back({ a, c });
+	}
+	cin >> v1 >> v2;
 
-		qs.push_front(input);
-		cout << qs.back() << ' ';
-		qs.pop_back();
+	djikstra(v1);
+	int
+		v1_1 = memo[1],
+		v1_N = memo[N],
+		v1_v2 = memo[v2];
+
+	djikstra(v2);
+	int
+		v2_1 = memo[1],
+		v2_N = memo[N];
+
+	int path_1 = -1, path_2 = -1;
+
+	if (v1_v2 == INF) {
+		cout << -1;
+		return;
+	}
+
+	if (INF != v1_1 && INF != v2_N) {
+		path_1 = v1_1 + v1_v2 + v2_N;
+	}
+	if (INF != v2_1 && INF != v1_N) {
+		path_2 = v2_1 + v1_v2 + v1_N;
+	}
+
+	if (path_1 == -1) { cout << path_2; }
+	else if (path_2 == -1) { cout << path_1; }
+	else {
+		cout << (path_1 < path_2 ? path_1 : path_2);
 	}
 }
