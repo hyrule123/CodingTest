@@ -78,7 +78,6 @@ void solve() {
 	lenT = (int)strlen(T);
 	cin.getline(P, max_len);
 	lenP = (int)strlen(P);
-	
 	calc_last_match();
 	KMP();
 }
