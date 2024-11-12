@@ -14,45 +14,67 @@ int main() {
 	return 0;
 }
 
-//백준 1305 (광고)
-//문제 설명이 좀 어려운데, 쉽게 풀어쓰면
-//현재 광고판에 나오고 있는 문자열을 표현할 수 있는 가장 짧은 문자열 이다. 
-// babba, 5 -> bab로 babba를 만들 수 이씅ㅁ
-#include <string>
+#include <list>
 #include <vector>
-int L;
-string S;
-constexpr int arr_len = 'z' - 'a' + 1, INF = 987654321;
-int memo[arr_len];
+#include <string>
+#include <map>
 
-vector<int> build_failure_func() {
-	vector<int> ret; ret.resize(L, 0);
+struct trie {
+	void add_child(int _level, const vector<string_view>& branch) {
+		if (level < _level) {
+			trie& child = childs[branch[level]];
 
-	int j = 0;
-	for (int i = 1; i < L; ++i) {
-		while (0 < j && S[i] != S[j]) {
-			j = ret[j - 1];
+			//새로 생성 되었다면
+			if (-1 == child.level) {
+				child.level = level + 1;
+				child.s = branch[level];
+			}
+
+			child.add_child(_level, branch);
+		}
+	}
+	
+	void print_recursive() const {
+		
+		for (int i = 2; i <= level; ++i) {
+			cout << "--";
 		}
 
-		if (S[i] == S[j]) {
-			ret[i] = ++j;
+		if (0 < level) {
+			cout << s << '\n';
+		}
+
+		for (const auto& child : childs) {
+			child.second.print_recursive();
 		}
 	}
 
-	return ret;
-}
+	int level = -1;
+	string_view s;
+	map<string_view, trie> childs;
+};
 
 void solve() {
-	for (int i = 0; i < arr_len; ++i) {
-		memo[i] = 987654321;
+	trie root;
+	root.level = 0;
+
+	int N; cin >> N;
+
+	//string은 list에 저장해두고 string_view를 사용
+	list<string> strings;
+
+	for (int i = 0; i < N; ++i) {
+		int level;
+		vector<string_view> branches;
+		cin >> level;
+		for (int i = 1; i <= level; ++i) {
+			string s; cin >> s;
+			strings.push_back(s);
+			branches.push_back(strings.back());
+		}
+
+		root.add_child(level, branches);
 	}
 
-	cin >> L; S.reserve(L + 1);
-	cin >> S;
-
-	vector<int> fail_func = build_failure_func();
-
-	L -= fail_func.back();
-
-	cout << L;
+	root.print_recursive();
 }
