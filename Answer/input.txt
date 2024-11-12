@@ -1,5 +1,5 @@
-4
-2 KIWI BANANA
-2 KIWI APPLE
-2 APPLE APPLE
-3 APPLE BANANA KIWI
+1 3
+bajek
+baje
+bajekk
+bajeks
