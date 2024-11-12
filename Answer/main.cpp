@@ -14,7 +14,8 @@ int main() {
 	return 0;
 }
 
-#include <unordered_set>
+//백준 14425 (문자열 집합) : 동적할당 사용 + 재귀 미사용
+//메모리 사용량 동일, 시간 1644 ms(늘어남)
 constexpr int alphabets = 'z' - 'a' + 1;
 
 struct trie {
@@ -25,45 +26,43 @@ struct trie {
 	}
 
 	void add(const string& s) {
-		if (level == (int)s.size()) {
-			is_eow = true;
-			return;
-		}
+		if (s.empty()) { return; }
 
-		if (level < (int)s.size()) {
-			trie*& next = childs[s[level] - 'a'];
-
-			if (next == nullptr) {
+		trie* cur = this;
+		for (size_t i = 0; i < s.size(); ++i) {
+			trie*& next = cur->childs[s[i] - 'a'];
+			if (nullptr == next) {
 				next = new trie;
-				next->level = level + 1;
 			}
-
-			next->add(s);
+			cur = next;
 		}
+
+		cur->is_eow = true;
 	}
 
 	bool find(const string& s) {
-		//종료 조건
-		if (is_eow && level == (int)s.size()) {
-			return true;
+		if (s.empty()) { return false; }
+
+		trie* cur = this;
+		for (size_t i = 0; i < s.size(); ++i) {
+			trie* next = cur->childs[s[i] - 'a'];
+
+			if (nullptr == next) {
+				return false;
+			}
+			
+			cur = next;
 		}
 
-		trie*& next = childs[s[level] - 'a'];
-		if (next) {
-			return next->find(s);
-		}
-
-		return false;
+		return cur->is_eow;
 	}
 
-	int level = -1;
 	bool is_eow = false;
 	trie* childs[alphabets]{};
 };
 
 void solve() {
 	trie root;
-	root.level = 0;
 	int N, M; cin >> N >> M;
 	while (N--) {
 		string s; cin >> s;
@@ -71,11 +70,13 @@ void solve() {
 	}
 
 	int count = 0;
+
 	while (M--) {
 		string s; cin >> s;
 		if (root.find(s)) {
 			++count;
 		}
 	}
+
 	cout << count;
 }
