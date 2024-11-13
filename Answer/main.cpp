@@ -14,69 +14,76 @@ int main() {
 	return 0;
 }
 
-//백준 14425 (문자열 집합) : 동적할당 미사용 + 재귀 미사용(정적할당 + 인덱스)
+#include <vector>
+#include <iomanip>
+#include <cmath>
+
 constexpr int alphabets = 'z' - 'a' + 1;
 
-int idx = 0;
-int new_node() { return ++idx; }
-
 struct trie {
-	bool is_eow = false;
-	int childs[alphabets]{};
+	bool is_word_end;
+	char num_childs;	//등록된 자식의 수
+	int childs[alphabets];
 };
 
-//단어당 길이 500, 단어 개수 10000개 -> 5백만개(+ 루트노드로 사용할 0번)
-trie nodes[500 * 10000 + 1];	//nodes[0]: trie root
+int N, allocater_idx = 0;
+vector<string> inputs;
 
-void add(const string& s) {
-	if (s.empty()) { return; }
+//단어의 총합 길이가 10e6을 넘지 않는다고 했으므로 정적 배열을 사용
+trie tries[(int)1e6 + 1];
+int new_trie() { return ++allocater_idx; }
 
-	int cur_idx = 0;
-	for (size_t i = 0; i < s.size(); ++i) {
-		int& next_idx = nodes[cur_idx].childs[s[i] - 'a'];
-
-		if (0 == next_idx) {
-			next_idx = new_node();
-		}
-
-		cur_idx = next_idx;
-	}
-
-	nodes[cur_idx].is_eow = true;
+void clear() {
+	allocater_idx = 0;
+	memset(tries, 0, sizeof(tries));
+	inputs.clear();
 }
 
-bool find(const string& s) {
-	if (s.empty()) { return false; }
-
-	int cur_idx = 0;
-	for (size_t i = 0; i < s.size(); ++i) {
-		int& next_idx = nodes[cur_idx].childs[s[i] - 'a'];
-
-		if (0 == next_idx) {
-			return false;
+void add_trie(const string& str) {
+	int cur = 0;
+	for (size_t i = 0; i < str.size(); ++i) {
+		int& child_idx = tries[cur].childs[str[i] - 'a'];
+		if (0 == child_idx) {
+			++(tries[cur].num_childs);
+			child_idx = new_trie();
 		}
+		cur = child_idx;
+	}
+	tries[cur].is_word_end = true;
+}
 
-		cur_idx = next_idx;
+int get_input_count(const string& str) {
+	int count = 1;	//첫 분기 입력은 무조건 수동
+
+	int cur = tries[0].childs[str[0] - 'a'];
+	for (size_t i = 1; i < str.size(); ++i) {
+		//(안 끝났는데) 단어의 끝 발견 시 또는 분기 발견 시 +1
+		if (tries[cur].is_word_end || 1 < tries[cur].num_childs) {
+			++count;
+		}
+		cur = tries[cur].childs[str[i] - 'a'];
 	}
 
-	return nodes[cur_idx].is_eow;
+	return count;
 }
 
 void solve() {
-	int N, M; cin >> N >> M;
-	while (N--) {
-		string s; cin >> s;
-		add(s);
-	}
+	cout << fixed << setprecision(2);
+	while (cin >> N) {
+		clear();
 
-	int count = 0;
-
-	while (M--) {
-		string s; cin >> s;
-		if (find(s)) {
-			++count;
+		inputs.resize(N);
+		for (int i = 0; i < N; ++i) {
+			inputs[i].reserve(80);
+			cin >> inputs[i];
+			add_trie(inputs[i]);
 		}
-	}
 
-	cout << count;
+		int count = 0;
+		for (const string& s : inputs) {
+			count += get_input_count(s);
+		}
+		double ans = (double)count / (double)N;
+		cout << round(ans * 100.0) / 100.0 << '\n';
+	}
 }
