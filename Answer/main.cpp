@@ -14,42 +14,25 @@ int main() {
 	return 0;
 }
 
-//백준 3584 (가장 가까운 공통 조상) [LCA][브루트포스]
-#include <vector>
-#include <unordered_set>
+//백준 17435 (합성함수와 쿼리) [LCA 기초지식]
 
-struct node {
-	int parent = -1;
-};
-int TC;
+int m, f[200001], Q;
+int fn(int repeat, int x) {
+	while (repeat--) {
+		x = f[x];
+	}
+	return x;
+}
 
 void solve() {
+	cin >> m;
+	for (int i = 1; i <= m; ++i) {
+		cin >> f[i];
+	}
 
-	
-	cin >> TC;
-	while (TC--) {
-		int N; cin >> N;
-		vector<int> graph;
-		graph.resize(N + 1);
-		for (int i = 1; i < N; ++i) {
-			int par, chd; cin >> par >> chd;
-			graph[chd] = par;
-		}
-
-		unordered_set<int> parents;
-		int a, b; cin >> a >> b;
-		while (a != 0) {
-			parents.insert(a);
-			a = graph[a];
-		}
-
-		while (b != 0) {
-			auto iter = parents.find(b);
-			if (parents.end() != iter) {
-				cout << *iter << '\n';
-				break;
-			}
-			b = graph[b];
-		}
+	cin >> Q;
+	for (int i = 0; i < Q; ++i) {
+		int n, x; cin >> n >> x;
+		cout << fn(n, x) << '\n';
 	}
 }
