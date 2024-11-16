@@ -14,48 +14,42 @@ int main() {
 	return 0;
 }
 
-#include <array>
+//백준 3584 (가장 가까운 공통 조상) [LCA][브루트포스]
 #include <vector>
-#include <queue>
+#include <unordered_set>
+
 struct node {
-	int in_degree;
-	vector<int> edges;
+	int parent = -1;
 };
-
-
-array<node, 32001> graph;
-int n, m;
-
-void topology_sort() {
-	priority_queue<int, vector<int>, greater<int>> pq;
-
-	for (int i = 1; i <= n; ++i) {
-		if (graph[i].in_degree == 0) {
-			pq.push(i);
-		}
-	}
-
-	while (false == pq.empty()) {
-		int cur = pq.top(); pq.pop();
-
-		cout << cur << ' ';
-
-		for (int next : graph[cur].edges) {
-			graph[next].in_degree--;
-			if (graph[next].in_degree == 0) {
-				pq.push(next);
-			}
-		}
-	}
-}
+int TC;
 
 void solve() {
-	cin >> n >> m;
-	for (int i = 1; i <= m; ++i) {
-		int a, b; cin >> a >> b;
-		graph[a].edges.push_back(b);
-		graph[b].in_degree++;
-	}
 
-	topology_sort();
+	
+	cin >> TC;
+	while (TC--) {
+		int N; cin >> N;
+		vector<int> graph;
+		graph.resize(N + 1);
+		for (int i = 1; i < N; ++i) {
+			int par, chd; cin >> par >> chd;
+			graph[chd] = par;
+		}
+
+		unordered_set<int> parents;
+		int a, b; cin >> a >> b;
+		while (a != 0) {
+			parents.insert(a);
+			a = graph[a];
+		}
+
+		while (b != 0) {
+			auto iter = parents.find(b);
+			if (parents.end() != iter) {
+				cout << *iter << '\n';
+				break;
+			}
+			b = graph[b];
+		}
+	}
 }
