@@ -14,52 +14,29 @@ int main() {
 	return 0;
 }
 
-#include <vector>
-#include <queue>
-struct node {
-	int in_degree{};
-	vector<int> edges;
-};
-
-int N, M;
-node nodes[32001];
-
-void topology_sort(queue<int>& q, vector<int>& result) {
-	while (false == q.empty()) {
-		int n = q.front(); q.pop();
-
-		result.push_back(n);
-
-		for (int next : nodes[n].edges) {
-			--(nodes[next].in_degree);
-			if (0 == nodes[next].in_degree) {
-				q.push(next);
-			}
-		}
-	}
-}
+//백준 1269 (대칭 차집합) 복습
+#include <unordered_set>
+unordered_set<int> a, b;
 
 void solve() {
-	cin >> N >> M;
-	for (int i = 1; i <= M; ++i) {
-		int a, b; cin >> a >> b;
-		++(nodes[b].in_degree);	//진입차수를 기록
-		nodes[a].edges.push_back(b);
+	int na, nb; cin >> na >> nb;
+	for (int i = 0; i < na; ++i) {
+		int ma; cin >> ma;
+		a.insert(ma);
 	}
 
-	queue<int> q;
-	vector<int> ans;
-	for (int i = 1; i <= N; ++i) {
-		//진입차수가 0인 노드를 큐에 삽입
-		if (0 == nodes[i].in_degree) {
-			q.push(i);
+	for (int i = 0; i < nb; ++i) {
+		int mb; cin >> mb;
+		
+		auto iter = a.find(mb);
+
+		if (a.end() == iter) {
+			b.insert(mb);
+		}
+		else {
+			a.erase(iter);
 		}
 	}
 
-	//정렬
-	topology_sort(q, ans);
-
-	for (int order : ans) {
-		cout << order << ' ';
-	}
+	cout << a.size() + b.size();
 }
