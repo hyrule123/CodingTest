@@ -14,29 +14,53 @@ int main() {
 	return 0;
 }
 
-//백준 1269 (대칭 차집합) 복습
-#include <unordered_set>
-unordered_set<int> a, b;
+#include <vector>
+#include <array>
+#include <stack>
+
+struct node {
+	int in_degree;
+	vector<int> edges;
+};
+
+int N, M;
+array<node, 32001> nodes;
+stack<int> stk;
+
+//백준 2252 (줄 세우기): 스택 사용
+//큐 사용 시: 4272kb/24ms
+//스택 사용 시: 4080kb/24ms
+//메모리를 좀 덜 먹는다
+void topology_sort() {
+	for (int i = 1; i <= N; ++i) {
+		if (nodes[i].in_degree == 0) {
+			stk.push(i);
+		}
+	}
+
+	while (false == stk.empty()) {
+		int cur = stk.top(); stk.pop();
+
+		cout << cur << ' ';
+
+		for (int next : nodes[cur].edges) {
+			nodes[next].in_degree--;
+			if (nodes[next].in_degree == 0) {
+				stk.push(next);
+			}
+		}
+	}
+}
 
 void solve() {
-	int na, nb; cin >> na >> nb;
-	for (int i = 0; i < na; ++i) {
-		int ma; cin >> ma;
-		a.insert(ma);
+	cin >> N >> M;
+	for (int i = 1; i <= M; ++i) {
+		int a, b; cin >> a >> b;
+		nodes[a].edges.push_back(b);
+		nodes[b].in_degree++;
 	}
 
-	for (int i = 0; i < nb; ++i) {
-		int mb; cin >> mb;
-		
-		auto iter = a.find(mb);
 
-		if (a.end() == iter) {
-			b.insert(mb);
-		}
-		else {
-			a.erase(iter);
-		}
-	}
 
-	cout << a.size() + b.size();
+	topology_sort();
 }
