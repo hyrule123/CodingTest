@@ -19,13 +19,14 @@ int main() {
 //백준 11438 (LCA 2)
 //parent_of == 합성함수 f, parent_of[i][j]: j 노드의 i번째 부모 노드 번호
 //노드가 N개일때 가능한 부모 모드의 최대값 = N - 1: 100000 -> log2(100000) = 16.6...
+//v2: parent_of[LOG_MAX][MAX] -> parent_of[MAX][LOG_MAX]
 constexpr int LOG_MAX = 18, MAX = 100001;
-int N, M, parent_of[LOG_MAX][MAX], depths[MAX];
+int N, M, parent_of[MAX][LOG_MAX], depths[MAX];
 array<vector<int>, MAX> graph;
 
 //합성함수(dp) 빌드
 void build_parent_of(int par, int cur, int depth) {
-	parent_of[0][cur] = par;
+	parent_of[cur][0] = par;
 	depths[cur] = depth;
 
 	for (int child : graph[cur]) {
@@ -37,8 +38,8 @@ void build_parent_of(int par, int cur, int depth) {
 void precompute() {
 	for (int shift = 1; shift < LOG_MAX; ++shift) {
 		for (int i = 1; i <= N; ++i) {
-			//dp: f(n, k) = f(n-1, f(n-1, k))...
-			parent_of[shift][i] = parent_of[shift - 1][parent_of[shift - 1][i]];
+			//dp
+			parent_of[i][shift] = parent_of[parent_of[i][shift - 1]][shift - 1];
 		}
 	}
 }
@@ -65,7 +66,7 @@ int LCA(int l, int r) {
 		int bit = 1 << i;
 		if (depth_diff < bit) { break; }
 		if (depth_diff & bit) {
-			r = parent_of[i][r];
+			r = parent_of[r][i];
 		}
 	}
 
@@ -86,13 +87,13 @@ int LCA(int l, int r) {
 	  9
 	*/
 	for (int i = LOG_MAX - 1; i >= 0; --i) {
-		if (parent_of[i][l] == parent_of[i][r]) { continue; }
-		l = parent_of[i][l];
-		r = parent_of[i][r];
+		if (parent_of[l][i] == parent_of[r][i]) { continue; }
+		l = parent_of[l][i];
+		r = parent_of[r][i];
 	}
 	
 	//l의 부모 노드를 리턴
-	return parent_of[0][l];
+	return parent_of[l][0];
 }
 
 void solve() {
