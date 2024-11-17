@@ -14,76 +14,105 @@ int main() {
 	return 0;
 }
 
-//백준 1002 (터렛)[epsilon 사용]
-//epsilon을 사용하거나
-//sqrt를 하지 않고 제곱된 상태를 그대로 사용하거나
-//double을 사용하거나 해서 오차를 줄여야 한다
-#include <cmath>
-constexpr double epsilon = 2.2204460492503131e-016;
-struct vec2 {
-	double x, y;
+#include <array>
+#include <vector>
+//백준 11438 (LCA 2)
+//parent_of == 합성함수 f, parent_of[i][j]: j 노드의 i번째 부모 노드 번호
+//노드가 N개일때 가능한 부모 모드의 최대값 = N - 1: 100000 -> log2(100000) = 16.6...
+constexpr int LOG_MAX = 18, MAX = 100001;
+int N, M, parent_of[LOG_MAX][MAX], depths[MAX];
+array<vector<int>, MAX> graph;
 
-	bool operator ==(const vec2& other) const {
-		return x == other.x && y == other.y;
+//합성함수(dp) 빌드
+void build_parent_of(int par, int cur, int depth) {
+	parent_of[0][cur] = par;
+	depths[cur] = depth;
+
+	for (int child : graph[cur]) {
+		if (child == par) { continue; }
+		build_parent_of(cur, child, depth + 1);
+	}
+}
+
+void precompute() {
+	for (int shift = 1; shift < LOG_MAX; ++shift) {
+		for (int i = 1; i <= N; ++i) {
+			//dp: f(n, k) = f(n-1, f(n-1, k))...
+			parent_of[shift][i] = parent_of[shift - 1][parent_of[shift - 1][i]];
+		}
+	}
+}
+
+int LCA(int l, int r) {
+	//depth가 더 깊은 쪽을 오른쪽으로
+	if (depths[l] > depths[r]) {
+		swap(l, r);
 	}
 
-	vec2 operator -(const vec2& other) const {
-		return { x - other.x, y - other.y };
+	//깊이 차이를 구한다
+	int depth_diff = depths[r] - depths[l];
+
+	//깊은 쪽(r)을 깊이차이만큼 올려서 균형을 맞춰준다.
+	/* ex
+	 1
+	 2
+	3 4 
+	5 6 <- 여기로 이동해서 깊이를 일치시킴 l = 5, r = 6
+	7 8 
+	  9 <- 여기서 시작(l = 5, r = 9)
+	*/
+	for (int i = 0; i < LOG_MAX; ++i) {
+		int bit = 1 << i;
+		if (depth_diff < bit) { break; }
+		if (depth_diff & bit) {
+			r = parent_of[i][r];
+		}
 	}
 
-	double length(const vec2& other) const {
-		vec2 v = (*this) - other;
-		return sqrt(v.x * v.x + v.y * v.y);
+	//동일 부모를 발견했을 경우 해당 부모를 리턴한다.
+	if (l == r) {
+		return l;
 	}
-};
+
+	//높이를 맞췄으므로 높이만큼 탐색을 진행
+	//'서로 다른 부모 노드' 중 '가장 먼' 부모 노드를 탐색한다.(멀리서부터 탐색해야 함)
+	//그럼 찾은 노드의 부모 노드는 '가장 가까운' 공통 노드(최소 공통 조상)이 된다.
+	/* ex
+	 1
+	 2 
+	3 4 <- 여길 찾는것
+	5 6 <- 여기서 시작
+	7 8 
+	  9
+	*/
+	for (int i = LOG_MAX - 1; i >= 0; --i) {
+		if (parent_of[i][l] == parent_of[i][r]) { continue; }
+		l = parent_of[i][l];
+		r = parent_of[i][r];
+	}
+	
+	//l의 부모 노드를 리턴
+	return parent_of[0][l];
+}
 
 void solve() {
-	int T; cin >> T;
-	while (T--) {
-		double ra, rb;
-		vec2 a, b; cin >> a.x >> a.y >> ra >> b.x >> b.y >> rb;
+	cin >> N;
+	for (int i = 1; i <= N - 1; ++i) {
+		int a, b; cin >> a >> b;
+		graph[a].push_back(b);
+		graph[b].push_back(a);
+	}
 
-		//반지름이 큰 원을 b로 보낸다
-		if (rb < ra) {
-			swap(a, b);
-			swap(ra, rb);
-		}
+	//1을 루트로 하는 그래프에서 합성함수를 생성
+	build_parent_of(0, 1, 0);
 
-		//동일한 원일 경우 무한대
-		if (a == b && ra == rb) {
-			cout << -1 << '\n';
-			continue;
-		}
+	//사전 계산
+	precompute();
 
-		double dist = a.length(b);
-
-		//한 원의 중심이 다른 원 안에 속할때
-		if (dist < rb) {
-			//한 원이 아예 다른 원 안에 속할때: 말이안됨(0개)
-			if (dist + ra < rb) {
-				cout << 0 << '\n';
-			}
-			//원의 길이가 동일할 때
-			else if (abs(rb - (ra + dist)) < epsilon) {
-				cout << 1 << '\n';
-			}
-			else {
-				cout << 2 << '\n';
-			}
-		}
-		else {
-			//서로 떨어져 있을 경우
-			if (ra + rb < dist) {
-				cout << 0 << '\n';
-			}
-			//붙어 있을경우
-			else if (abs(ra + rb - dist) < epsilon) {
-				cout << 1 << '\n';
-			}
-			//둘다 아닐경우
-			else {
-				cout << 2 << '\n';
-			}
-		}
+	//LCA 수행
+	cin >> M;
+	while (M--) {
+		int l, r; cin >> l >> r;
+		cout << LCA(l, r) << '\n';
 	}
 }
