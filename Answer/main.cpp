@@ -14,7 +14,7 @@ int main() {
 	return 0;
 }
 
-//백준 3176 (도로 네트워크)
+//백준 3176 (도로 네트워크) [LCA: 이전 풀이보다 효율적(292ms -> 160ms)]
 //경로를 찾는다는건 곧 최소 공통 조상을 찾은 뒤 그 조상을 거쳐 이동하는 것이므로
 //LCA 알고리즘으로 찾을 수 있을 듯
 #include <vector>
@@ -55,7 +55,9 @@ void build_tree() {
 	}
 }
 
-l LCA(l a, l b) {
+void query(l a, l b) {
+	l _max = -1, _min = 1'000'001;
+
 	if (depth[a] > depth[b]) {
 		swap(a, b);
 	}
@@ -65,49 +67,27 @@ l LCA(l a, l b) {
 		l bit = 1 << shift;
 		if (bit > depth_diff) { break; }
 		if (depth_diff & bit) {
-			b = parent_of[shift][b].par;
-		}
-	}
-
-	//LCA를 발견했다면
-	if (a == b) {
-		return a;
-	}
-
-	//LCA의 자식 노드 탐색
-	for (l shift = LOG_MAX - 1; shift >= 0; --shift) {
-		if (parent_of[shift][a].par == parent_of[shift][b].par) { continue; }
-
-		a = parent_of[shift][a].par;
-		b = parent_of[shift][b].par;
-	}
-
-	return parent_of[0][a].par;
-}
-
-void query(l a, l b) {
-	l lca = LCA(a, b);
-
-	//깊이 차이를 구한다
-	l depth_diff_a = depth[a] - depth[lca], depth_diff_b = depth[b] - depth[lca];
-
-	//양쪽 노드의 공통조상으로부터 깊이 차이 구간에서 최소값, 최대값을 가져온다
-	//_a -> LCA, _b -> LCA
-	l _min = 1'000'001, _max = -1;
-	for (l shift = 0; shift < LOG_MAX; ++shift) {
-		l bit = 1 << shift;
-
-		if (depth_diff_a & bit) {
-			_min = min(_min, parent_of[shift][a].min);
-			_max = max(_max, parent_of[shift][a].max);
-			a = parent_of[shift][a].par;
-		}
-
-		if (depth_diff_b & bit) {
 			_min = min(_min, parent_of[shift][b].min);
 			_max = max(_max, parent_of[shift][b].max);
 			b = parent_of[shift][b].par;
 		}
+	}
+
+	//LCA를 발견하지 못했다면
+	if (a != b) {
+		//LCA의 자식 노드를 탐색
+		for (l shift = LOG_MAX - 1; shift >= 0; --shift) {
+			if (parent_of[shift][a].par == parent_of[shift][b].par) { continue; }
+
+			_min = min(_min, min(parent_of[shift][a].min, parent_of[shift][b].min));
+			_max = max(_max, max(parent_of[shift][a].max, parent_of[shift][b].max));
+			a = parent_of[shift][a].par;
+			b = parent_of[shift][b].par;
+		}
+
+		//LCA 바로 밑 노드 -> LCA
+		_min = min(_min, min(parent_of[0][a].min, parent_of[0][b].min));
+		_max = max(_max, max(parent_of[0][a].max, parent_of[0][b].max));
 	}
 
 	cout << _min << ' ' << _max << '\n';
