@@ -14,7 +14,7 @@ int main() {
 	return 0;
 }
 
-//백준 3176 (도로 네트워크) [실패: LCA 구하고 깊이차이를 통해 최대/최소값을 다시 구하면 LCA를 한번 더 구하는 꼴임]
+//백준 3176 (도로 네트워크)
 //경로를 찾는다는건 곧 최소 공통 조상을 찾은 뒤 그 조상을 거쳐 이동하는 것이므로
 //LCA 알고리즘으로 찾을 수 있을 듯
 #include <vector>
@@ -100,11 +100,13 @@ void query(l a, l b) {
 		if (depth_diff_a & bit) {
 			_min = min(_min, parent_of[shift][a].min);
 			_max = max(_max, parent_of[shift][a].max);
+			a = parent_of[shift][a].par;
 		}
 
 		if (depth_diff_b & bit) {
 			_min = min(_min, parent_of[shift][b].min);
 			_max = max(_max, parent_of[shift][b].max);
+			b = parent_of[shift][b].par;
 		}
 	}
 
