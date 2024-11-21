@@ -13,53 +13,50 @@ int main() {
 	solve();
 	return 0;
 }
-
 /*
-백준 1004 (어린 왕자)
-출발점과 도착점이 원 바깥에 있으면 얼마든지 돌아가면 되니까
-출발점, 도착점이 몇개의 '다른'원 안에 있는지를 검사하면 될듯(같은 원 안일 경우 안쪽에서 돌아서 갈수 있으므로)
+백준 1005 (ACM Craft)
+//재귀호출 최대한 줄인 버전
 */
-
-struct vec2 {
-	double x, y;
-
-	vec2 operator -(const vec2& o) const {
-		return { x - o.x, y - o.y };
+#include <vector>
+constexpr int MAX = 1001;
+int N, K, buildtimes[MAX], memo[MAX];	//memo[i]: i를 짓기 위해 필요한 시간
+vector<int> req_build[MAX];	//선행 빌드
+void clear(int size) {
+	memset(memo + 1, -1, sizeof(int) * size);
+	for (int i = 1; i <= size; ++i) {
+		req_build[i].clear();
 	}
-	double dist_squared(const vec2& o) const {
-		vec2 sub = (*this) - o;
-		return sub.x * sub.x + sub.y * sub.y;
+}
+
+void get_min_buildtime(int cur) {
+	memo[cur] = 0;
+	//가장 늦게 완료되는 노드까지 기다려줘야 함
+	for (int next : req_build[cur]) {
+		if (-1 == memo[next]) {
+			get_min_buildtime(next);
+		}
+		memo[cur] = max(memo[cur], memo[next]);
 	}
-};
+	memo[cur] += buildtimes[cur];
+}
 
 void solve() {
 	int T; cin >> T;
-
 	while (T--) {
-		vec2 from, to;
-		cin >> from.x >> from.y >> to.x >> to.y;
+		cin >> N >> K;
+		clear(N);
 
-		int n; cin >> n;
-		int count = 0;
-		while (n--) {
-			vec2 center; cin >> center.x >> center.y;
-			double r; cin >> r;
-			r = r * r;
-
-			double
-				f2c = from.dist_squared(center),
-				t2c = to.dist_squared(center);
-
-			//둘다 같은 원 안에 있으면 원을 벗어날 필요가 없으므로 continue
-			if (f2c <= r && t2c <= r) {
-				continue;
-			}
-
-			//다른 원일 경우 -> 둘 중 하나만 원 안에 속해 있을 경우
-			if (f2c <= r || t2c <= r) {
-				++count;
-			}
+		for (int i = 1; i <= N; ++i) {
+			cin >> buildtimes[i];
 		}
-		cout << count << '\n';
+		for (int i = 1; i <= K; ++i) {
+			int x, y; cin >> x >> y;
+			req_build[y].push_back(x);
+		}
+
+		//건물 번호
+		int w; cin >> w;
+		get_min_buildtime(w);
+		cout << memo[w] << '\n';
 	}
 }
