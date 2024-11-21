@@ -17,77 +17,89 @@ int main() {
 #include <vector>
 #include <stack>
 #include <algorithm>
-constexpr int MAX = 10001;
-int V, E;
-vector<int> graph[MAX];
+constexpr int MAX = 100'001;
+int N, M, id, scc_id;
+vector<vector<int>> graph;
+vector<int> scc_indegrees;
+vector<bool> finished;
+vector<int> ID;
+
 stack<int> stk;
-int parent_of[MAX], visit_order[MAX], order;
-bool finished[MAX];
-vector<vector<int>> answers;
-
-//리턴값: 방문 순서
 int DFS(int cur) {
-	visit_order[cur] = ++order;
+	ID[cur] = ++id;
+
+	int last_id = ID[cur];
 	stk.push(cur);
-
-	int result = visit_order[cur];
 	for (int next : graph[cur]) {
-		//아직 미방문 정점일 경우(방문 순서가 입력되지 않았을 경우) DFS
-		if (visit_order[next] == 0) {
-			result = min(result, DFS(next));
+		if (ID[next] == 0) {
+			last_id = min(last_id, DFS(next));
 		}
-		//이미 방문한 정점이지만 SCC 확인이 완료되지 않은 경우: 둘중 작은 값을 반환한다
 		else if (false == finished[next]) {
-			result = min(result, visit_order[next]);
+			last_id = min(last_id, ID[next]);
 		}
 	}
 
-	//사이클을 발견한 경우 하나의 SCC가 형성된 것
-	//visit_order을 위에서 1을 넣었는데, 한바퀴 돌아서 1이 반환된 경우
-	//또는 아예 사이클 없이 동떨어져 있는 노드일 경우
-	if (result == visit_order[cur]) {
-		vector<int> ans;
+	if (ID[cur] == last_id) {
+		++scc_id;
 		while (true) {
-			int scc = stk.top(); stk.pop();
-			ans.push_back(scc);
-			finished[scc] = true;
-			if (cur == scc) { break; }
+			int last = stk.top(); stk.pop();
+
+			//몇 번쨰 SCC에 속하는지를 (더이상 사용하지 않는)ID 배열에 저장한다.
+			ID[last] = scc_id;
+
+			finished[last] = true;
+			if (cur == last) { break; }
 		}
-		sort(ans.begin(), ans.end());
-		answers.push_back(ans);
 	}
 
-	return result;
+	return last_id;
 }
 
 void solve() {
-	memset(parent_of, -1, sizeof(parent_of));
-	cin >> V >> E;
-	for (int i = 0; i < E; ++i) {
-		int a, b; cin >> a >> b;
-		graph[a].push_back(b);
-	}
-	for (int i = 1; i <= V; ++i) {
-		sort(graph[i].begin(), graph[i].end());
-	}
+	int TC; cin >> TC;
+	while (TC--) {
+		cin >> N >> M;
+		
+		id = 0;
+		scc_id = 0;
+		graph.clear();
+		scc_indegrees.clear();
+		finished.clear();
+		ID.clear();
+		graph.resize(N + 1);
+		scc_indegrees.resize(graph.size());
+		finished.resize(graph.size());
+		ID.resize(graph.size());
 
-	//SCC 확인이 완료되지 않은 정점에 대해 DFS를 수행
-	for (int i = 1; i <= V; ++i) {
-		if (false == finished[i]) {
-			DFS(i);
+		for (int i = 0; i < M; ++i) {
+			int a, b; cin >> a >> b;
+			graph[a].push_back(b);
 		}
-	}
 
-	sort(answers.begin(), answers.end(),
-		[](const vector<int>& a, const vector<int>& b)->bool {
-			return a[0] < b[0];
+		for (int i = 1; i <= N; ++i) {
+			if (false == finished[i]) {
+				DFS(i);
+			}
 		}
-		);
-	cout << answers.size() << '\n';
-	for (const auto& ans : answers) {
-		for (int e : ans) {
-			cout << e << ' ';
+
+		scc_indegrees.clear();
+		scc_indegrees.resize(scc_id + 1);
+		for (int cur = 1; cur <= N; ++cur) {
+			for (int next : graph[cur]) {
+				//그룹이 다를 경우 해당 그룹의 in_degree를 늘려준다.
+				if (ID[cur] != ID[next]) {
+					scc_indegrees[ID[next]]++;
+				}
+			}
 		}
-		cout << -1 << '\n';
+
+		//in_degree가 0인 scc로부터 시작하면 가장 적은 횟수로 도달 가능.
+		int count{};
+		for (size_t i = 1; i < scc_indegrees.size(); ++i) {
+			if (scc_indegrees[i] == 0) {
+				++count;
+			}
+		}
+		cout << count << '\n';
 	}
 }
