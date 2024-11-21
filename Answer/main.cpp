@@ -15,7 +15,7 @@ int main() {
 }
 /*
 백준 1005 (ACM Craft)
-//재귀호출 최대한 줄인 버전
+일반 재귀 호출
 */
 #include <vector>
 constexpr int MAX = 1001;
@@ -28,16 +28,16 @@ void clear(int size) {
 	}
 }
 
-void get_min_buildtime(int cur) {
-	memo[cur] = 0;
-	//가장 늦게 완료되는 노드까지 기다려줘야 함
-	for (int next : req_build[cur]) {
-		if (-1 == memo[next]) {
-			get_min_buildtime(next);
+int get_min_buildtime(int cur) {
+	if (-1 == memo[cur]) {
+		memo[cur] = 0;
+		//가장 늦게 완료되는 노드까지 기다려줘야 함
+		for (int next : req_build[cur]) {
+			memo[cur] = max(memo[cur], get_min_buildtime(next));
 		}
-		memo[cur] = max(memo[cur], memo[next]);
+		memo[cur] += buildtimes[cur];
 	}
-	memo[cur] += buildtimes[cur];
+	return memo[cur];
 }
 
 void solve() {
@@ -56,7 +56,6 @@ void solve() {
 
 		//건물 번호
 		int w; cin >> w;
-		get_min_buildtime(w);
-		cout << memo[w] << '\n';
+		cout << get_min_buildtime(w) << '\n';
 	}
 }
