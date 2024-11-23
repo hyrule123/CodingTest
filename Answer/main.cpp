@@ -15,23 +15,33 @@ int main() {
 }
 /*
 백준 1009 (분산처리)
-a^b = a * a * ... * a (총 b회 곱) -> mod 연산 적용 가능
-
 */
+#include <vector>
+//by chatgpt -> 제곱수의 cyclic pattern을 이용한 풀이
+// Precompute the cycle of last digits for each possible a (0 to 9)
+vector<int> cycles[10] = {
+	{0},        // 0^b is always 0
+	{1},        // 1^b is always 1
+	{2, 4, 8, 6},
+	{3, 9, 7, 1},
+	{4, 6},
+	{5},        // 5^b is always 5
+	{6},        // 6^b is always 6
+	{7, 9, 3, 1},
+	{8, 4, 2, 6},
+	{9, 1}
+};
 
 void solve() {
 	int T; cin >> T;
 	while (T--) {
-		int a, b; cin >> a >> b;
+		size_t a, b; cin >> a >> b;
 
 		a %= 10;
-		int ans = 1;
-		for (int i = 1; i <= b; ++i) {
-			ans = (ans * a) % 10;
-		}
-
+		//b^1부터 시작이므로 b에선 1을 빼준다
+		//ex. 12^2 -> cycles[2][(2 - 1) % 4]
+		size_t ans = cycles[a][(b - 1) % cycles[a].size()];
 		if (ans == 0) { ans = 10; }
-
 		cout << ans << '\n';
 	}
 }
