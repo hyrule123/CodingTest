@@ -29,11 +29,12 @@ SCC에서 뽑을수 있는 액수와 레스토랑 유무를 뽑아서 묶어놓�
 
 #include <vector>
 #include <stack>
+#include <queue>
 struct node {
 	bool rest; int atm; vector<int> edges;
 };
 struct scc_node{
-	bool rest; vector<int> members, edges; int deposit, indeg;
+	bool rest; int deposit; vector<int> members, edges;
 };
 vector<node> graph;
 int N, M, S, P, id_temp, scc_idx;
@@ -78,59 +79,35 @@ int build_SCC(const int cur) {
 	return ret;
 }
 
-//위상 정렬과 DP를 동시에 수행
-int toposort_n_dp() {
-	clearstk();
-
-	//indegree, edge 계산
-	for (int n = 1; n <= N; ++n) {
-		for (int e : graph[n].edges) {
-			int from = scc_ID[n], to = scc_ID[e];
-			if (from != to) {
-				scc_graph[from].edges.push_back(to);
-				scc_graph[to].indeg++;
+int BFS() {
+	//edge 생성
+	for (int i = 1; i <= N; ++i) {
+		for (int next : graph[i].edges) {
+			if (scc_ID[i] != scc_ID[next]) {
+				scc_graph[scc_ID[i]].edges.push_back(scc_ID[next]);
 			}
 		}
 	}
 
-	//DP, stack init
+	queue<int> q;
 	vector<int> dp(scc_graph.size());
+	q.push(scc_ID[S]);
+	dp[q.front()] = scc_graph[q.front()].deposit;
+
 	int ans = 0;
-	for (size_t i = 1; i < scc_graph.size(); ++i) {
-		if (scc_graph[i].indeg == 0) {
-			stk.push((int)i);
-		}
-		dp[i] = scc_graph[i].deposit;
-	}
 	
-	bool found = false;
-	while (false == stk.empty()) {
-		int cur_group = stk.top(); stk.pop();
+	while (false == q.empty()) {
+		int cur = q.front(); q.pop();
 
-		//시작점을 찾은 이후부터 계산을 시작한다.
-		if (scc_ID[S] == cur_group) {
-			found = true;
-
-			if (scc_graph[cur_group].rest) {
-				ans = scc_graph[cur_group].deposit;
-			}
+		if (scc_graph[cur].rest) {
+			ans = max(ans, dp[cur]);
 		}
 
-		for (int next_group : scc_graph[cur_group].edges) {
-			if (found) {
-				//위상정렬 순서대로 갱신
-				//ex) 1->2, 1->3, 2->4, 3->4(다이아몬드 형태)
-				dp[next_group] = max(dp[next_group], dp[cur_group] + scc_graph[next_group].deposit);
-
-				//레스토랑이 있는 SCC 노드의 경우 도착조건
-				if (scc_graph[next_group].rest) {
-					ans = max(ans, dp[next_group]);
-				}
-			}
-
-			scc_graph[next_group].indeg--;
-			if (scc_graph[next_group].indeg == 0) {
-				stk.push(next_group);
+		for (int next : scc_graph[cur].edges) {
+			//새로운 값으로 갱신되면 queue에 넣는다
+			if (dp[next] < dp[cur] + scc_graph[next].deposit) {
+				dp[next] = dp[cur] + scc_graph[next].deposit;
+				q.push(next);
 			}
 		}
 	}
@@ -164,7 +141,6 @@ void solve() {
 			build_SCC(i);
 		}
 	}
-
-	//위상정렬로 순서를 찾고, 그 순서대로 DP를 계산한다.
-	cout << toposort_n_dp();
+	
+	cout << BFS();
 }
