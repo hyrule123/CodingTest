@@ -14,7 +14,7 @@ int main() {
 	return 0;
 }
 /*
-백준 11277 (2-SAT - 1)
+백준 11278 (2-SAT - 2)
 CNF는 AND로 연결 -> 모든 절은 그래프처럼 연결되어 있음
 또한 각 bool 변수들은 여러가지 절에 들어가있을수도 있다 -> 이 때문에 사이클이 생길 수 있다
 사이클이 생기게 되면, 사이클 안의 모든 변수들은 서로 논리구조가 연결된다.(SCC 사용이 가능하다는뜻)
@@ -56,8 +56,6 @@ nA->A는 곧 NOT NOT A -> A 이므로 위의 예시에서
 
 #include <algorithm>
 #include <vector>
-#define a first
-#define b second
 using pii = pair<int, int>;
 
 int N, M;
@@ -86,7 +84,7 @@ void solve() {
 	
 	CNF.reserve(M);
 	for (int i = 1; i <= M; ++i) {
-		pii p; cin >> p.a >> p.b;
+		pii p; cin >> p.first >> p.second;
 		CNF.push_back(p);
 	}
 
@@ -98,7 +96,10 @@ void solve() {
 
 		do {
 			if(check()) { 
-				cout << true;
+				cout << true << '\n';
+				for (int i = 1; i <= N; ++i) {
+					cout << comb[i] << ' ';
+				}
 				return;
 			}
 		} while (prev_permutation(comb.begin() + 1, comb.end()));
