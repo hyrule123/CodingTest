@@ -51,48 +51,58 @@ nA->nB->A라는 사이클이 하나 생성되는데,
 여기서 nA->A와 A->nA로 이동이 가능해진다.
 nA->A는 곧 NOT NOT A -> A 이므로 위의 예시에서 
 
-
-
-케이스가 적어서 단순 DFS로 가능할거 같음
+케이스가 적어서 단순 DFS와 순열을 활용하여 가능할거 같음
 */
 
-#include <bitset>
+#include <algorithm>
 #include <vector>
-#include <array>
-bitset<21> vars;
+#define a first
+#define b second
+using pii = pair<int, int>;
 
-struct x {
-	int i;
-	operator int&() { return i; }
-	x operator !() { return x(-i); }
-};
-
-struct Graph {
-	void resize(int size) {
-		nodes.resize(size * 2);
-	}
-
-	vector<x>& operator [](x idx) {
-		return (0 <= idx ? nodes[idx] : nodes[(!idx) * 2]);
-	}
-	vector<vector<x>> nodes;
-};
-Graph graph;
 int N, M;
+vector<pii> CNF;
+vector<bool> comb;
 
-bool DFS(int par, int cur) {
+bool get_comb(int i) {
+	return (0 <= i ? comb[i] : !comb[-i]);
+}
+
+bool check() {
+	bool ret = true;
+
+	for (const pii& p : CNF) {
+		ret = ret && (get_comb(p.first) || get_comb(p.second));
+		if (ret == false) {
+			break;
+		}
+	}
+
+	return ret;
 }
 
 void solve() {
 	cin >> N >> M;
-
-	graph.resize(N + 1);
-
+	
+	CNF.reserve(M);
 	for (int i = 1; i <= M; ++i) {
-		x a, b; cin >> a >> b;
-		graph[!a].push_back(b);
-		graph[!b].push_back(a);
+		pii p; cin >> p.a >> p.b;
+		CNF.push_back(p);
 	}
 
-	cout << DFS(0, 1);
+	comb.resize(N + 1);
+	for (int i = 1; i <= N + 1; ++i) {
+		for (int j = 1; j < i; ++j) {
+			comb[j] = true;
+		}
+
+		do {
+			if(check()) { 
+				cout << true;
+				return;
+			}
+		} while (prev_permutation(comb.begin() + 1, comb.end()));
+	}
+
+	cout << false;
 }
