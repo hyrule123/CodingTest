@@ -14,65 +14,105 @@ int main() {
 	return 0;
 }
 /*
-백준 11278 (2-SAT - 2)
+백준 11280 (2-SAT - 3)
 CNF는 AND로 연결 -> 모든 절은 그래프처럼 연결되어 있음
 또한 각 bool 변수들은 여러가지 절에 들어가있을수도 있다 -> 이 때문에 사이클이 생길 수 있다
 사이클이 생기게 되면, 사이클 안의 모든 변수들은 서로 논리구조가 연결된다.(SCC 사용이 가능하다는뜻)
 
-논리 관계를 그래프로 만들기
-P->Q 간선의 의미: P가 거짓이면 Q는 반드시 true여야 한다는 뜻
+* 논리 관계를 그래프로 만들기
+P->Q 간선의 의미: "P가 거짓이면 Q는 반드시 true이다"
+A V B
+A가 거짓이면 B는 반드시 true여야 함
+B가 거짓이면 A는 반드시 true여야 함
 
-참고) 경우의 수
+
+* 참고) 경우의 수
 P->Q: NOT P가 bool일때 Q가 bool이라면
 1. NOT P = true(P = false) -> Q = true: (false | true) = true
 2. NOT P = true(P = false) -> Q = false: (false | false) = false
 3. NOT P = false(P = true) -> Q = false: (true | false) = true
 4. NOT P = false(P = true) -> Q = true: (true | true) = true
+* 요약
+P->Q
+T  T: T
+T  F: F
+F  T: T
+F  F: T
 
-A V B: 둘중 하나는 반드시 true여야 함
-A가 F -> B는 반드시 T여야 한다, B가 F -> A는 반드시 T여야 한다 
-하나의 조건에 두 가지 간선이 만들어짐. NOT A->B, NOT B->A 두 간선을 그래프에 추가
-
-(A V B)
+* (A V B)
 nA->B
 nB->A
 2개 간선이 생성
 
-(A V nB) ∧ (B ∧ nA) ^ (A ^ B)
+* (A V nB) ∧ (B ∧ nA) ^ (A ^ B)
 nA->nB
 B->A
 nB->nA
 A->B
 nA->B
 nB->A
-4개 간선이 생성
+6개 간선이 생성
 
 nA->nB->A라는 사이클이 하나 생성되는데,
-여기서 nA->A와 A->nA로 이동이 가능해진다.
-nA->A는 곧 NOT NOT A -> A 이므로 위의 예시에서 
+이러면 nA->A와 A->nA 두 연결이 생기게 된다.
 
-케이스가 적어서 단순 DFS와 순열을 활용하여 가능할거 같음
+nA->A = NOT A가 거짓이면(A = true) A는 참이여야 한다
+->A = true일 때 성립
+
+A->nA = A = A가 거짓이면 NOT A는 참이어야 한다
+->A = false일 때 성립
+
+근데 만약 한 SCC에 두 간선이 모두 존재한다면?
+A가 true일 때는 nA->A는 성립하지만 A->nA는 성립 불가
+A가 false일 때는 A->nA는 성립하지만 nA->A는 성립 불가 
+모순이 발생하므로 주어진 2-CNF는 2-SAT를 충족시킬 수 없다 
 */
 
-#include <algorithm>
 #include <vector>
-using pii = pair<int, int>;
+#include <stack>
+constexpr int INF = 987654321;
 
-int N, M;
-vector<pii> CNF;
-vector<bool> comb;
-
-bool get_comb(int i) {
-	return (0 <= i ? comb[i] : !comb[-i]);
+int get_x_idx(int i) {
+	return (0 <= i ? i * 2 : -i * 2 + 1);
 }
 
-bool check() {
-	bool ret = true;
+vector<vector<int>> graph;
+int N, M;
 
-	for (const pii& p : CNF) {
-		ret = ret && (get_comb(p.first) || get_comb(p.second));
-		if (ret == false) {
-			break;
+//SCC section
+stack<int> stk;
+vector<int> scc_idx;
+vector<bool> finished;
+//vector<vector<int>> sccs;
+
+int build_SCC(int cur) {
+	static int id = 0, scc_count = 0;
+	scc_idx[cur] = ++id;
+	stk.push(cur);
+
+	int ret = scc_idx[cur];
+	for (int next : graph[cur]) {
+		if (scc_idx[next] == 0) {
+			ret = min(ret, build_SCC(next));
+		}
+		else if (false == finished[next]) {
+			ret = min(ret, scc_idx[next]);
+		}
+	}
+
+	if (scc_idx[cur] == ret) {
+		++scc_count;
+		//sccs.resize(scc_count + 1);
+		//auto& scc = sccs[scc_count];
+		while (true) {
+			int mem = stk.top(); stk.pop();
+			finished[mem] = true;
+			scc_idx[mem] = scc_count;
+			//scc.push_back(mem);
+
+			if (mem == cur) {
+				break;
+			}
 		}
 	}
 
@@ -81,29 +121,35 @@ bool check() {
 
 void solve() {
 	cin >> N >> M;
-	
-	CNF.reserve(M);
+
+	//역을 별도의 노드로 취급->2N개의 노드가 필요
+	//시작점: 2
+	//1 = 1 * 2(2), NOT 1 = 1 * 2 + 1(3)
+	graph.resize((N + 1) * 2 + 1);
 	for (int i = 1; i <= M; ++i) {
-		pii p; cin >> p.first >> p.second;
-		CNF.push_back(p);
+		int a, b; cin >> a >> b;
+		//NOT a->b, NOT b->a
+		graph[get_x_idx(-a)].push_back(get_x_idx(b));
+		graph[get_x_idx(-b)].push_back(get_x_idx(a));
 	}
 
-	comb.resize(N + 1);
-	for (int i = 1; i <= N + 1; ++i) {
-		for (int j = 1; j < i; ++j) {
-			comb[j] = true;
+	//만들어진 그래프를 활용해서 SCC를 생성
+	scc_idx.resize(graph.size());
+	finished.resize(graph.size());
+	for (int i = 2; i < (int)graph.size(); ++i) {
+		if (false == finished[i]) {
+			build_SCC(i);
 		}
-
-		do {
-			if(check()) { 
-				cout << true << '\n';
-				for (int i = 1; i <= N; ++i) {
-					cout << comb[i] << ' ';
-				}
-				return;
-			}
-		} while (prev_permutation(comb.begin() + 1, comb.end()));
 	}
 
-	cout << false;
+	//노드를 순회돌면서 NOT i와 i가 같은 SCC 안에 속하지 않는지 확인한다.
+	//만약 단 하나라도 같은 SCC에 들어있을 경우 2-SAT 만족 불가능
+	bool ans = true;
+	for (int i = 1; i <= N; ++i) {
+		if (scc_idx[get_x_idx(i)] == scc_idx[get_x_idx(-i)]) {
+			ans = false;
+			break;
+		}
+	}
+	cout << ans;
 }
