@@ -14,51 +14,37 @@ int main() {
 	return 0;
 }
 /*
-백준 2042 (구간 합 구하기) [세그먼트 트리]
-https://codeforces.com/blog/entry/18051
+백준 11404 (플로이드) [길찾기][플로이드-워셜][복습]
 */
-using ll = int64_t;
-const ll N = (ll)1e6;  // limit for array size
-ll n, m, k;  // array size
-ll t[2 * N];
-
-void build() {  // build the tree
-	for (ll i = n - 1; i > 0; --i) t[i] = t[i << 1] + t[i << 1 | 1];
-}
-
-void modify(ll p, ll value) {  // set value at position p
-	for (t[p += n] = value; p > 1; p >>= 1) t[p >> 1] = t[p] + t[p ^ 1];
-}
-
-ll query(ll l, ll r) {  // sum on interval [l, r)
-	ll res = 0;
-	for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
-		if (l & 1) res += t[l++];
-		if (r & 1) res += t[--r];
-	}
-	return res;
-}
-
+using uint = unsigned int;
+constexpr uint INF = (uint)1e9;
+uint n, m, edges[101][101];
 
 void solve() {
-	cin >> n >> m >> k;
-	for (ll i = 0; i < n; ++i) {
-		cin >> t[n + i];
-	}
-	build();
+	cin >> n >> m;
 
-	for (ll i = 0; i < m + k; ++i) {
-		ll a, b, c; cin >> a >> b >> c;
-		switch (a)
-		{
-		case 1:
-			modify(b - 1, c);
-			break;
-		case 2:
-			cout << query(b - 1, c) << '\n';
-			break;
-		default:
-			break;
+	for (uint i = 1; i <= n; ++i) {
+		for (uint j = 1; j <= n; ++j) {
+			if (i != j) { edges[i][j] = INF; }
 		}
+	}
+	for (uint i = 1; i <= m; ++i) {
+		uint a, b, c; cin >> a >> b >> c;
+		edges[a][b] = min(edges[a][b], c);
+	}
+
+	for (uint stopover = 1; stopover <= n; ++stopover) {
+		for (uint from = 1; from <= n; ++from) {
+			for (uint to = 1; to <= n; ++to) {
+				edges[from][to] = min(edges[from][to], edges[from][stopover] + edges[stopover][to]);
+			}
+		}
+	}
+
+	for (uint i = 1; i <= n; ++i) {
+		for (uint j = 1; j <= n; ++j) {
+			cout << (edges[i][j] == INF ? 0 : edges[i][j]) << ' ';
+		}
+		cout << '\n';
 	}
 }
