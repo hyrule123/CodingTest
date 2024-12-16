@@ -15,79 +15,69 @@ int main() {
 }
 
 /*
-백준 11505 (구간 곱 구하기) [세그먼트 트리]
+백준 2357 (최솟값과 최댓값) [세그먼트 트리]
 */
-using ull = unsigned long long;
-constexpr ull mod = 1'000'000'007, MAX = 1'000'000;
 
-ull segtree[MAX * 4 + 1], N, M, K;
-ull build_segtree(ull cur, ull start, ull end) {
+constexpr int IDX_MAX = 100'000, VAL_MIN = 1, VAL_MAX = 1'000'000'000;
+int N, M;
+pair<int, int> segtree[IDX_MAX * 4 + 1];
+#ifdef MIN 
+#undef MIN
+#endif
+#ifdef MAX
+#undef MAX
+#endif
+#define MIN first
+#define MAX second
+
+const pair<int, int>& build_segtree(int cur_idx, int start, int end) {
 	if (start >= end) {
-		cin >> segtree[cur];
-		return segtree[cur] %= mod;
+		cin >> segtree[cur_idx].MIN;
+		segtree[cur_idx].MAX = segtree[cur_idx].MIN;
+		return segtree[cur_idx];
 	}
-	
-	ull mid = (start + end) / 2, left = cur * 2, right = left + 1;
 
-	segtree[cur] =
-		(build_segtree(left, start, mid)
-			* build_segtree(right, mid + 1, end)) % mod;
+	int mid = (start + end) / 2, left = cur_idx * 2, right = left + 1;
 
-	return segtree[cur];
+	const auto
+		& val_l = build_segtree(left, start, mid),
+		& val_r = build_segtree(right, mid + 1, end);
+
+	segtree[cur_idx].MIN = min(val_l.MIN, val_r.MIN);
+	segtree[cur_idx].MAX = max(val_l.MAX, val_r.MAX);
+
+	return segtree[cur_idx];
 }
 
-ull modify_segtree(ull cur, ull start, ull end, ull target_idx, ull target_val) {
-	if (start >= end && start == target_idx) {
-		segtree[cur] = target_val;
-		segtree[cur] %= mod;
-		return segtree[cur];
+pair<int, int> part_min_max(int cur_idx, int start, int end, int from, int to) {
+	pair<int, int> ret;
+	if (end < from || to < start) {
+		ret.MIN = VAL_MAX;
+		ret.MAX = VAL_MIN;
+		return pair<int, int>{VAL_MAX, VAL_MIN};
+	}
+	if (from <= start && end <= to) {
+		return segtree[cur_idx];
 	}
 
-	ull mid = (start + end) / 2, left = cur * 2, right = left + 1;
+	int mid = (start + end) / 2, left = cur_idx * 2, right = left + 1;
 
-	if (target_idx <= mid) {
-		segtree[cur] =
-			(modify_segtree(left, start, mid, target_idx, target_val)
-				* segtree[right]) % mod;
-	}
-	else {
-		segtree[cur] =
-			(segtree[left]
-				* modify_segtree(right, mid + 1, end, target_idx, target_val)) % mod;
-	}
+	auto part_l = part_min_max(left, start, mid, from, to),
+		part_r = part_min_max(right, mid + 1, end, from, to);
 
-	return segtree[cur];
-}
+	ret.MIN = min(part_l.MIN, part_r.MIN);
+	ret.MAX = max(part_l.MAX, part_r.MAX);
 
-ull partmul_segtree(ull cur, ull start, ull end, ull range_start, ull range_end) {
-	//둘이 겹치는 범위가 없을 경우
-	if (start > range_end || end < range_start) { 
-		return 1;
-	}
-	//현재 탐색범위가 구간합 범위 안에 완벽히 들어올 경우
-	if (range_start <= start && end <= range_end) {
-		return segtree[cur];
-	}
-
-	ull mid = (start + end) / 2, left = cur * 2, right = left + 1;
-
-	//일부만 겹칠 경우
-	return (partmul_segtree(left, start, mid, range_start, range_end)
-		* partmul_segtree(right, mid + 1, end, range_start, range_end)) % mod;
+	return ret;
 }
 
 void solve() {
-	cin >> N >> M >> K;
-
+	cin >> N >> M;
 	build_segtree(1, 1, N);
 
-	for (ull i = 0; i < M + K; ++i) {
-		ull a, b, c; cin >> a >> b >> c;
-		if (a == 1) {
-			modify_segtree(1, 1, N, b, c);
-		}
-		else if (a == 2) {
-			cout << partmul_segtree(1, 1, N, b, c) << '\n';
-		}
+	while (M--) {
+		int a, b; cin >> a >> b;
+		auto result = part_min_max(1, 1, N, a, b);
+		cout << result.MIN << ' ' << result.MAX << '\n';
 	}
 }
