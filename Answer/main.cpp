@@ -13,38 +13,81 @@ int main() {
 	solve();
 	return 0;
 }
+
 /*
-백준 11404 (플로이드) [길찾기][플로이드-워셜][복습]
+백준 11505 (구간 곱 구하기) [세그먼트 트리]
 */
-using uint = unsigned int;
-constexpr uint INF = (uint)1e9;
-uint n, m, edges[101][101];
+using ull = unsigned long long;
+constexpr ull mod = 1'000'000'007, MAX = 1'000'000;
+
+ull segtree[MAX * 4 + 1], N, M, K;
+ull build_segtree(ull cur, ull start, ull end) {
+	if (start >= end) {
+		cin >> segtree[cur];
+		return segtree[cur] %= mod;
+	}
+	
+	ull mid = (start + end) / 2, left = cur * 2, right = left + 1;
+
+	segtree[cur] =
+		(build_segtree(left, start, mid)
+			* build_segtree(right, mid + 1, end)) % mod;
+
+	return segtree[cur];
+}
+
+ull modify_segtree(ull cur, ull start, ull end, ull target_idx, ull target_val) {
+	if (start >= end && start == target_idx) {
+		segtree[cur] = target_val;
+		segtree[cur] %= mod;
+		return segtree[cur];
+	}
+
+	ull mid = (start + end) / 2, left = cur * 2, right = left + 1;
+
+	if (target_idx <= mid) {
+		segtree[cur] =
+			(modify_segtree(left, start, mid, target_idx, target_val)
+				* segtree[right]) % mod;
+	}
+	else {
+		segtree[cur] =
+			(segtree[left]
+				* modify_segtree(right, mid + 1, end, target_idx, target_val)) % mod;
+	}
+
+	return segtree[cur];
+}
+
+ull partmul_segtree(ull cur, ull start, ull end, ull range_start, ull range_end) {
+	//둘이 겹치는 범위가 없을 경우
+	if (start > range_end || end < range_start) { 
+		return 1;
+	}
+	//현재 탐색범위가 구간합 범위 안에 완벽히 들어올 경우
+	if (range_start <= start && end <= range_end) {
+		return segtree[cur];
+	}
+
+	ull mid = (start + end) / 2, left = cur * 2, right = left + 1;
+
+	//일부만 겹칠 경우
+	return (partmul_segtree(left, start, mid, range_start, range_end)
+		* partmul_segtree(right, mid + 1, end, range_start, range_end)) % mod;
+}
 
 void solve() {
-	cin >> n >> m;
+	cin >> N >> M >> K;
 
-	for (uint i = 1; i <= n; ++i) {
-		for (uint j = 1; j <= n; ++j) {
-			if (i != j) { edges[i][j] = INF; }
-		}
-	}
-	for (uint i = 1; i <= m; ++i) {
-		uint a, b, c; cin >> a >> b >> c;
-		edges[a][b] = min(edges[a][b], c);
-	}
+	build_segtree(1, 1, N);
 
-	for (uint stopover = 1; stopover <= n; ++stopover) {
-		for (uint from = 1; from <= n; ++from) {
-			for (uint to = 1; to <= n; ++to) {
-				edges[from][to] = min(edges[from][to], edges[from][stopover] + edges[stopover][to]);
-			}
+	for (ull i = 0; i < M + K; ++i) {
+		ull a, b, c; cin >> a >> b >> c;
+		if (a == 1) {
+			modify_segtree(1, 1, N, b, c);
 		}
-	}
-
-	for (uint i = 1; i <= n; ++i) {
-		for (uint j = 1; j <= n; ++j) {
-			cout << (edges[i][j] == INF ? 0 : edges[i][j]) << ' ';
+		else if (a == 2) {
+			cout << partmul_segtree(1, 1, N, b, c) << '\n';
 		}
-		cout << '\n';
 	}
 }
