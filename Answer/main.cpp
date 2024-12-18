@@ -16,125 +16,62 @@ int main() {
 }
 
 /*
-백준 9345 (디지털 비디오 디스크(DVDs)) [세그먼트 트리]
-* 첫번째 풀이와 오답 이유
-분탕이 DVD의 순서를 바꿨을 때, 그냥 바뀐 DVD들을 1로 마킹해놓고
-구간합을 구했을 때 0이 아니면 DVD가 뒤섞였다고 판정하려 했음
-하지만 이렇게 했을 시 다음과 같은 경우에 대응이 안 됨
-1, 2, 3, 4 -> 3, 4, 1, 2, -> 2, 1, 4, 3 -> sum[0, 1)과 sum[2, 3)은 정답이지만
-내가 구상한 아이디어로는 오답이 나오게 됨
+백준 2805 (나무 자르기) [복습][이분탐색][매개변수 탐색]
+https://m42-orion.tistory.com/70
+1. 결정 문제로 풀면 쉽게 문제를 풀 수 있을 때
+2-1. 어떤 시점까지는 조건을 만족하지만, 그 후로는 조건을 만족하지 않는 경우. 조건을 만족하는 최대값 찾기
+2-2. 어떤 시점까지는 조건을 만족하지 않지만, 그 후로는 조건을 만족하는 경우. 조건을 만족하는 최소값 찾기
 
-* 두번째 풀이와 오답 이유
-DVD 순서는 0, 1, 2, 3의 등차 수열이므로 등차수열의 합 공식을 이용해 정확한 값을 빠르게 구할 수 있다
-분탕이 뒤집어놓은 DVD 순서는 세그먼트 트리에 계속 갱신해줘야 함
-만약 등차수열의 합 != DVD 합 일 경우 DVD 순서에 문제가 있는것
--> 0, 1, 2, 3, 4: query(1, 3) = 6
--> 3, 4, 2, 0, 1 : query(1, 3) = 6
-순서가 명백히 바꼈지만 참을 반환한다
+* 주요 포인트
+1. 반복문 뒤쪽의 start, end 재설정 위치를 어떻게 하느냐에 따라 최소값, 최대값에 근접하는 값을 뽑아낼 수 있음
+현재는 필요한 나무 길이를 충족시키는 '최대' 톱의 높이를 찾아야 하므로
+start가 올라갈 때 값을 갱신시킨다면 근접한 값을 찾을 수 있다
 
-* 세번째 풀이
-답은 최소/최대 세그먼트 트리를 만드는 거였음
+2. 최소 충족 조건인 M은 최대 20억의 값을 가질 수 있다
+만약 현재 15억의 나무를 확보해놓은 상태에서 길이 10억인 나무를 자른다면
+int 타입에서는 오버플로우가 발생하므로 최소 uint는 써줘야 한다.
 */
-struct MINMAX {
-	int MIN = numeric_limits<int>::max(),
-		MAX = numeric_limits<int>::min();
-};
-int N, leaf_num;
-MINMAX segtree[400'000];
-
-void build_segtree(int cur_idx, int start, int end) {
-	if (start >= end) {
-		segtree[cur_idx].MIN = leaf_num++;
-		segtree[cur_idx].MAX = segtree[cur_idx].MIN;
-		return;
-	}
-
-	int mid = (start + end) / 2, left = cur_idx * 2 + 1, right = left + 1;
-
-	build_segtree(left, start, mid);
-	build_segtree(right, mid + 1, end);
-
-	segtree[cur_idx].MIN = min(segtree[left].MIN, segtree[right].MIN);
-	segtree[cur_idx].MAX = max(segtree[left].MAX, segtree[right].MAX);
-}
-
-int target_idx, target_val;
-void modify_segtree(int cur_idx, int start, int end) {
-	if (start >= end) {
-		segtree[cur_idx].MIN = target_val;
-		segtree[cur_idx].MAX = target_val;
-		return;
-	}
-
-	int mid = (start + end) / 2, left = cur_idx * 2 + 1, right = left + 1;
-	if (target_idx <= mid) {
-		modify_segtree(left, start, mid);
-	}
-	else {
-		modify_segtree(right, mid + 1, end);
-	}
-	
-	segtree[cur_idx].MIN = min(segtree[left].MIN, segtree[right].MIN);
-	segtree[cur_idx].MAX = max(segtree[left].MAX, segtree[right].MAX);
-}
-
-int query_l, query_r;
-MINMAX query_segtree(int cur_idx, int start, int end) {
-	if (query_r < start || end < query_l) {
-		return MINMAX(numeric_limits<int>::max(), numeric_limits<int>::min());
-	}
-	if (query_l <= start && end <= query_r) {
-		return segtree[cur_idx];
-	}
-
-	int mid = (start + end) / 2, left = cur_idx * 2 + 1, right = left + 1;
-
-	MINMAX 
-		l = query_segtree(left, start, mid), 
-		r = query_segtree(right, mid + 1, end);
-
-	return MINMAX(min(l.MIN, r.MIN), max(l.MAX, r.MAX));
-}
+using uint = unsigned int;
+uint N, M, trees[1'000'000];
 
 void solve() {
-	int T; cin >> T;
-	while (T--) {
-		int K;
-		cin >> N >> K;
-		
-		memset(segtree, 0, sizeof(segtree));
-		leaf_num = 0;
-		build_segtree(0, 0, N - 1);
+	cin >> N >> M;
 
-		while (K--) {
-			int Q, A, B; cin >> Q >> A >> B;
-			if (0 == Q) {
-				//현재 A, B에 들어있는 DVD 번호를 가져온다.
-				//MIN, MAX 상관 없음
-				query_l = A, query_r = A;
-				int dvd_in_A = query_segtree(0, 0, N - 1).MIN;
+	uint end = 0;
+	for (uint i = 0; i < N; ++i) {
+		cin >> trees[i];
+		if (end < trees[i]) {
+			end = trees[i];
+		}
+	}
 
-				query_l = B, query_r = B;
-				int dvd_in_B = query_segtree(0, 0, N - 1).MIN;
-				
-				//A와 B에 들어있던 DVD를 맞바꾼다
-				target_idx = A, target_val = dvd_in_B;
-				modify_segtree(0, 0, N - 1);
+	//톱의 최대 높이는 나무 최대 높이 -1
+	--end;
+	uint start = 0, answer = 0;
+	while (start <= end) {
 
-				target_idx = B, target_val = dvd_in_A;
-				modify_segtree(0, 0, N - 1);
-			}
-			else {
-				query_l = A, query_r = B;
-				MINMAX result = query_segtree(0, 0, N - 1);
+		uint height = (start + end) / 2;
 
-				if (result.MIN == A && result.MAX == B) {
-					cout << "YES\n";
-				}
-				else {
-					cout << "NO\n";
+		uint sum = 0;
+		for (uint i = 0; i < N; ++i) {
+			if (height < trees[i]) {
+				sum = sum + (trees[i] - height);
+
+				//이미 필요한 양을 넘어섰다면 break
+				if (M < sum) {
+					break;
 				}
 			}
 		}
+
+		if (sum < M) {
+			end = height - 1;
+		}
+		else {
+			answer = height;
+			start = height + 1;
+		}
 	}
+
+	cout << answer;
 }
