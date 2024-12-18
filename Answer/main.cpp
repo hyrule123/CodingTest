@@ -16,7 +16,7 @@ int main() {
 }
 
 /*
-백준 9345 (디지털 비디오 디스크(DVDs)) [세그먼트 트리][오답2]
+백준 9345 (디지털 비디오 디스크(DVDs)) [세그먼트 트리]
 * 첫번째 풀이와 오답 이유
 분탕이 DVD의 순서를 바꿨을 때, 그냥 바뀐 DVD들을 1로 마킹해놓고
 구간합을 구했을 때 0이 아니면 DVD가 뒤섞였다고 판정하려 했음
@@ -31,12 +31,21 @@ DVD 순서는 0, 1, 2, 3의 등차 수열이므로 등차수열의 합 공식을
 -> 0, 1, 2, 3, 4: query(1, 3) = 6
 -> 3, 4, 2, 0, 1 : query(1, 3) = 6
 순서가 명백히 바꼈지만 참을 반환한다
+
+* 세번째 풀이
+답은 최소/최대 세그먼트 트리를 만드는 거였음
 */
-int N, segtree[400'000], leaf_num;
+struct MINMAX {
+	int MIN = numeric_limits<int>::max(),
+		MAX = numeric_limits<int>::min();
+};
+int N, leaf_num;
+MINMAX segtree[400'000];
 
 void build_segtree(int cur_idx, int start, int end) {
 	if (start >= end) {
-		segtree[cur_idx] = leaf_num++;
+		segtree[cur_idx].MIN = leaf_num++;
+		segtree[cur_idx].MAX = segtree[cur_idx].MIN;
 		return;
 	}
 
@@ -45,13 +54,15 @@ void build_segtree(int cur_idx, int start, int end) {
 	build_segtree(left, start, mid);
 	build_segtree(right, mid + 1, end);
 
-	segtree[cur_idx] = segtree[left] + segtree[right];
+	segtree[cur_idx].MIN = min(segtree[left].MIN, segtree[right].MIN);
+	segtree[cur_idx].MAX = max(segtree[left].MAX, segtree[right].MAX);
 }
 
 int target_idx, target_val;
 void modify_segtree(int cur_idx, int start, int end) {
 	if (start >= end) {
-		segtree[cur_idx] = target_val;
+		segtree[cur_idx].MIN = target_val;
+		segtree[cur_idx].MAX = target_val;
 		return;
 	}
 
@@ -63,13 +74,14 @@ void modify_segtree(int cur_idx, int start, int end) {
 		modify_segtree(right, mid + 1, end);
 	}
 	
-	segtree[cur_idx] = segtree[left] + segtree[right];
+	segtree[cur_idx].MIN = min(segtree[left].MIN, segtree[right].MIN);
+	segtree[cur_idx].MAX = max(segtree[left].MAX, segtree[right].MAX);
 }
 
 int query_l, query_r;
-int query_segtree(int cur_idx, int start, int end) {
+MINMAX query_segtree(int cur_idx, int start, int end) {
 	if (query_r < start || end < query_l) {
-		return 0;
+		return MINMAX(numeric_limits<int>::max(), numeric_limits<int>::min());
 	}
 	if (query_l <= start && end <= query_r) {
 		return segtree[cur_idx];
@@ -77,9 +89,11 @@ int query_segtree(int cur_idx, int start, int end) {
 
 	int mid = (start + end) / 2, left = cur_idx * 2 + 1, right = left + 1;
 
-	return
-		query_segtree(left, start, mid)
-		+ query_segtree(right, mid + 1, end);
+	MINMAX 
+		l = query_segtree(left, start, mid), 
+		r = query_segtree(right, mid + 1, end);
+
+	return MINMAX(min(l.MIN, r.MIN), max(l.MAX, r.MAX));
 }
 
 void solve() {
@@ -96,11 +110,12 @@ void solve() {
 			int Q, A, B; cin >> Q >> A >> B;
 			if (0 == Q) {
 				//현재 A, B에 들어있는 DVD 번호를 가져온다.
+				//MIN, MAX 상관 없음
 				query_l = A, query_r = A;
-				int dvd_in_A = query_segtree(0, 0, N - 1);
+				int dvd_in_A = query_segtree(0, 0, N - 1).MIN;
 
 				query_l = B, query_r = B;
-				int dvd_in_B = query_segtree(0, 0, N - 1);
+				int dvd_in_B = query_segtree(0, 0, N - 1).MIN;
 				
 				//A와 B에 들어있던 DVD를 맞바꾼다
 				target_idx = A, target_val = dvd_in_B;
@@ -111,10 +126,14 @@ void solve() {
 			}
 			else {
 				query_l = A, query_r = B;
-				int result = query_segtree(0, 0, N - 1);
-				int original = (A + B) * (B - A + 1) / 2;
+				MINMAX result = query_segtree(0, 0, N - 1);
 
-				cout << (result == original ? "YES\n" : "NO\n");
+				if (result.MIN == A && result.MAX == B) {
+					cout << "YES\n";
+				}
+				else {
+					cout << "NO\n";
+				}
 			}
 		}
 	}
