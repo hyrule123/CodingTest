@@ -16,50 +16,80 @@ int main() {
 }
 
 /*
-백준 11049 (행렬 곱셈 순서) [복습][DP]
-재귀를 사용한 풀이(72ms)로, 예전에 풀었던 for문 반복 풀이(32ms)보다 느리다.
+백준 9345 (디지털 비디오 디스크(DVDs)) [오답]
+* 오답 이유
+분탕이 DVD의 순서를 바꿨을 때, 그냥 바뀐 DVD들을 1로 마킹해놓고
+구간합을 구했을 때 0이 아니면 DVD가 뒤섞였다고 판정하려 했음
+하지만 이렇게 했을 시 다음과 같은 경우에 대응이 안 됨
+1, 2, 3, 4 -> 3, 4, 1, 2, -> 2, 1, 4, 3 -> sum[0, 1)과 sum[2, 3)은 정답이지만
+내가 구상한 아이디어로는 오답이 나오게 됨
+
+* 정답 풀이라고 생각하는 것
+DVD 순서는 0, 1, 2, 3의 등차 수열이므로 등차수열의 합 공식을 이용해 정확한 값을 빠르게 구할 수 있다
+분탕이 뒤집어놓은 DVD 순서는 세그먼트 트리에 계속 갱신해줘야 함
+만약 등차수열의 합 != DVD 합 일 경우 DVD 순서에 문제가 있는것
 */
-#define ROW first
-#define COL second
-using uint = unsigned int;
-using puu = pair<uint, uint>;
-uint N;
-puu mats[500];
-uint dp[500][500];
+int N, segtree[400'000];
 
-uint DP_recursive(uint from, uint to) {
-	if (dp[from][to] != 0xff'ff'ff'ff) {
-		return dp[from][to];
+int target_idx; //target_idx = target_val
+void modify_segtree(int cur_idx, int start, int end) {
+	if (start >= end) {
+		segtree[cur_idx] = target_idx;
+		return;
 	}
 
-	//1, 2, 3 -> 1/23, 12/3
-	//전부 해본다
-	for (uint mid = from; mid < to; ++mid) {
-		uint calc_counts = 
-			DP_recursive(from, mid) + DP_recursive(mid + 1, to)
-			//from ~ mid 행렬을 계산하는데 필요한 연산비용의 최소값과
-			//mid + 1 ~ to 행렬을 만드는데 필요한 연산비용의 최소값을 더한뒤
-			//두 행렬을 곱하는 비용을 추가한다.
-			//cf. mats[mid].COL은 mats[mid + 1].ROW로 대체 가능
-			+ mats[from].ROW * mats[mid].COL * mats[to].COL;
-		dp[from][to] = min(dp[from][to], calc_counts);
+	int mid = (start + end) / 2, left = cur_idx * 2 + 1, right = left + 1;
+	if (target_idx <= mid) {
+		modify_segtree(left, start, mid);
+	}
+	else {
+		modify_segtree(right, mid + 1, end);
+	}
+	
+	segtree[cur_idx] = segtree[left] + segtree[right];
+}
+
+int query_l, query_r;
+int query_segtree(int cur_idx, int start, int end) {
+	if (query_r < start || end < query_l) {
+		return 0;
+	}
+	if (query_l <= start && end <= query_r) {
+		return segtree[cur_idx];
 	}
 
-	return dp[from][to];
+	int mid = (start + end) / 2, left = cur_idx * 2 + 1, right = left + 1;
+
+	return
+		query_segtree(left, start, mid)
+		+ query_segtree(right, mid + 1, end);
 }
 
 void solve() {
-	memset(dp, -1, sizeof(dp));
+	int T; cin >> T;
+	while (T--) {
+		int K;
+		cin >> N >> K;
+		
+		memset(segtree, 0, sizeof(segtree));
 
-	cin >> N;
-	cin >> mats[0].ROW >> mats[0].COL;
-	dp[0][0] = 0;
-	for (uint i = 1; i < N; ++i) {
-		cin >> mats[i].ROW >> mats[i].COL;
-		dp[i - 1][i] = mats[i - 1].ROW * mats[i].ROW * mats[i].COL;
+		while (K--) {
+			int Q, A, B; cin >> Q >> A >> B;
+			if (0 == Q) {
 
-		dp[i][i] = 0;
+
+
+			}
+			else {
+				query_l = A, query_r = B;
+				int result = query_segtree(1, 1, N - 1);
+				cout << (result == 0 ? "YES\n" : "NO\n");
+			}
+		}
+
 	}
 
-	cout << DP_recursive(0, N - 1);
+
+	
+
 }
