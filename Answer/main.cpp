@@ -15,77 +15,81 @@ int main() {
 	return 0;
 }
 /*
-백준 1168 (요세푸스 문제 2) [세그먼트 트리]
+백준 26523 (균등분포와 정규분포) [확률과 통계]
+입력 데이터는 
+U(0, 1) 균등분포의 0,1 구간에서 추출된 데이터 5000개
+또는
+N(0.5, 0.1) 정규분포의 0, 1 구간에서 추출된 데이터 5000개
+
+전자의 경우 넓이가 1에 근접할 것이고
+후자의 경우 넓이가 정규분포를 적분한 값에 근접할 것이다
+
+우선 정규분포의 0.25 ~ 0.75 확률 / 0~.25 + .75~1 확률의 비율을 구한다
+균등분포는 각각 구간이 동일하므로 0.5 / 0.5 = 1의 비율일 것이다
+
+입력된 데이터도 동일한 구간으로 나눠서 비율을 구한다
+
+둘 중 가까운 쪽을 답으로 선정한다.
 */
 #include <cmath>
-#include <vector>
-constexpr int MAX = 100'000;
-vector<int> segtree;
-int N, K, seg_size;
+#include <numbers>
+int TC = 1;
+constexpr double mean = 0.5, distrib = 0.1, precision = 0.0001, n = 5000;
+double integ_norm(double from, double to) {
+	static double coef = 1.0 / (sqrt(2 * numbers::pi * distrib));
 
-void init(int cur_idx, int search_l, int search_r) {
-	if (search_l >= search_r) {
-		segtree[cur_idx] = 1;
-		return;
+	double result = 0;
+	for (double x = from; x <= to + numeric_limits<double>::epsilon(); x += precision) {
+		double _exp = -(pow(x - mean, 2.0) / (2 * distrib));
+		_exp = exp(_exp);
+		result += coef * _exp * precision;
 	}
-
-	int mid = (search_l + search_r) / 2, left = cur_idx * 2, right = left + 1;
-
-	init(left, search_l, mid);
-	init(right, mid + 1, search_r);
-
-	segtree[cur_idx] = segtree[left] + segtree[right];
-}
-
-int query(int cur_idx, int search_l, int search_r, int target_num) {
-	if (search_l >= search_r) {
-		segtree[cur_idx] = 0;
-		return search_l;
-	}
-
-	int mid = (search_l + search_r) / 2, left = cur_idx * 2, right = left + 1;
-	int ret = 0;
-	if (target_num <= segtree[left]) {
-		ret = query(left, search_l, mid, target_num);
-	}
-	else {
-		ret = query(right, mid + 1, search_r, target_num - segtree[left]);
-	}
-
-	segtree[cur_idx] = segtree[left] + segtree[right];
 	
-	return ret;
+	return result;
 }
+
+int _25_to_75_count, other_count; //0~0.25, 0.75~1
 
 void solve() {
-	cin >> N >> K;
-	seg_size = (int)pow(2.0, ceil(log2((double)N)) + 1);
-	segtree.resize(seg_size);
+	while (TC--) {
+		//0~1 사이가 나올 확률
+		double norm_0_to_1 = integ_norm(0.0, 1.0);
+		//.25~.75 사이가 나올 확률
+		double norm_25_to_75 = integ_norm(0.25, 0.75);
 
-	init(1, 1, N);
+		//0 ~ .25, .75~1 구간이 나올 확률
+		double other = norm_0_to_1 - norm_25_to_75;
 
-	cout << '<';
-	int remain = N, n_th = K;
-	while (remain) {
-		/*
-		7, 3일 경우
-		1회 처음에서 3번째 { 1, 2, {3}, 4, 5, 6, 7 }
-		2회 처음에서 5번째 { 1, 2, {3}, 4, 5, {6}, 7 }
-		3회 처음에서 2번째 { 1, {2}, {3}, 4, 5, {6}, 7 }
-		...
-		규칙: (K + (K - 1) * N회) % (남은 인원 수)
-		*/
-		cout << query(1, 1, N, n_th);
-		--remain;
-		if (remain) {
-			n_th = (n_th + K - 1) % remain;
-			if (n_th == 0) { n_th = remain; }
-			cout << ", ";
+		//.25 ~.75 나올 확률 / 나머지 구간 확률의 비율을 구한다
+		double norm_ratio = norm_25_to_75 / other;
+
+		//입력도 마찬가지로 위와 같은 구간으로 구분하고, 비율을 구한다
+		for (int i = 0; i < n; ++i) {
+			double input; cin >> input;
+			if (0.25 <= input && input <= 0.75) {
+				++_25_to_75_count;
+			}
+			else {
+				++other_count;
+			}
+		}
+
+		double input_ratio = (double)_25_to_75_count / (double)other_count;
+
+		//정규분포 비율과의 차이, 균등분포 비율과의 차이를 구한다
+		double norm_dist = abs(norm_ratio - input_ratio);
+
+		//마찬가지로 균등분포도 차이를 구한다.
+		//균등분포는 전 구간 출현 확률이 같으므로
+		//.25~.75 구간(0.5) / 0~.25 + .75~1 구간(0.5)를 해주면 1이 나온다
+		double uniform_dist = abs(1.0 - input_ratio);
+
+		//둘중 가까운 쪽을 답으로 선정
+		if (uniform_dist < norm_dist) {
+			cout << "A\n";
+		}
+		else {
+			cout << "B\n";
 		}
 	}
-
-	for (int i = 1; i <= N; ++i) {
-
-	}
-	cout << '>';
 }
