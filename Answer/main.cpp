@@ -15,7 +15,7 @@ int main() {
 	return 0;
 }
 /*
-백준 26523 (균등분포와 정규분포) [확률과 통계]
+백준 26523 (균등분포와 정규분포) [확률과 통계][오답]
 입력 데이터는 
 U(0, 1) 균등분포의 0,1 구간에서 추출된 데이터 5000개
 또는
@@ -33,7 +33,7 @@ N(0.5, 0.1) 정규분포의 0, 1 구간에서 추출된 데이터 5000개
 */
 #include <cmath>
 #include <numbers>
-int TC = 1;
+int TC = 100;
 constexpr double mean = 0.5, distrib = 0.1, precision = 0.0001, n = 5000;
 double integ_norm(double from, double to) {
 	static double coef = 1.0 / (sqrt(2 * numbers::pi * distrib));
@@ -51,18 +51,18 @@ double integ_norm(double from, double to) {
 int _25_to_75_count, other_count; //0~0.25, 0.75~1
 
 void solve() {
+	//0~1 사이가 나올 확률
+	double norm_0_to_1 = integ_norm(0.0, 1.0);
+	//.25~.75 사이가 나올 확률
+	double norm_25_to_75 = integ_norm(0.25, 0.75);
+
+	//0 ~ .25, .75~1 구간이 나올 확률
+	double other = norm_0_to_1 - norm_25_to_75;
+
+	//.25 ~.75 나올 확률 / 나머지 구간 확률의 비율을 구한다
+	double norm_ratio = norm_25_to_75 / other;
+
 	while (TC--) {
-		//0~1 사이가 나올 확률
-		double norm_0_to_1 = integ_norm(0.0, 1.0);
-		//.25~.75 사이가 나올 확률
-		double norm_25_to_75 = integ_norm(0.25, 0.75);
-
-		//0 ~ .25, .75~1 구간이 나올 확률
-		double other = norm_0_to_1 - norm_25_to_75;
-
-		//.25 ~.75 나올 확률 / 나머지 구간 확률의 비율을 구한다
-		double norm_ratio = norm_25_to_75 / other;
-
 		//입력도 마찬가지로 위와 같은 구간으로 구분하고, 비율을 구한다
 		for (int i = 0; i < n; ++i) {
 			double input; cin >> input;
