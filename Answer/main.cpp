@@ -15,7 +15,9 @@ int main() {
 	return 0;
 }
 /*
-백준 26523 (균등분포와 정규분포) [확률과 통계][오답]
+백준 26523 (균등분포와 정규분포) [확률과 통계]
+* 오답 원인: 변수 초기화를 안해서;;
+
 입력 데이터는 
 U(0, 1) 균등분포의 0,1 구간에서 추출된 데이터 5000개
 또는
@@ -48,8 +50,6 @@ double integ_norm(double from, double to) {
 	return result;
 }
 
-int _25_to_75_count, other_count; //0~0.25, 0.75~1
-
 void solve() {
 	//0~1 사이가 나올 확률
 	double norm_0_to_1 = integ_norm(0.0, 1.0);
@@ -63,6 +63,8 @@ void solve() {
 	double norm_ratio = norm_25_to_75 / other;
 
 	while (TC--) {
+		int _25_to_75_count = 0, other_count = 0; //0~0.25, 0.75~1
+
 		//입력도 마찬가지로 위와 같은 구간으로 구분하고, 비율을 구한다
 		for (int i = 0; i < n; ++i) {
 			double input; cin >> input;
