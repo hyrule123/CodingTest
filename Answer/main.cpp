@@ -15,83 +15,77 @@ int main() {
 	return 0;
 }
 /*
-백준 26523 (균등분포와 정규분포) [확률과 통계]
-* 오답 원인: 변수 초기화를 안해서;;
-
-입력 데이터는 
-U(0, 1) 균등분포의 0,1 구간에서 추출된 데이터 5000개
-또는
-N(0.5, 0.1) 정규분포의 0, 1 구간에서 추출된 데이터 5000개
-
-전자의 경우 넓이가 1에 근접할 것이고
-후자의 경우 넓이가 정규분포를 적분한 값에 근접할 것이다
-
-우선 정규분포의 0.25 ~ 0.75 확률 / 0~.25 + .75~1 확률의 비율을 구한다
-균등분포는 각각 구간이 동일하므로 0.5 / 0.5 = 1의 비율일 것이다
-
-입력된 데이터도 동일한 구간으로 나눠서 비율을 구한다
-
-둘 중 가까운 쪽을 답으로 선정한다.
+백준 2170 (선 긋기) [스위핑]
 */
-#include <cmath>
-#include <numbers>
-int TC = 100;
-constexpr double mean = 0.5, distrib = 0.1, precision = 0.0001, n = 5000;
-double integ_norm(double from, double to) {
-	static double coef = 1.0 / (sqrt(2 * numbers::pi * distrib));
+using pii = pair<int, int>;
+#define FROM first
+#define TO second
+int N;
+pii arr[1'000'000], temp[1'000'000];
 
-	double result = 0;
-	for (double x = from; x <= to + numeric_limits<double>::epsilon(); x += precision) {
-		double _exp = -(pow(x - mean, 2.0) / (2 * distrib));
-		_exp = exp(_exp);
-		result += coef * _exp * precision;
+void mergesort(int start, int end) {
+	if (start >= end) { return; }
+
+	int mid = (start + end) / 2;
+	mergesort(start, mid);
+	mergesort(mid + 1, end);
+
+	int l = start, r = mid + 1, cursor = 0;
+	while (l <= mid && r <= end) {
+		if (arr[l] <= arr[r]) {
+			temp[cursor++] = arr[l++];
+		}
+		else {
+			temp[cursor++] = arr[r++];
+		}
 	}
-	
-	return result;
+
+	while (l <= mid) {
+		temp[cursor++] = arr[l++];
+	}
+	while (r <= end) {
+		temp[cursor++] = arr[r++];
+	}
+
+	memcpy(arr + start, temp, sizeof(pii) * (end - start + 1));
 }
 
 void solve() {
-	//0~1 사이가 나올 확률
-	double norm_0_to_1 = integ_norm(0.0, 1.0);
-	//.25~.75 사이가 나올 확률
-	double norm_25_to_75 = integ_norm(0.25, 0.75);
+	cin >> N;
+	for (int i = 0; i < N; ++i) {
+		cin >> arr[i].FROM >> arr[i].TO;
+	}
 
-	//0 ~ .25, .75~1 구간이 나올 확률
-	double other = norm_0_to_1 - norm_25_to_75;
+	mergesort(0, N - 1);
 
-	//.25 ~.75 나올 확률 / 나머지 구간 확률의 비율을 구한다
-	double norm_ratio = norm_25_to_75 / other;
+	//경우의 수: 3가지
+	//1. 바로 전에 그린 선과 현재 그린 선이 일치
+	//2. 부분 일치
+	//3. 미일치
 
-	while (TC--) {
-		int _25_to_75_count = 0, other_count = 0; //0~0.25, 0.75~1
+	//계산 완료된 시작점과 끝점
+	int from = arr[0].FROM, to = arr[0].TO;
+	int sum = to - from;
+	for (int i = 1; i < N; ++i) {
+		//정렬했으므로 arr[i - 1].FROM <= arr[i].FROM은 언제나 참
 
-		//입력도 마찬가지로 위와 같은 구간으로 구분하고, 비율을 구한다
-		for (int i = 0; i < n; ++i) {
-			double input; cin >> input;
-			if (0.25 <= input && input <= 0.75) {
-				++_25_to_75_count;
-			}
-			else {
-				++other_count;
-			}
+		//선이 미일치하는 경우
+		if (to <= arr[i].FROM) {
+			sum = sum + (arr[i].TO - arr[i].FROM);
+			from = arr[i].FROM;
+			to = arr[i].TO;
 		}
 
-		double input_ratio = (double)_25_to_75_count / (double)other_count;
-
-		//정규분포 비율과의 차이, 균등분포 비율과의 차이를 구한다
-		double norm_dist = abs(norm_ratio - input_ratio);
-
-		//마찬가지로 균등분포도 차이를 구한다.
-		//균등분포는 전 구간 출현 확률이 같으므로
-		//.25~.75 구간(0.5) / 0~.25 + .75~1 구간(0.5)를 해주면 1이 나온다
-		double uniform_dist = abs(1.0 - input_ratio);
-
-		//둘중 가까운 쪽을 답으로 선정
-		if (uniform_dist < norm_dist) {
-			cout << "A\n";
-		}
-		else {
-			cout << "B\n";
+		else if (arr[i].FROM <= to) {
+			//부분 일치 할 경우
+			if (to <= arr[i].TO) {
+				sum = sum + (arr[i].TO - to);
+				from = to;
+				to = arr[i].TO;
+			}
+			//이미 합산된 선일 경우 아무것도 하지 않는다
 		}
 	}
+
+	cout << sum;
 }
