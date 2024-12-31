@@ -15,54 +15,148 @@ int main() {
 	return 0;
 }
 /*
-백준 22968 (균형) [DP][Parametric Search]
-AVL 트리에서 깊이 h 이상을 달성하기 위한 최소한의 노드 개수 = N(h)
-N(1) = 1
-N(2) = 2
-N(3) = 4 (한쪽 깊이 1, 반대쪽 깊이 2 부터)
-N(4) = 7 (한쪽 깊이 2, 반대쪽 깊이 3 부터)
--> N(h) = N(h - 2) + N(h - 1) + 1
+백준 24459 (회로의 저항) [LCA][오답]
+리프노드부터 리프노드까지의 거리 중 최장거리와 최단거리 구하기
+* 유사 문제: 백준 3176 (도로 네트워크)
+* LCA를 사용하여 푸는 문제인가...했으나 아닌 듯
+마지막에 리프노드의 모든 쌍끼리 거리를 구하는 과정에서 O(N^2)가 될 수도 있음
 */
-#include <cmath>
 #include <vector>
-constexpr int MAX = 1'000'000'000;
-vector<int> min_N_to_build_h;
-void precompute() {
-	min_N_to_build_h.reserve(50);
-	min_N_to_build_h = { 0, 1, 2 };
-	while (min_N_to_build_h.back() < MAX) {
-		auto h_minus_2 = min_N_to_build_h.end() - 2;
-		auto h_minus_1 = min_N_to_build_h.end() - 1;
-		min_N_to_build_h.push_back((*h_minus_2) + (*h_minus_1) + 1);
+#include <stack>
+#include <cmath>
+using pii = pair<int, int>;
+#define TO first
+#define DIST second
+#define shortest first
+#define longest second
+struct parent_info {
+	int parent, dist;
+};
+//2^16 = 65535, 2^17은 해야 10만이 넘음
+//binary lifting을 하기 위해선 최소 1 << 17까지는 쓸 수 있어야 하므로 18을 배열의 길이로 준다
+constexpr int N_MAX = 100'000, N_MAX_LOG2 = 18;
+int N;
+vector<pii> graph[N_MAX];
+parent_info parent_of[N_MAX][N_MAX_LOG2];
+int depth[N_MAX];
+vector<int> leaf_nodes;
+
+void build_parent_of() {
+	vector<bool> visited; visited.resize(N);
+	stack<int> stk;
+	stk.push(0);
+	visited[0] = true;
+
+	while (false == stk.empty()) {
+		int cur = stk.top(); stk.pop();
+
+		if (graph[cur].size() == 1) {
+			leaf_nodes.push_back(cur);
+		}
+
+		for (const pii& next : graph[cur]) {
+			if (visited[next.TO]) { continue; }
+			visited[next.TO] = true;
+
+			//next의 부모님은 cur,
+			//next에서 cur로 가는 최단거리, 최장거리는 DIST
+			parent_of[next.TO][0].parent = cur;
+			parent_of[next.TO][0].dist = next.DIST;
+			depth[next.TO] = depth[cur] + 1;
+
+			stk.push(next.TO);
+		}
 	}
 }
 
-int find_height(int start, int end, int N) {
-	int ret = start;
+void precompute_parent_of() {
+	for (int h = 1; h < N_MAX_LOG2; ++h) {
+		for (int i = 0; i < N_MAX; ++i) {
+			/*
+			i의 1<<h번째 부모
+			0은 직계부모(1 << 0)
+			1은 1 << 1 = 2 이므로 부모의 부모의 부모
+			부모의 부모(1 << 0) 의 부모(1 << 0)
+			
+			1<<2 는 4 이므로 
+			1<<2의 부모의 1<<1번째 부모(a)
+			a의 1<<1번쨰 부모를 구하면 됨
 
-	while (start <= end) {
-		int mid = (start + end) / 2;
-		
-		//깊이 h를 만들기 위한 최소한의 N개 이므로
-		if (min_N_to_build_h[mid] <= N) {
-			ret = mid;
-			start = mid + 1;
+			쉽게 말해서 n의 1<<h번쨰 부모를 구하라 라고 하면
+			1<<h-1번쨰 부모를 찾고, 그 부모의 1<<h-1번째 부모를 찾으면 되는것이다
+			*/
+			auto& cur = parent_of[i][h];
+
+			auto& par = parent_of[i][h - 1];
+			auto& par_par = parent_of[par.parent][h - 1];
+
+			cur.parent = par_par.parent;
+			cur.dist = par.dist + par_par.dist;
 		}
-		else {
-			end = mid - 1;
+	}
+}
+
+int query_dist(int a, int b) {
+	if (depth[a] > depth[b]) {
+		swap(a, b);
+	}
+
+	int total_dist = 0;
+	int depth_diff = depth[b] - depth[a];
+	for (int shifts = 0; shifts < N_MAX_LOG2; ++shifts) {
+		int bit = 1 << shifts;
+		if (depth_diff < bit) { break; }
+		if (depth_diff & bit) {
+			total_dist += parent_of[b][shifts].dist;
+			b = parent_of[b][shifts].parent;
 		}
 	}
 
-	return ret;
+	//a가 b의 부모 노드였을 경우 리턴
+	if (a == b) {
+		return total_dist;
+	}
+
+	//먼 거리부터 탐색. 공통 조상이 달라지는 처음 부분을 찾는다.
+	for (int h = N_MAX_LOG2 - 1; h >= 0; --h) {
+		if (parent_of[a][h].parent == parent_of[b][h].parent) {
+			continue;
+		}
+
+		total_dist += parent_of[a][h].dist;
+		total_dist += parent_of[b][h].dist;
+
+		a = parent_of[a][h].parent;
+		b = parent_of[b][h].parent;
+	}
+
+	//공통 조상이 달라지는 처음 부분을 찾은것이므로 직계 조상까지의 거리도 더해줘야 한다
+	total_dist += parent_of[a][0].dist;
+	total_dist += parent_of[b][0].dist;
+
+	return total_dist;
 }
 
-int T;
 void solve() {
-	precompute();
-
-	cin >> T;
-	while (T--) {
-		int input; cin >> input;
-		cout << find_height(1, (int)min_N_to_build_h.size() - 1, input) << '\n';
+	cin >> N;
+	for (int i = 0; i < N - 1; ++i) {
+		int p, q, r; cin >> p >> q >> r;
+		graph[p].push_back({ q, r });
+		graph[q].push_back({ p, r });
 	}
+
+	build_parent_of();
+	precompute_parent_of();
+
+	int min_dist = numeric_limits<int>::max(),
+		max_dist = numeric_limits<int>::min();
+	for (int i = 0; i < (int)leaf_nodes.size(); ++i) {
+		for (int j = i + 1; j < (int)leaf_nodes.size(); ++j) {
+			int dist = query_dist(leaf_nodes[i], leaf_nodes[j]);
+			min_dist = min(min_dist, dist);
+			max_dist = max(max_dist, dist);
+		}
+	}
+
+	cout << max_dist << '\n' << min_dist;
 }
