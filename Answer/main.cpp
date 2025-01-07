@@ -14,111 +14,150 @@ int main() {
 	solve();
 	return 0;
 }
-/*
-백준 24459 (회로의 저항) [DFS]
-리프노드부터 리프노드까지의 거리 중 최장거리와 최단거리 구하기
-* 유사 문제: 백준 3176 (도로 네트워크)
-* LCA를 사용하여 푸는 문제인가...했으나 아닌 듯
-마지막에 리프노드의 모든 쌍끼리 거리를 구하는 과정에서 O(N^2)가 될 수도 있음
 
-https://m.kin.naver.com/qna/dirs/10402/docs/471094489
-DFS로 찾고 있는듯. 이 코드는 위 사이트를 참고하여 이해하고 주석을 단 뒤 제출하였음.
+/*
+백준 11281 (2-SAT 4) [복습][SCC][위상 정렬]
 */
 #include <vector>
-using pii = pair<int, int>;
-#define dest first
-#define dist second
-constexpr int imax = (int)1e9, imin = 0;
+#include <array>
+#include <stack>
+#include <queue>
+constexpr int graph_MAX = 10000 * 2 + 1;
+int N, M;
+inline int idx_of(int x) {
+	return (0 <= x ? x * 2 : -x * 2 - 1);
+}
+array<vector<int>, graph_MAX> dir_graph;
 
-struct ret_val {
-	int min_first = imax, 
-		min_second = imax, 
-		max_first = imin, 
-		max_second = imin;
-};
+int scc_count;
+//scc_idx_of[30]: 30번이 몇번 SCC에 속해있는지
+array<vector<int>, graph_MAX> scc_member;
+array<int, graph_MAX> scc_idx_of;
+array<bool, graph_MAX> finished;
+stack<int> stk;
 
-int N, ans_max = imin, ans_min = imax;
-vector<pii> edges[100'000];
+int generate_scc(int cur) {
+	static int ticket = 0;
+	scc_idx_of[cur] = ++ticket;
+	stk.push(cur);
 
-ret_val DFS(int cur, int prev) {
-	ret_val ret{};
-	bool path_found = false;
+	int last_scc = scc_idx_of[cur];
+	for (int next : dir_graph[cur]) {
+		if (scc_idx_of[next] == 0) {
+			last_scc = min(last_scc, generate_scc(next));
+		}
+		else if (false == finished[next]) {
+			last_scc = min(last_scc, scc_idx_of[next]);
+		}
+	}
+
+	if (last_scc == scc_idx_of[cur]) {
+		++scc_count;
+		while (true) {
+			int member = stk.top(); stk.pop();
+			finished[member] = true;
+			scc_idx_of[member] = scc_count;
+
+			//SCC '그래프'를 만들기 위해선 각 SCC에 속한 멤버를 모두 아는 상태여야 하는데,
+			//그러면 순회를 한번 더 돌아야 하기 때문에 비경제적
+			scc_member[scc_count].push_back(member);
+
+			if (cur == member) {
+				break;
+			}
+		}
+	}
+
+	return last_scc;
+}
+
+vector<vector<int>> scc_graph;
+vector<int> scc_indeg;
+vector<int> scc_traversal_order;
+//위상정렬을 통해 방문순서를 결정
+void toposort() {
+	scc_graph.resize(scc_count + 1);
+	scc_indeg.resize(scc_count + 1);
+	scc_traversal_order.resize(scc_count + 1);
 	
-	/*
-	다음 간선으로 출발
-	자신이 임의의 중간 지점의 노드이고
-	구해야하는 것은 리프 노드 사이의 최단거리, 최장거리일 경우
-	리프 노드까지 DFS 탐색을 한 후 두 최단거리의 합 / 최장거리의 합을 구하면 된다.
-	ex.
-	다음 노드가 A, B, C 라면
-	최단거리는 A, B, C 노드로 이동했을때 3가지 경우를 DFS 돌린 후 가장 가까운 경로 2개와 가장 먼 경로 2개를 선정한 후 합하여 반환한다.
-	*/
-	for (const pii& next : edges[cur]) {
-		if (next.dest == prev) { continue; }
-		
-		path_found = true;
-		ret_val result = DFS(next.dest, cur);
+	//indegree 계산
+	for (int from = 1; from <= idx_of(N); ++from) {
+		for (int to : dir_graph[from]) {
+			if (scc_idx_of[from] == scc_idx_of[to]) { continue; }
 
-		//이번 DFS 결과에 이번 간선의 길이를 더한다
-		int found_dist_min = result.min_first + next.dist;
-		int found_dist_max = result.max_first + next.dist;
-
-		//가장 짧은 거리 2개를 저장한다.
-		if (found_dist_min < ret.min_first) {
-			ret.min_second = ret.min_first;
-			ret.min_first = found_dist_min;
-		}
-		else if (found_dist_min < ret.min_second) {
-			ret.min_second = found_dist_min;
-		}
-
-		//가장 먼 거리 2개를 저장한다.
-		if (ret.max_first < found_dist_max) {
-			ret.max_second = ret.max_first;
-			ret.max_first = found_dist_max;
-		}
-		else if (ret.max_second < found_dist_max) {
-			ret.max_second = found_dist_max;
+			scc_indeg[scc_idx_of[to]]++;
+			scc_graph[scc_idx_of[from]].push_back(scc_idx_of[to]);
 		}
 	}
 
-	if (path_found) {
-		//최소거리와 최대거리가 2개가 저장되어 있다면
-		// 즉, 리프 노드가 아니라 중간 노드라면
-		//두개의 합을 더해서 갱신
-		//ex. A - B - C에서 B 노드일 경우에만 답지를 갱신
-		if (ret.max_second != imin) {
-			ans_min = min(ans_min, ret.min_first + ret.min_second);
-			ans_max = max(ans_max, ret.max_first + ret.max_second);
+	queue<int> q;
+	for (int i = 1; i <= scc_count; ++i) {
+		if (scc_indeg[i] == 0) {
+			q.push(i);
 		}
 	}
-	//DFS의 끝에 도달했을 경우에는 0을 반환한다
-	else {
-		ret.max_first = 0;
-		ret.max_second = 0;
-		ret.min_first = 0;
-		ret.min_second = 0;
-	}
 
-	return ret;
+	int order = 0;
+	while (false == q.empty()) {
+		int cur = q.front(); q.pop();
+
+		scc_traversal_order[cur] = ++order;
+
+		for (int next : scc_graph[cur]) {
+			scc_indeg[next]--;
+			if (scc_indeg[next] == 0) {
+				q.push(next);
+			}
+		}
+	}
 }
 
 void solve() {
-	cin >> N;
-	for (int i = 0; i < N - 1; ++i) {
-		int p, q, w; cin >> p >> q >> w;
-		edges[p].push_back({ q, w });
-		edges[q].push_back({ p, w });
-	}
-	
-	ret_val result = DFS(0, -1);
-	//만약 출발 노드(0)가 리프 노드였을 경우, 한쪽으로밖에 진행할 수 없으므로
-	//한쪽 방향의 값이 결과로 들어올 것이다.
-	//이 경우에는 한쪽 방향으로의 값이 최종 답이 된다.
-	if (result.max_second == imin) {
-		ans_max = max(ans_max, result.max_first);
-		ans_min = min(ans_min, result.min_first);
+	cin >> N >> M;
+	while (M--) {
+		int x, y; cin >> x >> y;
+
+		//if not A then B is true
+		dir_graph[idx_of(-x)].push_back(idx_of(y));
+		dir_graph[idx_of(-y)].push_back(idx_of(x));
 	}
 
-	cout << ans_max << '\n' << ans_min;
+	for (int i = 1; i <= idx_of(N); ++i) {
+		if (false == finished[i]) {
+			generate_scc(i);
+		}
+	}
+
+	toposort();
+	
+	auto& ans = finished;
+	ans.fill(false);
+	bool scc_true = true;
+	for (int x = 1; x <= N; ++x) {
+		int x_true = idx_of(x), x_false = idx_of(-x);
+
+		//if not x_true then x_false is true
+		//if not x_false then x_true is true
+		//위 두 조건을 모두 만족해야 하는데 모순이 발생
+		if (scc_idx_of[x_true] == scc_idx_of[x_false]) {
+			scc_true = false;
+			break;
+		}
+
+		//if NOT x_true then x_false is true
+		if (scc_traversal_order[scc_idx_of[x_true]] < scc_traversal_order[scc_idx_of[x_false]]) {
+			ans[x] = false;
+		}
+		//if NOT x_false then x_true is true
+		else {
+			ans[x] = true;
+		}
+	}
+
+	cout << scc_true << '\n';
+	if (scc_true) {
+		for (int i = 1; i <= N; ++i) {
+			cout << ans[i] << ' ';
+		}
+	}
 }
