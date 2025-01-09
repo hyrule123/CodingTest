@@ -16,52 +16,59 @@ int main() {
 }
 
 /*
-백준 5391 (Top 2000) [DP]
-DP[i]: i번 노래까지 재생했을 경우 발생하는 penalty의 최소값
-노래 N개에 대해서 정답은 DP[N]에 저장된다.
+백준 1091 (카드 섞기) [구현]
+* 카드를 정해진 규칙대로 섞는 것은 곧 '순열'을 의미한다.
+* 순열은 반드시 사이클을 가진다. 언젠가 다시 원점으로 돌아온다는 뜻
 */
-#include <vector>
+int N, cards[48][2], shuffle_order[48], player[48];
+bool cur;
 
-int calculate_penalty(int song_length, int block_size, int penalty_short, int penalty_long) {
-    int diff = song_length - block_size;
-    return (0 <= diff ? diff * penalty_long : -diff * penalty_short);
+bool check_cards() {
+	for (int i = 0; i < N; ++i) {
+		int card_owner = i % 3;
+		int cur_card = cards[i][cur];
+		if (player[cur_card] != card_owner) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void solve() {
-    int T;
-    cin >> T;
+	cin >> N;
+	for (int i = 0; i < N; ++i) {
+		cards[i][cur] = i;
+		cin >> player[i];
+	}
+	for (int i = 0; i < N; ++i) {
+		cin >> shuffle_order[i];
+	}
 
-    while (T--) {
-        int num_song, block_size, penalty_short, penalty_long;
-        cin >> num_song >> block_size >> penalty_long >> penalty_short;
+	int shuffle_count = 0;
+	if (check_cards()) {
+		cout << shuffle_count;
+	}
+	else {
+		while (true) {
+			++shuffle_count;
+			cur = !cur;
+			for (int i = 0; i < N; ++i) {
+				cards[shuffle_order[i]][cur] = cards[i][!cur];
+			}
 
-        vector<int> partsum(num_song + 1);
-        for (int i = 1; i <= num_song; ++i) {
-            int input; cin >> input;;
-            partsum[i] = partsum[i - 1] + input;
-        }
+			bool cycle = true;
+			for (int i = 0; i < N; ++i) {
+				cycle = cycle && (cards[i][cur] == i);
+			}
+			if (cycle) {
+				cout << -1;
+				break;
+			}
 
-        vector<int> dp(num_song + 1, numeric_limits<int>::max());
-        dp[0] = 0;
-        for (int i = 1; i <= num_song; ++i) {
-            //한 블럭에 전부 쑤셔넣은 경우를 기본 패널티로 계산(최대값)
-            dp[i] = calculate_penalty(partsum[i], block_size, penalty_short, penalty_long);
-
-            //j: 구간합의 시작 부분, 즉 0 ~ j - 1, j ~ i 구간으로 분리
-            //dp[j - 1] + {j ~ i 구간 음악 재생 시 발생하는 패널티} 의 최소값을 구한다
-            for (int j = i; j >= 1; --j) {
-                int song_length = partsum[i] - partsum[j - 1];
-
-                dp[i] = min(dp[i], dp[j - 1] + calculate_penalty(song_length, block_size, penalty_short, penalty_long));
-
-                //블록 사이즈를 넘어섰다면 중단
-                if (block_size < song_length) {
-                    break;
-                }
-            }
-        }
-
-        cout << dp[num_song] << '\n';
-    }
-
+			else if (check_cards()) {
+				cout << shuffle_count;
+				break;
+			}
+		}
+	}
 }
