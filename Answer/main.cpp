@@ -16,55 +16,49 @@ int main() {
 }
 
 /*
-백준 2836 (수상 택시) [스위핑]
-* 목적지 0, 도착지 M이므로 이동거리는 M
-* 정방향으로 이동하는 경우 그냥 태웠다가 내려주면 되므로 집으로 이동하는 거리에 포함된다.
-* 대신 역방향으로 이동하는 경우에는 뒤로 갔다가 다시 앞으로 가야한다.
-* M(정방향 이동 거리) + (역방향 거리 * 2)
-	M: 최대 10억, 역방향 최대 10억 -> int로 감당 안됨
-* 역방향 스위핑을 하면 될듯?
-* 
+백준 23317 (구슬 굴리기) [DP]
+* 각 row에는 row개수만큼의 공간(row size == col size)
 */
+#include <vector>
 #include <array>
-#include <algorithm>
-using uint = unsigned int;
-using puu = pair<uint, uint>;
-int N, M, reverse_count;
-array<puu, 300'000> inputs;
-#define FROM first
-#define TO second
+int row_size, must_pass_size;
+array<array<int, 30>, 30> dp;
+array<vector<int>, 30> must_passes;
+bool is_valid(int row, int col) {
+	return 0 <= row && 0 <= col && col <= row;
+}
 
 void solve() {
-	cin >> N >> M;
-	for (int i = 0; i < N; ++i) {
-		auto& cur_input = inputs[reverse_count];
-		cin >> cur_input.FROM >> cur_input.TO;
-		if (cur_input.FROM <= cur_input.TO) {
-			continue;
-		}
-		++reverse_count;
+	cin >> row_size >> must_pass_size;
+	for (int i = 0; i < must_pass_size; ++i) {
+		int row, col; cin >> row >> col;
+		must_passes[row].push_back(col);
 	}
 
-	sort(inputs.begin(), inputs.begin() + reverse_count, greater_equal<puu>());
+	dp[0][0] = 1;
+	for (int r = 1; r < row_size; ++r) {
+		for (int c = 0; c <= r; ++c) {
+			int from_left = is_valid(r - 1, c - 1) ?
+				dp[r - 1][c - 1] : 0;
+			int from_right = is_valid(r - 1, c) ? 
+				dp[r - 1][c] : 0;
+			
+			dp[r][c] = from_left + from_right;
+		}
 
-	uint total = 0,
-		r_computed_from = numeric_limits<uint>::min(),
-		r_computed_to = numeric_limits<uint>::max();
-	for (uint i = 0; i < reverse_count; ++i) {
-		auto& input = inputs[i];
-		//겹치지 않음
-		if (input.FROM <= r_computed_to) {
-			total += (input.FROM - input.TO);
-			r_computed_from = input.FROM;
-			r_computed_to = input.TO;
+		//반드시 지나야 하는 곳이 이번 행에 있다면 그곳을 제외하고 0으로 초기화한다.
+		if (false == must_passes[r].empty()) {
+			array<int, 30> temp = dp[r];
+			dp[r].fill(0);
+			for (int i = 0; i < (int)must_passes[r].size(); ++i) {
+				dp[r][must_passes[r][i]] = temp[must_passes[r][i]];
+			}
 		}
-		else if (input.TO <= r_computed_to) {
-			total += (r_computed_to - input.TO);
-			r_computed_to = input.TO;
-		}
-		//이미 게산된 범위 안에 있을 경우 skip
 	}
 
-	uint ans = M + total * 2;
+	int ans = 0;
+	for (int c = 0; c < row_size; ++c) {
+		ans += dp[row_size - 1][c];
+	}
 	cout << ans;
 }
