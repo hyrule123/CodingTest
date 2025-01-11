@@ -5,60 +5,53 @@
 #include <limits>
 #include <cstring> //memset
 using namespace std;
-
 void solve();
-
-int main() {
+int main() 
+{
 	cin.tie(nullptr); cin.sync_with_stdio(false); LOCAL_IO;
-
 	solve();
 	return 0;
 }
 
 /*
-백준 23317 (구슬 굴리기) [DP]
-* 각 row에는 row개수만큼의 공간(row size == col size)
+백준 9574 (Goldilocks and the N Cows) [투 포인터?]
 */
 #include <vector>
-#include <array>
-int row_size, must_pass_size;
-array<array<int, 30>, 30> dp;
-array<vector<int>, 30> must_passes;
-bool is_valid(int row, int col) {
-	return 0 <= row && 0 <= col && col <= row;
-}
+#include <algorithm>
+int N, prod_cold, prod_cozy, prod_hot;
+vector<int> low_limit, high_limit;
 
 void solve() {
-	cin >> row_size >> must_pass_size;
-	for (int i = 0; i < must_pass_size; ++i) {
-		int row, col; cin >> row >> col;
-		must_passes[row].push_back(col);
+	cin >> N >> prod_cold >> prod_cozy >> prod_hot;
+	low_limit.resize(N + 1);
+	high_limit.resize(N + 1);
+	for (int i = 1; i <= N; ++i) {
+		cin >> low_limit[i] >> high_limit[i];
 	}
+	//temp_from, _to[i]보다 높은 값을 가진 소들은 n - i 마리가 존재한다
+	sort(low_limit.begin() + 1, low_limit.end());
+	sort(high_limit.begin() + 1, high_limit.end());
 
-	dp[0][0] = 1;
-	for (int r = 1; r < row_size; ++r) {
-		for (int c = 0; c <= r; ++c) {
-			int from_left = is_valid(r - 1, c - 1) ?
-				dp[r - 1][c - 1] : 0;
-			int from_right = is_valid(r - 1, c) ? 
-				dp[r - 1][c] : 0;
-			
-			dp[r][c] = from_left + from_right;
+	int ans = -1;
+	for (int l = N, h = N; l >= 1; --l) 
+	{
+		//현재 온도 low_limit[l]일 때
+		//춥다고 느낀 소의 수: N - l
+		int cold_cow = N - l;
+		
+		//덥다고 느낀 소의 수를 high_limit[h] 라고 가정하면
+		//기준 온도는 low_limit[l] 이므로 high_limit[h]가 low_limit[l] 미만이 되는 때를 찾아야 한다.
+		//그러면 h 이하의 소들(==h마리)은 전부 low_limit[l]을 덥다고 느낄 것이다.
+		while (1 <= h && low_limit[l] <= high_limit[h])
+		{
+			--h;
 		}
+		int hot_cow = h;
 
-		//반드시 지나야 하는 곳이 이번 행에 있다면 그곳을 제외하고 0으로 초기화한다.
-		if (false == must_passes[r].empty()) {
-			array<int, 30> temp = dp[r];
-			dp[r].fill(0);
-			for (int i = 0; i < (int)must_passes[r].size(); ++i) {
-				dp[r][must_passes[r][i]] = temp[must_passes[r][i]];
-			}
-		}
-	}
+		//cold_cow와 hot_cow를 구했으니 N - cold_cow - hot_cow 하면 기온이 적절한 소가 나온다
+		int cozy_cow = N - cold_cow - hot_cow;
 
-	int ans = 0;
-	for (int c = 0; c < row_size; ++c) {
-		ans += dp[row_size - 1][c];
+		ans = max(ans, prod_cold * cold_cow + prod_cozy * cozy_cow + prod_hot * hot_cow);
 	}
 	cout << ans;
 }
