@@ -14,44 +14,70 @@ int main()
 }
 
 /*
-백준 9574 (Goldilocks and the N Cows) [투 포인터?]
+백준 25605 (입맛이 까다로운 코알라가 유칼립투스 잎을 행복하게 먹을 수 있는 방법) [오답(시간초과)][DP]
+유칼립투스를 먹거나 안먹거나 -> DP
+독성 = 무게
+행복도 = 가치
 */
-#include <vector>
-#include <algorithm>
-int N, prod_cold, prod_cozy, prod_hot;
-vector<int> low_limit, high_limit;
+//DP[i][j]: i번쨰 날, 현재 독성 j, 값은 현재 행복도
+using pii = pair<int, int>;
+#define poison first
+#define happiness second
+int leaf_limit, day_limit, poison_limit, daily_depoison, start_poison, dp[101][101];
+pii leaves[1001];
+
+void rcsv(int cur_day, int prev_day, int prev_poison, int cur_leaf)
+{
+	//날짜 초과 시 중단
+	if (day_limit < cur_day) { return; }
+	
+	//날짜가 지났을 경우 일정량만큼 해독된다
+	int cur_poison = prev_poison;
+	if (cur_day != prev_day)
+	{
+		cur_poison -= daily_depoison;
+		if (cur_poison < 0) { cur_poison = 0; }
+	}
+
+	//먹을수 있을 경우 먹거나
+	int poison_eat = cur_poison + leaves[cur_leaf].poison;
+	if (poison_eat <= poison_limit)
+	{
+		dp[cur_day][poison_eat] = max(
+			dp[cur_day][poison_eat],
+			dp[cur_day - 1][prev_poison] + leaves[cur_leaf].happiness
+		);
+		rcsv(cur_day + 1, cur_day, poison_eat, cur_leaf + 1);
+	}
+	
+	//일단 값을 그대로 전달
+	dp[cur_day][cur_poison] =
+		max(
+			dp[cur_day][cur_poison],
+			dp[cur_day - 1][prev_poison]
+			);
+
+	//다음 잎을 보거나
+	if(cur_leaf < leaf_limit)
+	{
+		rcsv(cur_day, cur_day, cur_poison, cur_leaf + 1);
+	}
+
+	//잎을 두고 그냥 자거나
+	rcsv(cur_day + 1, cur_day, cur_poison, cur_leaf);
+}
 
 void solve() {
-	cin >> N >> prod_cold >> prod_cozy >> prod_hot;
-	low_limit.resize(N + 1);
-	high_limit.resize(N + 1);
-	for (int i = 1; i <= N; ++i) {
-		cin >> low_limit[i] >> high_limit[i];
+	cin >> leaf_limit >> day_limit >> poison_limit >> daily_depoison >> start_poison;
+	for (int i = 1; i <= leaf_limit; ++i) {
+		cin >> leaves[i].poison >> leaves[i].happiness;
 	}
-	//temp_from, _to[i]보다 높은 값을 가진 소들은 n - i 마리가 존재한다
-	sort(low_limit.begin() + 1, low_limit.end());
-	sort(high_limit.begin() + 1, high_limit.end());
+	rcsv(1, 1, start_poison, 1);
 
-	int ans = -1;
-	for (int l = N, h = N; l >= 1; --l) 
+	int ans = 0;
+	for(int i = 0; i <= poison_limit; ++i)
 	{
-		//현재 온도 low_limit[l]일 때
-		//춥다고 느낀 소의 수: N - l
-		int cold_cow = N - l;
-		
-		//덥다고 느낀 소의 수를 high_limit[h] 라고 가정하면
-		//기준 온도는 low_limit[l] 이므로 high_limit[h]가 low_limit[l] 미만이 되는 때를 찾아야 한다.
-		//그러면 h 이하의 소들(==h마리)은 전부 low_limit[l]을 덥다고 느낄 것이다.
-		while (1 <= h && low_limit[l] <= high_limit[h])
-		{
-			--h;
-		}
-		int hot_cow = h;
-
-		//cold_cow와 hot_cow를 구했으니 N - cold_cow - hot_cow 하면 기온이 적절한 소가 나온다
-		int cozy_cow = N - cold_cow - hot_cow;
-
-		ans = max(ans, prod_cold * cold_cow + prod_cozy * cozy_cow + prod_hot * hot_cow);
+		ans = max(ans, dp[day_limit][i]);
 	}
 	cout << ans;
 }
