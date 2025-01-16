@@ -14,74 +14,50 @@ int main()
 }
 
 /*
-백준 25605 (입맛이 까다로운 코알라가 유칼립투스 잎을 행복하게 먹을 수 있는 방법) [DP][코드 분석]
-<https://www.acmicpc.net/source/64394769> 소스코드 분석
-dp[i][j][k]: i: prev, cur / j: 현재 날짜 / k: 독성 수치 일 때 얻는 행복도의 최대값
-최대 1000개의 잎에 대해 전체를 저장하지 않고
-prev, cur 두가지 상태만 저장함으로써 메모리를 절약한 것 같음.
-dp[i & 1]: 현재 잎
-dp[(i + 1) & 1]: 이전 잎
+백준 23797 (개구리) [그리디]
+현재 K가 필요한 개구리와 P가 필요한 개구리를 카운트
+K가 필요한데 K가 필요한 개구리가 없다? 그럼 개구리 수 하나 증가시키고 P가 필요한 개구리 카운트 증가
+반대(P가 필요한데...)도 마찬가지
 */
-int dp[2][105][105];
+#include <string>
+#include <stack>
+stack<char> stk;
+string input;
+int frog, waiting_for_K, waiting_for_P;
 
 void solve() 
 {
-	int n, m; cin >> n >> m;
-	int mx, rem, c; cin >> mx >> rem >> c;
-	for (int i = 0; i <= m; i++)
+	cin >> input;
+	input[0] == 'K' ? waiting_for_P++ : waiting_for_K++;
+	frog = 1;
+	for (size_t i = 1; i < input.size(); ++i)
 	{
-		for (int j = 0; j <= mx; j++)
+		if (input[i] == 'K')
 		{
-			dp[0][i][j] = -(1 << 29);
-		}
-	}
-			
-	dp[0][0][c] = 0;
-	for (int j = 1; j <= mx; j++) 
-	{
-		for (int k = 0; k <= mx; k++)
-		{
-			dp[0][j][max(0, k - rem)] = max(dp[0][j][max(0, k - rem)], dp[0][j - 1][k]);
-		}       
-	}
-	for (int i = 1; i <= n; i++) 
-	{
-		int x, y; cin >> x >> y;
-		for (int k = 0; k <= m; k++)
-		{
-			for (int j = 0; j <= mx; j++)
+			if (waiting_for_K == 0)
 			{
-				dp[i & 1][k][j] = dp[(i + 1) & 1][k][j];
+				frog++;
 			}
-		}
-
-		for (int j = 1; j <= m; j++) 
-		{
-			for (int k = 0; k <= mx - x; k++) 
+			else
 			{
-				//max(현재, (이전 잎의 어제 값))
-				auto& cur = dp[i & 1][j][max(0, k + x - rem)];
-				cur = max(
-					cur, 
-					dp[(i + 1) & 1][j - 1][k] + y					
-				);
+				waiting_for_K--;
 			}
-			for (int k = 0; k <= mx; k++)
-			{
-				//잎을 먹지 않음, 어제
-				auto& cur = dp[i & 1][j][max(0, k - rem)];
-				cur = max(cur, dp[i & 1][j - 1][k]);
-			}
+			waiting_for_P++;
 		}
-	}
-	int ans = -1;
-	for (int i = 0; i <= m; i++)
-	{
-		for (int j = 0; j <= mx; j++)
+		else //P
 		{
-			ans = max(dp[n & 1][i][j], ans);
+			if (waiting_for_P == 0)
+			{
+				frog++;
+				
+			}
+			else
+			{
+				waiting_for_P--;
+			}
+			waiting_for_K++;
 		}
 	}
 
-	cout << ans;
+	cout << frog;
 }
