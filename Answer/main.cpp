@@ -14,70 +14,69 @@ int main()
 }
 
 /*
-백준 25605 (입맛이 까다로운 코알라가 유칼립투스 잎을 행복하게 먹을 수 있는 방법) [오답(시간초과)][DP]
+백준 25605 (입맛이 까다로운 코알라가 유칼립투스 잎을 행복하게 먹을 수 있는 방법) [DP]
 유칼립투스를 먹거나 안먹거나 -> DP
 독성 = 무게
 행복도 = 가치
 */
-//DP[i][j]: i번쨰 날, 현재 독성 j, 값은 현재 행복도
+//DP[d][l][p]: i번째 날, j번째 유칼립투스 잎, 현재 축적된 독성 p
+
 using pii = pair<int, int>;
 #define poison first
 #define happiness second
-int leaf_limit, day_limit, poison_limit, daily_depoison, start_poison, dp[101][101];
+int leaf_limit, day_limit, poison_limit, daily_depoison, start_poison, dp[101][1001][101];
 pii leaves[1001];
 
-void rcsv(int cur_day, int prev_day, int prev_poison, int cur_leaf)
+void solve() 
 {
-	//날짜 초과 시 중단
-	if (day_limit < cur_day) { return; }
-	
-	//날짜가 지났을 경우 일정량만큼 해독된다
-	int cur_poison = prev_poison;
-	if (cur_day != prev_day)
-	{
-		cur_poison -= daily_depoison;
-		if (cur_poison < 0) { cur_poison = 0; }
-	}
-
-	//먹을수 있을 경우 먹거나
-	int poison_eat = cur_poison + leaves[cur_leaf].poison;
-	if (poison_eat <= poison_limit)
-	{
-		dp[cur_day][poison_eat] = max(
-			dp[cur_day][poison_eat],
-			dp[cur_day - 1][prev_poison] + leaves[cur_leaf].happiness
-		);
-		rcsv(cur_day + 1, cur_day, poison_eat, cur_leaf + 1);
-	}
-	
-	//일단 값을 그대로 전달
-	dp[cur_day][cur_poison] =
-		max(
-			dp[cur_day][cur_poison],
-			dp[cur_day - 1][prev_poison]
-			);
-
-	//다음 잎을 보거나
-	if(cur_leaf < leaf_limit)
-	{
-		rcsv(cur_day, cur_day, cur_poison, cur_leaf + 1);
-	}
-
-	//잎을 두고 그냥 자거나
-	rcsv(cur_day + 1, cur_day, cur_poison, cur_leaf);
-}
-
-void solve() {
 	cin >> leaf_limit >> day_limit >> poison_limit >> daily_depoison >> start_poison;
-	for (int i = 1; i <= leaf_limit; ++i) {
+	for (int i = 1; i <= leaf_limit; ++i) 
+	{
 		cin >> leaves[i].poison >> leaves[i].happiness;
 	}
-	rcsv(1, 1, start_poison, 1);
+	
+	//현재 날
+	for (int d = 1; d <= day_limit; ++d)
+	{
+		//일일 해독량이 반영된 현재 중독수치
+		int cur_poison = max(0, start_poison - (daily_depoison * (d - 1)));
+
+		//현재 놓인 잎 번호
+		for (int l = 1; l <= leaf_limit; ++l)
+		{
+			//이번에 잎 l을 처음으로 먹는 경우: 먹고 바로 잔다
+			
+			int eat_after = cur_poison + leaves[l].poison;
+			if (eat_after <= poison_limit)
+			{
+				eat_after = max(0, eat_after - daily_depoison);
+				dp[d][l][eat_after] = leaves[l].happiness;
+			}
+			
+			for (int p = 0; p <= poison_limit; ++p)
+			{
+				//그대로 두고 자고 일어남
+				int sleep_after = max(0, p - daily_depoison);
+				dp[d][l][sleep_after] = max(dp[d][l][sleep_after], dp[d - 1][l][p]);
+
+				//이번 잎을 거름
+				dp[d][l][p] = max(dp[d][l][p], dp[d][l - 1][p]);
+
+				//이번 잎을 먹음(처음으로 먹는 잎이 아닐 경우): 먹고 바로 취침
+				int eat_after = max(0, p + leaves[l].poison);
+				if (eat_after <= poison_limit && dp[d - 1][l - 1][p] != 0)
+				{
+					eat_after = max(0, eat_after - daily_depoison);
+					dp[d][l][eat_after] = max(dp[d][l][eat_after], dp[d - 1][l - 1][p] + leaves[l].happiness);
+				}
+			}
+		}
+	}
 
 	int ans = 0;
-	for(int i = 0; i <= poison_limit; ++i)
+	for (int p = 0; p <= poison_limit; ++p)
 	{
-		ans = max(ans, dp[day_limit][i]);
+		ans = max(ans, dp[day_limit][leaf_limit][p]);
 	}
 	cout << ans;
 }
