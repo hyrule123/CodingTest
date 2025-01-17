@@ -14,50 +14,60 @@ int main()
 }
 
 /*
-백준 23797 (개구리) [그리디]
-현재 K가 필요한 개구리와 P가 필요한 개구리를 카운트
-K가 필요한데 K가 필요한 개구리가 없다? 그럼 개구리 수 하나 증가시키고 P가 필요한 개구리 카운트 증가
-반대(P가 필요한데...)도 마찬가지
-*/
-#include <string>
-#include <stack>
-stack<char> stk;
-string input;
-int frog, waiting_for_K, waiting_for_P;
+백준 2220 (힙 정렬) [그리디]
 
-void solve() 
+1~6을 힙에 넣을 때
+6 5 4 3 2 1 로 구성된 힙은 힙 정렬 시 4회 swap
+6 5 3 2 4 1 로 구성된 힙은 힙 정렬 시 6회 swap
+
+키 포인트: 삭제해보기
+6 5 3 2 4 1에서 루트를 pop후 다시 힙 빌드를 하면
+5 4 3 2 1이 된다. -> 이는 곧 크기 5의 힙에서 swap 횟수를 최대로 하는 배열이다.
+4 2 3 1
+3 2 1
+2 1
+1
+
+눈여겨 볼 점 
+1. 항상 1로 끝나서 1을 아래로 내려보낸다는 것
+2. 6, 5, 4, 3, 2, 1 순으로 pop되었다는 것(다시 말해 1부터 N까지 삽입하면 같은 배열이 만들어진다는 것)
+-> 1을 제외하고 힙에 2부터 N까지 차례대로 삽입한 후, 마지막에 1을 끼워넣으면 답지와 같은 배열이 만들어진다.
+*/
+#include <vector>
+vector<int> heap;
+
+void insert_heap(int i)
 {
-	cin >> input;
-	input[0] == 'K' ? waiting_for_P++ : waiting_for_K++;
-	frog = 1;
-	for (size_t i = 1; i < input.size(); ++i)
+	heap.push_back(i);
+
+	int cur = (int)heap.size() - 1;
+	while (0 < cur)
 	{
-		if (input[i] == 'K')
+		int par = (cur - 1) / 2;
+		if (heap[cur] > heap[par])
 		{
-			if (waiting_for_K == 0)
-			{
-				frog++;
-			}
-			else
-			{
-				waiting_for_K--;
-			}
-			waiting_for_P++;
+			swap(heap[cur], heap[par]);
+			cur = par;
 		}
-		else //P
+		else
 		{
-			if (waiting_for_P == 0)
-			{
-				frog++;
-				
-			}
-			else
-			{
-				waiting_for_P--;
-			}
-			waiting_for_K++;
+			break;
 		}
 	}
+}
 
-	cout << frog;
+void solve()
+{
+	int n; cin >> n;
+	heap.reserve(n);
+	for (int i = 2; i <= n; ++i)
+	{
+		insert_heap(i);
+	}
+	heap.push_back(1);
+	
+	for (int i : heap)
+	{
+		cout << i << ' ';
+	}
 }
