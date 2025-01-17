@@ -14,40 +14,40 @@ int main()
 }
 
 /*
-백준 2502 (떡 먹는 호랑이) [dp]
-계수 느낌으로 접근하자
-dp[1] = 1a
-dp[2] = 1b
-dp[3] = 1a + 1b
-dp[4] = 1a + 2b
-
+백준 26111 (Parentheses Tree) [그래프]
+* 풀이 1. 문자열의 앞부터 전위순회 한다는 느낌으로 접근
+	( 뒤에 또 (가 들어오면 앞의 ( 노드는 리프노드가 아니다.
 */
-using pii = pair<int, int>;
-#define coef_a first
-#define coef_b second
-pii dp[31];
+
+#include <string>
+#include <vector>
+string input;
+vector<bool> stk;
 
 void solve()
 {
-	dp[1] = { 1, 0 };
-	dp[2] = { 0, 1 };
-
-	for (int i = 3; i <= 30; ++i)
+	cin >> input;
+	stk.reserve(input.size());
+	stk.push_back(true);
+	//반드시 루트를 가지는 트리라고 했으니까 예외 처리는 안해도 될듯
+	size_t dist_sum = 0;
+	for (int i = 1; i < (int)input.size(); ++i)
 	{
-		dp[i].coef_a = dp[i - 1].coef_a + dp[i - 2].coef_a;
-		dp[i].coef_b = dp[i - 1].coef_b + dp[i - 2].coef_b;
-	}
-
-	int date, value; cin >> date >> value;
-	//1 <= coef_a <= coef_b
-	for (int a = 1; a <= value / dp[date].coef_a; ++a)
-	{
-		
-		int b_val = (value - a * dp[date].coef_a);
-		if (0 < b_val && 0 == (b_val % dp[date].coef_b))
+		char cur = input[i];
+		if (cur == '(') {
+			//( 다음에 (가 왔으므로 바로 전 노드는 리프노드가 아님
+			stk.back() = false;
+			stk.push_back(true);
+		}
+		else// ')'
 		{
-			cout << a << '\n' << (value - a * dp[date].coef_a) / dp[date].coef_b;
-			return;
+			//리프노드 발견
+			if (stk.back() == true)
+			{
+				dist_sum += stk.size() - 1;
+			}
+			stk.pop_back();
 		}
 	}
+	cout << dist_sum;
 }
