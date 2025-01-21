@@ -14,40 +14,90 @@ int main()
 }
 
 /*
-백준 26111 (Parentheses Tree) [그래프]
-* 풀이 1. 문자열의 앞부터 전위순회 한다는 느낌으로 접근
-	( 뒤에 또 (가 들어오면 앞의 ( 노드는 리프노드가 아니다.
+백준 1007 (벡터 매칭) [브루트포스][조합]
+최대 N = 20, 벡터를 매칭한다면 10개 벡터가 만들어짐
+각 벡터는 +, -(반대방향)을 가짐 -> 2^10
+벡터의 조합: (20 * 19) / 2 ( == 20 C 2 ) * (18 * 17) / 2 (== 18 C 2) * ... * (2 * 1) / 2 
+-> 20! / 2^10
+또한, 순열이 아니라 조합 이므로(순서에 관계 없음)
+중복되는 순열 경우의 수만큼 나눠준다(백터 10개 -> 10!)
+20! / (2^10 * 10!)
+=> 시간 제한은 2초 이므로 전부 대입하면 풀이 불가능 할듯
+
+<정석 풀이>
+점을 두 그룹으로 분할(시작점 그룹, 끝점 그룹)
+모든 경우의 수에 대해서 시작점 그룹 - 끝점 그룹의 최소값을 구한다
+최대 20개의 점을 두개의 그룹으로 분할 -> 20 C 10 = 20! / 10! * 10!
+== 20 * 19 * 18 * ... * 11 / 10!
+대략 18만번 안에 구할 수 있다
 */
 
-#include <string>
+#include <algorithm>
 #include <vector>
-string input;
-vector<bool> stk;
+#include <cmath>
+
+struct vec2
+{
+	double x, y;
+
+	vec2 operator +(const vec2& o) const
+	{
+		return { x + o.x, y + o.y };
+	}
+
+	vec2 operator -(const vec2& o) const
+	{
+		return { x - o.x, y - o.y };
+	}
+
+	double len() const
+	{
+		return sqrt(x * x + y * y);
+	}
+};
+
+vector<vec2> inputs;
+int N;
+vector<int> comb;
 
 void solve()
 {
-	cin >> input;
-	stk.reserve(input.size());
-	stk.push_back(true);
-	//반드시 루트를 가지는 트리라고 했으니까 예외 처리는 안해도 될듯
-	size_t dist_sum = 0;
-	for (int i = 1; i < (int)input.size(); ++i)
+	cout << fixed;
+	cout.precision(6);
+
+	int TC; cin >> TC;
+	while (TC--)
 	{
-		char cur = input[i];
-		if (cur == '(') {
-			//( 다음에 (가 왔으므로 바로 전 노드는 리프노드가 아님
-			stk.back() = false;
-			stk.push_back(true);
-		}
-		else// ')'
+		cin >> N;
+		inputs.resize(N);
+
+		for (int i = 0; i < N; ++i)
 		{
-			//리프노드 발견
-			if (stk.back() == true)
-			{
-				dist_sum += stk.size() - 1;
-			}
-			stk.pop_back();
+			cin >> inputs[i].x >> inputs[i].y;
 		}
+
+		comb.clear();
+		comb.resize(N);
+		for (int i = N / 2; i < N; ++i)
+		{
+			comb[i] = 1;
+		}
+
+		double ans = numeric_limits<double>::max();
+		do
+		{
+			//시작점 그룹, 끝점 그룹 2개로 분리
+			vec2 groups[2]{};
+			for (int i = 0; i < N; ++i)
+			{
+				auto& group = groups[comb[i]];
+				group = group + inputs[i];
+			}
+
+			double length = (groups[0] - groups[1]).len();
+			ans = min(ans, length);
+		} while (next_permutation(comb.begin(), comb.end()));
+
+		cout << ans << '\n';
 	}
-	cout << dist_sum;
 }
