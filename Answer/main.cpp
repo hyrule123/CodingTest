@@ -14,90 +14,134 @@ int main()
 }
 
 /*
-백준 1007 (벡터 매칭) [브루트포스][조합]
-최대 N = 20, 벡터를 매칭한다면 10개 벡터가 만들어짐
-각 벡터는 +, -(반대방향)을 가짐 -> 2^10
-벡터의 조합: (20 * 19) / 2 ( == 20 C 2 ) * (18 * 17) / 2 (== 18 C 2) * ... * (2 * 1) / 2 
--> 20! / 2^10
-또한, 순열이 아니라 조합 이므로(순서에 관계 없음)
-중복되는 순열 경우의 수만큼 나눠준다(백터 10개 -> 10!)
-20! / (2^10 * 10!)
-=> 시간 제한은 2초 이므로 전부 대입하면 풀이 불가능 할듯
+백준 32102 (삼색정리) [오답]
+참고 사이트: https://blog.naver.com/jinhan814/223535076654
+중요한 조건: R_left + G_left + B_left = N * M
+많은 순서대로 a, b, c (== a <= b <= c)라고 할 경우
+c가 최소가 되는 a + b + c = NM은 a = b = c일 때이다
+3c = NM -> "c >= ceil(NM / 3)"
 
-<정석 풀이>
-점을 두 그룹으로 분할(시작점 그룹, 끝점 그룹)
-모든 경우의 수에 대해서 시작점 그룹 - 끝점 그룹의 최소값을 구한다
-최대 20개의 점을 두개의 그룹으로 분할 -> 20 C 10 = 20! / 10! * 10!
-== 20 * 19 * 18 * ... * 11 / 10!
-대략 18만번 안에 구할 수 있다
+
+1. 가장 많이 칠해야 하는 색이 전체 칸 수의 반(소수점은 올림)을 초과할 경우, 정답은 존재하지 않음.
+	ex. 9칸을 칠해야 한다면 R은 5를 넘어가면 안 된다.
+	체스판을 생각해보자
+	R x R
+	x R x
+	R x R
+	-> c < ceil(NM / 2)
+
+
+2. 가장 많이 칠해야 하는 색을 좌측 상단부터 칠해준다.
+	색이 더 많이 칠해질 수 있는 부분을 '검은색' 부분이라고 할 때(홀수 * 홀수 체스판을 생각해보자)
+	검은색 부분은 ceil(NM / 2)개가 있고
+	이 부분을 c개 칠했으니까 ceil(NM / 2) - c가 남아있다.
+	이제 이 부분을 나머지 두 색으로 채워주면 되는데,
+	정방향으로 c를 칠했으므로
+	역방향으로 b, a를 번갈아 칠해주면 될 것이다.
+	근데 만약 ceil(NM / 2) - c를 칠하다 a가 오링 난다면?
+	-> a < ceil(NM / 2) - c 가 될것이다.
+
+	a = NM - (b + c) 이다.
+	현재 a <= b <= c 라고 정의해 놓았으므로 b + c <= 2c는 자명하다
+	-> a >= NM - 2c 라는 식을 유도할 수 있다.
+	"NM - 2c <= a < ceil(NM / 2) - c" 라는 방정식이 성립해야 하는 것
+	NM - 2c < ceil(NM / 2) - c
+	NM - ceil(NM / 2) < c
+	근데 c < ceil(NM / 2) 이므로
+	NM - ceil(NM / 2) < c < ceil(NM / 2)
+	NM - ceil(NM / 2) < ceil(NM / 2)
+	NM < 0
+	NM < 0 ? 이건 모순이 되므로 a < ceil(NM / 2) - c는 애초에 성립할수가 없다
+
+	그러므로 a가 오링나는 상황은 걱정 안해도 되고 c < ceil(NM / 2)만 만족하면 일단 그릴 수 있다는 소리이다
 */
-
-#include <algorithm>
-#include <vector>
 #include <cmath>
-
-struct vec2
-{
-	double x, y;
-
-	vec2 operator +(const vec2& o) const
-	{
-		return { x + o.x, y + o.y };
-	}
-
-	vec2 operator -(const vec2& o) const
-	{
-		return { x - o.x, y - o.y };
-	}
-
-	double len() const
-	{
-		return sqrt(x * x + y * y);
-	}
-};
-
-vector<vec2> inputs;
-int N;
-vector<int> comb;
+#include <vector>
+#include <algorithm>
+constexpr int R = 0, G = 1, B = 2;
+#define count first
+#define color second
+int n_row, n_col;
+vector<pair<int, char>> rgb_left = { {0, 'R'}, {0, 'G'}, {0, 'B'} };
+vector<vector<char>> board;
 
 void solve()
 {
-	cout << fixed;
-	cout.precision(6);
+	cin >> n_row >> n_col 
+		>> rgb_left[R].count >> rgb_left[G].count >> rgb_left[B].count;
 
-	int TC; cin >> TC;
-	while (TC--)
+	sort(rgb_left.begin(), rgb_left.end());
+	
+	int threshold = (int)ceil((double)(n_row * n_col) / 2.0);
+	
+	//판의 반을 초과하여 가장 많은 c 색으로 칠해야 하는 경우는 칠하기가 불가능
+	if (threshold < rgb_left.back().count)
 	{
-		cin >> N;
-		inputs.resize(N);
+		cout << "NO";
+		return;
+	}
 
-		for (int i = 0; i < N; ++i)
-		{
-			cin >> inputs[i].x >> inputs[i].y;
-		}
+	board.resize(n_row, vector<char>(n_col + 1));
 
-		comb.clear();
-		comb.resize(N);
-		for (int i = N / 2; i < N; ++i)
+	//갯수가 모두 같다면
+	if (rgb_left[0].count == rgb_left[1].count && rgb_left[1].count == rgb_left[2].count)
+	{
+		for (int r = 0; r < n_row; ++r)
 		{
-			comb[i] = 1;
-		}
-
-		double ans = numeric_limits<double>::max();
-		do
-		{
-			//시작점 그룹, 끝점 그룹 2개로 분리
-			vec2 groups[2]{};
-			for (int i = 0; i < N; ++i)
+			for (int c = 0; c < n_col; ++c)
 			{
-				auto& group = groups[comb[i]];
-				group = group + inputs[i];
+				//n_row 또는 n_col 중 하나가 3의 배수임을 활용
+				board[r][c] = rgb_left[(r + c) % 3].color;
 			}
+		}
+	}
+	else
+	{
+		//가장 많은 색을 일단 많이 칠할수 있는 부분에 칠함
+		for (int r = 0; r < n_row; ++r)
+		{
+			bool stop = false;
+			for (int c = r % 2; c < n_col; c += 2)
+			{
+				if (rgb_left[2].count--)
+				{
+					board[r][c] = rgb_left[2].color;
+				}
+				else
+				{
+					stop = true;
+					break;
+				}
+			}
+			if (stop) break;
+		}
 
-			double length = (groups[0] - groups[1]).len();
-			ans = min(ans, length);
-		} while (next_permutation(comb.begin(), comb.end()));
+		//반대쪽에서 돌아오면서 빈 공간에 나머지 색을 번갈아가며 칠한다
+		bool toggle = 0;
+		for (int r = n_row - 1; r >= 0; --r)
+		{
+			for (int c = n_col - 1; c >= 0; --c)
+			{
+				if (board[r][c] == 0)
+				{
+					//위쪽에서 내려오는 것이므로 중복 검사는 아래쪽만 해주면 됨
+					//또는 한 쪽을 다 썼을 경우
+					bool is_down_same = r + 1 < n_row && board[r + 1][c] == rgb_left[toggle].color;
+					if (is_down_same || rgb_left[toggle].count == 0)
+					{
+						toggle = !toggle;
+					}
+					
+					board[r][c] = rgb_left[toggle].color;
+					rgb_left[toggle].count--;
+					toggle = !toggle;
+				}
+			}
+		}
+	}
 
-		cout << ans << '\n';
+	for (int r = 0; r < n_row; ++ r)
+	{
+		cout << board[r].data() << '\n';
 	}
 }
