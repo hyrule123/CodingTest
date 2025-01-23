@@ -4,12 +4,22 @@
 #include <iostream>
 #include <limits>
 #include <cstring> //memset
+#include <random>
 using namespace std;
-void solve();
+bool solve();
 int main() 
 {
 	cin.tie(nullptr); cin.sync_with_stdio(false); LOCAL_IO;
-	solve();
+	srand(time(0));
+
+	int i = 10000;
+	while (i--)
+	{
+		if (solve())
+		{
+			return 0;
+		}
+	}
 	return 0;
 }
 
@@ -53,32 +63,174 @@ c가 최소가 되는 a + b + c = NM은 a = b = c일 때이다
 	NM < 0
 	NM < 0 ? 이건 모순이 되므로 a < ceil(NM / 2) - c는 애초에 성립할수가 없다
 
-	그러므로 a가 오링나는 상황은 걱정 안해도 되고 c < ceil(NM / 2)만 만족하면 일단 그릴 수 있다는 소리이다
+	그러므로 a가 오링나는 상황은 걱정 안해도 되고 c < ceil(NM / 2)만 만족하면
+	검은 부분에 c를 칠하고, 다 못칠한 부분은 a를 칠한 뒤 
+	뒤에서부터 비어있는 부분에 b를 칠하다가 b를 다 쓰면 마지막에 a로 메꾸면 된다는 뜻
 */
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <cassert>
+
 constexpr int R = 0, G = 1, B = 2;
-#define count first
-#define color second
+struct pair_color
+{
+	int count;
+	char color;
+	
+	auto operator <=>(const pair_color& o) const
+	{
+		return count <=> o.count;
+	}
+};
 int n_row, n_col;
-vector<pair<int, char>> rgb_left = { {0, 'R'}, {0, 'G'}, {0, 'B'} };
+vector<pair_color> rgb_left = { {0, 'R'}, {0, 'G'}, {0, 'B'} };
 vector<vector<char>> board;
 
-void solve()
+bool is_val_idx(int r, int c)
 {
-	cin >> n_row >> n_col 
-		>> rgb_left[R].count >> rgb_left[G].count >> rgb_left[B].count;
+	return !(r < 0 || n_row <= r || c < 0 || n_col <= c);
+}
+
+void test()
+{
+	vector<string> vecs;
+	string temp;
+	while (cin >> temp)
+	{
+		vecs.push_back(temp);
+	}
+
+	for (size_t i = 0; i < vecs.size(); ++i)
+	{
+		for (size_t j = 0; j < vecs[i].size(); ++j)
+		{
+			if (is_val_idx(i - 1, j) && board[i - 1][j] == board[i][j])
+			{
+				for (int r = 0; r < n_row; ++r)
+				{
+					cout << board[r].data() << '\n';
+				}
+				assert(false);
+			}
+			if (is_val_idx(i + 1, j) && board[i + 1][j] == board[i][j])
+			{
+				for (int r = 0; r < n_row; ++r)
+				{
+					cout << board[r].data() << '\n';
+				}
+				assert(false);
+			}
+			if (is_val_idx(i, j - 1) && board[i][j - 1] == board[i][j])
+			{
+				for (int r = 0; r < n_row; ++r)
+				{
+					cout << board[r].data() << '\n';
+				}
+				assert(false);
+			}
+			if (is_val_idx(i, j + 1) && board[i][j + 1] == board[i][j])
+			{
+				for (int r = 0; r < n_row; ++r)
+				{
+					cout << board[r].data() << '\n';
+				}
+				assert(false);
+			}
+		}
+	}
+}
+
+void print_data(int rr, int gg, int bb)
+{
+	cout << n_row << ' ' << n_col << ' ' << rr << ' ' << gg << ' ' << bb << '\n';
+	for (int r = 0; r < n_row; ++r)
+	{
+		cout << board[r].data() << '\n';
+	}
+}
+
+bool verify(int rr, int gg, int bb)
+{
+	int counts['R' + 1]{};
+	for (int i = 0; i < n_row; ++i)
+	{
+		for (int j = 0; j < n_col; ++j)
+		{
+			if (is_val_idx(i - 1, j) && board[i - 1][j] == board[i][j])
+			{
+				print_data(rr, gg, bb);
+				return true;
+			}
+			if (is_val_idx(i + 1, j) && board[i + 1][j] == board[i][j])
+			{
+				print_data(rr, gg, bb);
+				return true;
+			}
+			if (is_val_idx(i, j - 1) && board[i][j - 1] == board[i][j])
+			{
+				print_data(rr, gg, bb);
+				return true;
+			}
+			if (is_val_idx(i, j + 1) && board[i][j + 1] == board[i][j])
+			{
+				print_data(rr, gg, bb);
+				return true;
+			}
+
+			counts[board[i][j]]++;
+		}
+	}
+
+	if (rr != counts['R'])
+	{
+		print_data(rr, gg, bb);
+		return true;
+	}
+	if (gg != counts['G'])
+	{
+		print_data(rr, gg, bb);
+		return true;
+	}
+	if (bb != counts['B'])
+	{
+		print_data(rr, gg, bb);
+		return true;
+	}
+
+	return false;
+}
+
+bool solve()
+{
+	//cin >> n_row >> n_col >> rgb_left[R].count >> rgb_left[G].count >> rgb_left[B].count;
+
+	board.clear();
+	n_row = rand() % 1999 + 2;
+	n_col = rand() % 1999 + 2;
+	int total, rr, gg, bb;
+	do
+	{
+		total = n_row * n_col;
+		rr = rgb_left[R].count = rand() % total;
+		total -= rgb_left[R].count;
+		gg = rgb_left[G].count = rand() % total;
+		total -= rgb_left[G].count;
+		bb = rgb_left[B].count = total;
+	} while (0 < rr && 0 < gg && 0 < bb);
+	rgb_left[R].color = 'R';
+	rgb_left[G].color = 'G';
+	rgb_left[B].color = 'B';
 
 	sort(rgb_left.begin(), rgb_left.end());
-	
+
 	int threshold = (int)ceil((double)(n_row * n_col) / 2.0);
-	
+
 	//판의 반을 초과하여 가장 많은 c 색으로 칠해야 하는 경우는 칠하기가 불가능
 	if (threshold < rgb_left.back().count)
 	{
-		cout << "NO";
-		return;
+		//cout << "NO";
+		return false;
 	}
 
 	board.resize(n_row, vector<char>(n_col + 1));
@@ -97,49 +249,49 @@ void solve()
 	}
 	else
 	{
-		//가장 많은 색을 일단 많이 칠할수 있는 부분에 칠함
+		//가장 많은 색을 일단 많이 칠할수 있는 부분에 칠하고,
+		//가장 많은 색을 다 썼으면 가장 적은 색으로 나머지 부분을 칠한다
 		for (int r = 0; r < n_row; ++r)
 		{
-			bool stop = false;
 			for (int c = r % 2; c < n_col; c += 2)
 			{
-				if (rgb_left[2].count--)
+				if (0 < rgb_left[2].count)
 				{
 					board[r][c] = rgb_left[2].color;
+					rgb_left[2].count--;
 				}
 				else
 				{
-					stop = true;
-					break;
+					board[r][c] = rgb_left[0].color;
+					rgb_left[0].count--;
 				}
 			}
-			if (stop) break;
 		}
 
-		//반대쪽에서 돌아오면서 빈 공간에 나머지 색을 번갈아가며 칠한다
-		bool toggle = 0;
 		for (int r = n_row - 1; r >= 0; --r)
 		{
 			for (int c = n_col - 1; c >= 0; --c)
 			{
 				if (board[r][c] == 0)
 				{
-					//위쪽에서 내려오는 것이므로 중복 검사는 아래쪽만 해주면 됨
-					//또는 한 쪽을 다 썼을 경우
-					bool is_down_same = r + 1 < n_row && board[r + 1][c] == rgb_left[toggle].color;
-					if (is_down_same || rgb_left[toggle].count == 0)
+					if (0 < rgb_left[1].count)
 					{
-						toggle = !toggle;
+						board[r][c] = rgb_left[1].color;
+						rgb_left[1].count--;
 					}
-					
-					board[r][c] = rgb_left[toggle].color;
-					rgb_left[toggle].count--;
-					toggle = !toggle;
+					else
+					{
+						board[r][c] = rgb_left[0].color;
+						rgb_left[0].count--;
+					}
 				}
 			}
 		}
 	}
 
+	return verify(rr, gg, bb);
+
+	//cout << "YES" << '\n';
 	for (int r = 0; r < n_row; ++ r)
 	{
 		cout << board[r].data() << '\n';
