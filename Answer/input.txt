@@ -1,2 +1,21 @@
-2 9
-8 5 5
+5 9
+19
+redstone_block 0 8
+redstone_lamp 0 0
+redstone_dust 1 0
+redstone_dust 2 0
+redstone_dust 2 1
+redstone_dust 2 2
+redstone_dust 2 3
+redstone_dust 2 4
+redstone_dust 1 4
+redstone_dust 0 4
+redstone_dust 0 5
+redstone_dust 0 6
+redstone_dust 1 6
+redstone_dust 2 6
+redstone_dust 2 7
+redstone_dust 2 8
+redstone_dust 1 8
+redstone_dust 3 7
+redstone_block 4 7

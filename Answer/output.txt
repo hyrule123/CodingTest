@@ -1,3 +1,1 @@
-YES
-RGRGRGRBR
-GRBRBRBGB
+success
