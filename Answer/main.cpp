@@ -14,110 +14,69 @@ int main()
 }
 
 /*
-백준 16929 (Two Dots) [그래프]
+백준 12852 (1로 만들기 2) [복습][DP]
 */
 #include <vector>
-#include <string>
-#include <queue>
-int N, M;
-vector<string> board;
-struct coord
+#include <cmath>
+#include <stack>
+constexpr int p1 = 1, div2 = 2, div3 = 3;
+struct trail
 {
-	int r, c;
-	coord operator +(const coord& o)
-	{
-		return { r + o.r, c + o.c };
-	}
-	bool is_valid()
-	{
-		return !(r < 0 || N <= r || c < 0 || M <= c);
-	}
-	int to_1d()
-	{
-		return r * M + c;
-	}
+	int min_count = 987'654'321, how;
 };
-constexpr coord dirs[] = { {-1,0}, {1,0}, {0,-1}, {0,1} };
-vector<vector<int>> graph;
-vector<bool> visited;
-
-void make_graph()
-{
-	graph.resize(M * N);
-	for (int r = 0; r < N; ++r)
-	{
-		for (int c = 0; c < M; ++c)
-		{
-			coord cur = { r,c };
-			for (const auto& dir : dirs)
-			{
-				coord child = cur + dir;
-				if (false == child.is_valid())
-				{
-					continue;
-				}
-
-				//색이 같으면 간선을 연결
-				if (board[r][c] == board[child.r][child.c])
-				{
-					graph[cur.to_1d()].push_back(child.to_1d());
-				}
-			}
-		}
-	}
-}
-
-bool detect_cycle(int start)
-{
-	struct travel
-	{
-		int now, from;
-	};
-	queue<travel> q;
-	
-	visited[start] = true;
-	q.push({ start, -1 });
-
-	while (false == q.empty())
-	{
-		travel cur = q.front(); q.pop();
-		for (int next : graph[cur.now])
-		{
-			if (next == cur.from) { continue; }
-
-			if (visited[next]) { return true; }
-
-			visited[next] = true;
-			q.push({ next, cur.now });
-		}
-	}
-
-	return false;
-}
+vector<trail> dp;
 
 void solve()
 {
-	cin >> N >> M;
-	board.resize(N, string((size_t)M, 0));
-	for (int i = 0; i < N; ++i)
-	{;
-		cin >> board[i];
-	}
-	
-	make_graph();
+	int n; cin >> n;
+	dp.resize(n + 1);
 
-	visited.resize(graph.size());
-	for (int i = 0; i < visited.size(); ++i)
+	dp[n].min_count = 0;
+	for (int i = n - 1; 1 <= i; --i)
 	{
-		if (visited[i] == false)
+		if (i * 3 <= n && dp[i * 3].min_count + 1 < dp[i].min_count)
 		{
-			if (detect_cycle(i))
-			{
-				cout << "Yes";
-				return;
-			}
+			dp[i].min_count = dp[i * 3].min_count + 1;
+			dp[i].how = div3;
+		}
+		if (i * 2 <= n && dp[i * 2].min_count + 1 < dp[i].min_count)
+		{
+			dp[i].min_count = dp[i * 2].min_count + 1;
+			dp[i].how = div2;
+		}
+		if (dp[i + 1].min_count + 1 < dp[i].min_count)
+		{
+			dp[i].min_count = dp[i + 1].min_count + 1;
+			dp[i].how = p1;
 		}
 	}
 
-	cout << "No";
+	cout << dp[1].min_count << '\n';
+	int backtrace = 1;
+	stack<int> ans;
+	
+	while (backtrace < n)
+	{
+		ans.push(backtrace);
+
+		if (dp[backtrace].how == div3)
+		{
+			backtrace *= 3;
+		}
+		else if (dp[backtrace].how == div2)
+		{
+			backtrace *= 2;
+		}
+		else//p1
+		{
+			backtrace += 1;
+		}
+	}
+	ans.push(n);
+
+	while (!ans.empty())
+	{
+		cout << ans.top() << ' ';
+		ans.pop();
+	}
 }
