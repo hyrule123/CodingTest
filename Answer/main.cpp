@@ -14,69 +14,71 @@ int main()
 }
 
 /*
-백준 12852 (1로 만들기 2) [복습][DP]
+백준 12020 (LU 분해) [수학]
+https://velog.io/@jqdjhy/%EA%B0%80%EC%9A%B0%EC%8A%A4-%EC%86%8C%EA%B1%B0%EB%B2%95
+
+* 더 효율적인 풀이(문제 조건의 band matrix 사용)
+	https://codio.tistory.com/entry/%EB%B0%B1%EC%A4%80-12020%EB%B2%88-LU-%EB%B6%84%ED%95%B4-C
 */
-#include <vector>
-#include <cmath>
-#include <stack>
-constexpr int p1 = 1, div2 = 2, div3 = 3;
-struct trail
-{
-	int min_count = 987'654'321, how;
-};
-vector<trail> dp;
+int n;
+double L[1001][1001], U[1001][1001];
 
 void solve()
 {
-	int n; cin >> n;
-	dp.resize(n + 1);
-
-	dp[n].min_count = 0;
-	for (int i = n - 1; 1 <= i; --i)
+	cin >> n;
+	//L은 단위행렬로 초기화, U는 A 행렬 그대로 입력을 받아준다.
+	for (int i = 0; i < n; ++i)
 	{
-		if (i * 3 <= n && dp[i * 3].min_count + 1 < dp[i].min_count)
+		L[i][i] = 1;
+		for (int j = 0; j < n; ++j)
 		{
-			dp[i].min_count = dp[i * 3].min_count + 1;
-			dp[i].how = div3;
-		}
-		if (i * 2 <= n && dp[i * 2].min_count + 1 < dp[i].min_count)
-		{
-			dp[i].min_count = dp[i * 2].min_count + 1;
-			dp[i].how = div2;
-		}
-		if (dp[i + 1].min_count + 1 < dp[i].min_count)
-		{
-			dp[i].min_count = dp[i + 1].min_count + 1;
-			dp[i].how = p1;
+			cin >> U[i][j];
 		}
 	}
 
-	cout << dp[1].min_count << '\n';
-	int backtrace = 1;
-	stack<int> ans;
-	
-	while (backtrace < n)
+	for (int c = 0; c < n; ++c)
 	{
-		ans.push(backtrace);
+		//pivot: L[r][c]와 곱해질 U행렬의 원소
+		double pivot = U[c][c];
+		if (pivot == 0) 
+		{
+			cout << "-1";
+			return;
+		}
 
-		if (dp[backtrace].how == div3)
+		for (int r = c + 1; r < n; ++r)
 		{
-			backtrace *= 3;
-		}
-		else if (dp[backtrace].how == div2)
-		{
-			backtrace *= 2;
-		}
-		else//p1
-		{
-			backtrace += 1;
+			//U는 좌하단 삼각형 부분이 0이어야 한다.
+			//U[r][c]를 0으로 만들어주는 L의 값을 구한다.
+			L[r][c] = U[r][c] / pivot;
+			U[r][c] = 0;
+
+			//L[r][c]가 0이 아닌 값이 되므로
+			//L[r][c]와 곱해지는 U의 r열도 수정해주어야 한다.
+			//늘어난 값 만큼을 빼 준다.
+			for (int i = c + 1; i < n; ++i)
+			{
+				U[r][i] = U[r][i] - L[r][c] * U[c][i];
+			}
 		}
 	}
-	ans.push(n);
 
-	while (!ans.empty())
+	cout.precision(3);
+	cout << fixed;
+	for (int r = 0; r < n; ++r)
 	{
-		cout << ans.top() << ' ';
-		ans.pop();
+		for (int c = 0; c < n; ++c)
+		{
+			cout << L[r][c] << ' ';
+		}
+		cout << '\n';
+	}
+	for (int r = 0; r < n; ++r)
+	{
+		for (int c = 0; c < n; ++c)
+		{
+			cout << U[r][c] << ' ';
+		}
+		cout << '\n';
 	}
 }
