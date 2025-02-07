@@ -14,10 +14,12 @@ int main()
 }
 
 /*
-백준 14852 (타일 채우기 3) [DP][v3][2020kb][8ms]
+백준 14852 (타일 채우기 3) [DP][v4][2020kb][8ms]
 v1: 첫번째 풀이 [17644kb][12ms]
 v2: 누적합만 사용하여 메모리 사용 줄인 버전 [9832kb][12ms]
 v3: 배열을 4개만 사용하여 메모리 사용 더 줄인 버전 [2020kb][8ms]
+v4: uint 써도 오버플로우 안 날듯? [2020kb][8ms]
+
 
 * 위 또는 아래에 ㅡㅡ(1 * 2)를 채울 경우: 4칸을 고려해야함
 	ㅡㅡ		ㅡㅡ		ㅁㅁ
@@ -44,31 +46,32 @@ v3: 배열을 4개만 사용하여 메모리 사용 더 줄인 버전 [2020kb][8
 	매번 1 ~ x - 3까지 순회돌면서 *2를 해주는 건 매우 비효율적이므로
 	길이 3 이상부터 유니크 패턴이 생기므로, 누적합으로 별도로 저장해야 한다.
 */
-using ll = long long;
-constexpr ll mod = 1'000'000'007;
+using uint = unsigned int;
+constexpr uint mod = 1'000'000'007;
 
-ll dp[4];
+uint dp[4];
 
 void solve()
 {
-	ll N; cin >> N;
+	uint N; cin >> N;
 	dp[1] = 2;
 	dp[2] = 2 + 7;
-	for (ll i = 3; i <= N; ++i)
+	for (uint i = 3; i <= N; ++i)
 	{
-		ll cur_idx = i % 4;
-		ll prev1_idx = (i - 1) % 4;
-		ll prev2_idx = (i - 2) % 4;
-		ll prev3_idx = (i - 3) % 4;
+		uint
+			cur_idx = i % 4,
+			prev1_idx = (i - 1) % 4,
+			prev2_idx = (i - 2) % 4,
+			prev3_idx = (i - 3) % 4;
 		//i - 2가 mod로 나눠져서 더 작은수일수도 있으므로 mod를 더해준다.
-		ll prev2 = (mod + dp[prev2_idx] - dp[prev3_idx]) % mod;
+		uint prev2 = (mod + dp[prev2_idx] - dp[prev3_idx]) % mod;
 
 		/*
 		dp[i] = dp[i - 1] * 2 + dp[i - 2] * '3' + dp[i - 4] * 2 * ... * dp[1] * 2 + 2
 			== partsum[i - 1] * 2 + (partsum[i - 2] - partsum[i - 3]) + 2
 		-> 2로 묶고, dp[i-2]만 따로 한번 더해줌
 		*/
-		ll cur = (dp[prev1_idx] * 2 + prev2 + 2) % mod;
+		uint cur = (dp[prev1_idx] * 2 + prev2 + 2) % mod;
 		dp[cur_idx] = (dp[prev1_idx] + cur) % mod;
 	}
 
