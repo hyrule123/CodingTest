@@ -14,66 +14,60 @@ int main()
 }
 
 /*
-백준 14852 (타일 채우기 3) [DP][v4][2020kb][8ms]
-v1: 첫번째 풀이 [17644kb][12ms]
-v2: 누적합만 사용하여 메모리 사용 줄인 버전 [9832kb][12ms]
-v3: 배열을 4개만 사용하여 메모리 사용 더 줄인 버전 [2020kb][8ms]
-v4: uint 써도 오버플로우 안 날듯? [2020kb][8ms]
-
-
-* 위 또는 아래에 ㅡㅡ(1 * 2)를 채울 경우: 4칸을 고려해야함
-	ㅡㅡ		ㅡㅡ		ㅁㅁ
-	ㅁㅁ		ㅡㅡ		ㅡㅡ
-	3가지 경우가 있을 수 있다 -> DP[x - 2] * 3
-
-* ㅣ 또는 ㅁ을 채울 경우: 2칸을 고려하면 됨
-	ㅣ	ㅁ
-	ㅣ	ㅁ
-
-* 또한, 길이가 3 이상인 벽(2 * x)부터 2개씩 유니크 패턴이 추가됨
-	3을 예로 들면
-	ㅡㅡ ㅁ		ㅁ ㅡㅡ
-	ㅁ ㅡㅡ		ㅡㅡ ㅁ
-	4를 예로 들면
-	ㅡㅡ  ㅡㅡ		ㅁ ㅡㅡ ㅁ
-	ㅁ ㅡㅡ ㅁ		ㅡㅡ  ㅡㅡ
-
-	그러니까, 길이 6까지 타일을 채우는 방법은
-	DP[6] = DP[5] * 2 + DP[4] * 3
-		+ DP[3] * 2 (길이 3을 채우는 방법의 수 + 길이 3짜리 유니크 패턴 2개)
-		+ DP[2] * 2 (길이 2를 채우는 방법의 수 + 길이 4짜리 유니크 패턴 2개)
-		+ DP[1] * 2 (길이 1을 채우는 방법의 수 + 길이 5짜리 유니크 패턴 2개)
-	매번 1 ~ x - 3까지 순회돌면서 *2를 해주는 건 매우 비효율적이므로
-	길이 3 이상부터 유니크 패턴이 생기므로, 누적합으로 별도로 저장해야 한다.
+백준 14238 (출근 기록) [그리디]
+https://oculis.tistory.com/55
+오답 원인: 단순하게 C를 최우선으로 두면 된다고 생각했는데,
+"BBC" 와 같이 B의 우선순위를 높여야 하는 경우를 생각하지 못했음.
+당연히 가장 까다로운 C를 우선적으로 처리해야 하는 것은 맞지만,
+특정 상황에는 B가 와 주어야 한다.
+B가 충분히 남아 있는 경우(B가 남은 길이의 반 이상보다 많은 경우) B를 먼저 사용하도록 해 주면 된다.
 */
-using uint = unsigned int;
-constexpr uint mod = 1'000'000'007;
 
-uint dp[4];
+#include <string>
+constexpr int A = 0, B = 1, C = 2;
+string str;
+int ABC[3], total, B_cooltime, C_cooltime;
 
 void solve()
 {
-	uint N; cin >> N;
-	dp[1] = 2;
-	dp[2] = 2 + 7;
-	for (uint i = 3; i <= N; ++i)
+	cin >> str;
+	for (char c : str)
 	{
-		uint
-			cur_idx = i % 4,
-			prev1_idx = (i - 1) % 4,
-			prev2_idx = (i - 2) % 4,
-			prev3_idx = (i - 3) % 4;
-		//i - 2가 mod로 나눠져서 더 작은수일수도 있으므로 mod를 더해준다.
-		uint prev2 = (mod + dp[prev2_idx] - dp[prev3_idx]) % mod;
-
-		/*
-		dp[i] = dp[i - 1] * 2 + dp[i - 2] * '3' + dp[i - 4] * 2 * ... * dp[1] * 2 + 2
-			== partsum[i - 1] * 2 + (partsum[i - 2] - partsum[i - 3]) + 2
-		-> 2로 묶고, dp[i-2]만 따로 한번 더해줌
-		*/
-		uint cur = (dp[prev1_idx] * 2 + prev2 + 2) % mod;
-		dp[cur_idx] = (dp[prev1_idx] + cur) % mod;
+		ABC[c - 'A']++;
+		total++;
 	}
 
-	cout << (mod + dp[N % 4] - dp[(N - 1) % 4]) % mod;
+	str.clear();
+	for(int i = 0; i < total; ++i)
+	{
+		if (0 > --B_cooltime) { B_cooltime = 0; }
+		if (0 > --C_cooltime) { C_cooltime = 0; }
+
+		int remain_half = (total - i) / 2;
+		if (0 == C_cooltime && 0 < ABC[C] && ABC[B] <= remain_half)
+		{
+			str.push_back('C');
+			ABC[C]--;
+			C_cooltime = 3;
+		}
+		else if (0 == B_cooltime && 0 < ABC[B])
+		{
+			str.push_back('B');
+			ABC[B]--;
+			B_cooltime = 2;
+		}
+		else
+		{
+			if (ABC[A] <= 0)
+			{
+				cout << -1;
+				return;
+			}
+
+			str.push_back('A');
+			ABC[A]--;
+		}
+	}
+
+	cout << str;
 }
