@@ -14,60 +14,160 @@ int main()
 }
 
 /*
-백준 14238 (출근 기록) [그리디]
-https://oculis.tistory.com/55
-오답 원인: 단순하게 C를 최우선으로 두면 된다고 생각했는데,
-"BBC" 와 같이 B의 우선순위를 높여야 하는 경우를 생각하지 못했음.
-당연히 가장 까다로운 C를 우선적으로 처리해야 하는 것은 맞지만,
-특정 상황에는 B가 와 주어야 한다.
-B가 충분히 남아 있는 경우(B가 남은 길이의 반 이상보다 많은 경우) B를 먼저 사용하도록 해 주면 된다.
+백준 11965 (Bessie's Dream) [BFS][오답-메모리 초과]
+visited를 안 썼다...
 */
+#include <vector>
+#include <queue>
+vector<vector<int>> maze;
+enum colors { red, pink, orange, blue, purple };
 
-#include <string>
-constexpr int A = 0, B = 1, C = 2;
-string str;
-int ABC[3], total, B_cooltime, C_cooltime;
+int size_r, size_c;
+struct coord
+{
+	int r, c;
+	coord operator + (const coord& cd) const
+	{
+		return { r + cd.r, c + cd.c };
+	}
+
+	coord operator -() const
+	{
+		return { -r, -c };
+	}
+
+	bool operator == (const coord& cd) const
+	{
+		return (r == cd.r && c == cd.c);
+	}
+
+	bool is_valid()
+	{
+		return !(r < 0 || size_r <= r || c < 0 || size_c <= c);
+	}
+};
+constexpr coord dirs[] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
+
+struct travel
+{
+	coord cod, dir;
+	int dist;
+	bool is_orange_smell;
+};
+
+bool check(const travel& from, travel& to, const coord& dir)
+{
+	if (false == to.cod.is_valid()) { return false; }
+
+	switch (maze[to.cod.r][to.cod.c])
+	{
+	case red:
+		return false;
+	case pink:
+		to.dist = from.dist + 1;
+		to.dir = dir;
+		to.is_orange_smell = from.is_orange_smell;
+		return true;
+	case orange:
+		to.dist = from.dist + 1;
+		to.dir = dir;
+		to.is_orange_smell = true;
+		return true;
+	case blue:
+		if (false == from.is_orange_smell)
+		{
+			return false;
+		}
+
+		to.dist = from.dist + 1;
+		to.dir = dir;
+		to.is_orange_smell = from.is_orange_smell;
+		return true;
+	case purple:
+		to.dist = from.dist + 1;
+		to.dir = dir;
+		to.is_orange_smell = false;
+		return true;
+	default:
+		break;
+	}
+
+	return false;
+}
+
+int BFS()
+{
+	queue<travel> q;
+	travel from{};
+	from.cod = { 0, 0 };
+	from.dir = { -1, -1 };
+	from.dist = 0;
+	from.is_orange_smell = false;
+	q.push(from);
+
+	while (false == q.empty())
+	{
+		from = q.front(); q.pop();
+
+		if (from.cod.r + 1 == size_r && from.cod.c + 1 == size_c)
+		{
+			return from.dist;
+		}
+
+		//제외할 좌표
+		coord exclude{};
+		travel dest{};
+
+		//보라색 타일에서 진입한 경우를 가장 먼저 확인
+		if (maze[from.cod.r][from.cod.c] == purple)
+		{	
+			//이동중이던 방향으로 가장 먼저 이동 가능한지 확인
+			dest.cod = from.cod + from.dir;
+			if (check(from, dest, from.dir))
+			{
+				//이동 가능할 경우 여기만 큐에 추가하고 다음 사이클로 넘어간다
+				q.push(dest);
+				continue;
+			}
+			else//해당 방향으로 이동 불가능할 경우
+			{
+				//제외할 좌표 등록. 여기 제외하고 나머지 길에 대해 확인한다.
+				exclude = from.dir;
+			}
+		}
+
+		for (const auto& dir : dirs)
+		{
+			//제외한 방향일 경우 continue
+			if (exclude == dir) { continue; }
+
+			//왔던 방향으로 돌아가는 경우 continue
+			if (-dir == from.dir) { continue; }
+
+			dest.cod = from.cod + dir;
+
+			//이동 가능한 타일일 경우 이동
+			if (check(from, dest, dir))
+			{
+				q.push(dest);
+			}
+		}
+	}
+
+	return -1;
+}
 
 void solve()
 {
-	cin >> str;
-	for (char c : str)
+	cin >> size_r >> size_c;
+	maze.resize(size_r, vector<int>((size_t)size_c));
+
+	for (int r = 0; r < size_r; ++r)
 	{
-		ABC[c - 'A']++;
-		total++;
-	}
-
-	str.clear();
-	for(int i = 0; i < total; ++i)
-	{
-		if (0 > --B_cooltime) { B_cooltime = 0; }
-		if (0 > --C_cooltime) { C_cooltime = 0; }
-
-		int remain_half = (total - i) / 2;
-		if (0 == C_cooltime && 0 < ABC[C] && ABC[B] <= remain_half)
+		for (int c = 0; c < size_c; ++ c)
 		{
-			str.push_back('C');
-			ABC[C]--;
-			C_cooltime = 3;
-		}
-		else if (0 == B_cooltime && 0 < ABC[B])
-		{
-			str.push_back('B');
-			ABC[B]--;
-			B_cooltime = 2;
-		}
-		else
-		{
-			if (ABC[A] <= 0)
-			{
-				cout << -1;
-				return;
-			}
-
-			str.push_back('A');
-			ABC[A]--;
+			cin >> maze[r][c];
 		}
 	}
-
-	cout << str;
+	cout << BFS();
 }
