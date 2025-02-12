@@ -14,222 +14,95 @@ int main()
 }
 
 /*
-백준 11965 (Bessie's Dream) [BFS][다익스트라]
+백준 26598 (색종이와 공예) [브루트 포스][오답]
+
+* 직사각형이 아닐 때만 놀려주면 되니까
+* 새로운 문자 발견 시 -> 가로(col)로 쭉 확인 후 세로로 이어서 확인하면 되지 않을까?
+* 브루트포스로 하니까 시간초과 발생...
 */
-#include <vector>
+
 #include <queue>
-vector<vector<int>> maze;
+queue<pair<int, int>> job_q;
+int r_size, c_size;
+char inputs[1001][1001];
 
-struct block_info
+bool check(int r_start, int c_start)
 {
-	int dist;
-	bool orange_passed;
-};
-vector<vector<block_info>> visited;
-enum colors { red, pink, orange, blue, purple };
+	const char cur_char = inputs[r_start][c_start];
 
-int size_r, size_c;
-struct coord
-{
-	int r, c;
-	coord operator + (const coord& cd) const
+	//테두리(상하좌우) 확인
+	int top_side = 0, left_side = 0, bottom_side = 0, right_side = 0;
+	for (int r = r_start; r < r_size; ++r)
 	{
-		return { r + cd.r, c + cd.c };
+		if (cur_char != inputs[r][c_start]) { break; }
+		++left_side;
 	}
-	coord operator * (int i) const
+	for (int c = c_start; c < c_size; ++c)
 	{
-		return { r * i, c * i };
+		if (cur_char != inputs[r_start][c]) { break; }
+		++top_side;
 	}
-	coord operator -() const
+	for (int r = r_start; r < r_size; ++r)
 	{
-		return { -r, -c };
+		if (cur_char != inputs[r][c_start + top_side - 1]) { break; }
+		++right_side;
 	}
-
-	bool operator == (const coord& cd) const
+	for (int c = c_start; c < c_size; ++c)
 	{
-		return (r == cd.r && c == cd.c);
+		if (cur_char != inputs[r_start + left_side - 1][c]) { break; }
+		++bottom_side;
 	}
 
-	bool is_valid()
+	if (left_side != right_side || top_side != bottom_side)
 	{
-		return !(r < 0 || size_r <= r || c < 0 || size_c <= c);
+		return false;
 	}
-};
-constexpr coord dirs[] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
 
-//first: dist, second: passed purple block
-int passthrough(const coord& cur, const coord& dir)
-{
-	int ret = 0;
-
-	coord now = cur;
-	while (true)
+	//내부
+	for (int r = r_start + 1; r < r_start + left_side - 1; ++r)
 	{
-		coord temp = now + dir;
-		if (temp.is_valid())
+		for (int c = c_start + 1; c < c_start + top_side - 1; ++c)
 		{
-			if (maze[temp.r][temp.c] == purple)
+			if (cur_char != inputs[r][c])
 			{
-				now = temp;
-				++ret;
-				continue;
-			}
-			else
-			{
-				break;
+				return false;
 			}
 		}
-		else { break; }
 	}
 
-	return ret;
-}
-
-struct travel
-{
-	coord cod;
-	int dist;
-	bool is_orange_smell;
-
-	auto operator <=> (const travel& o) const
+	if (c_start + top_side < c_size)
 	{
-		return dist <=> o.dist;
+		job_q.push({ r_start, c_start + top_side });
 	}
-};
-priority_queue<travel, vector<travel>, greater<>> q;
-
-int BFS()
-{
-	travel from{};
-	from.cod = { 0, 0 };
-	from.dist = 0;
-	from.is_orange_smell = false;
-	visited[0][0].dist = 1;
-	q.push(from);
-
-	while (false == q.empty())
+	if (r_start + left_side < r_size)
 	{
-		from = q.top(); q.pop();
-
-		for (const auto& dir : dirs)
-		{
-			travel to{};
-			int result = passthrough(from.cod, dir);
-			//보라색 블록을 한 칸이라도 지나왔을 경우
-			if (0 < result)
-			{
-				to.cod = from.cod + dir * result;
-				to.dist = from.dist + result;
-				to.is_orange_smell = false;
-
-				//한칸 더 가본다
-				coord next = to.cod + dir;
-				//다음칸 갈수 있고 + 핑크색이고
-				if (next.is_valid() && maze[next.r][next.c] == pink)
-				{
-					//아직 방문하지 않았다면 방문(방문했다면 더이상 방문 X)
-					if (visited[next.r][next.c].dist == 0)
-					{
-						to.cod = next;
-						to.dist++;
-						visited[to.cod.r][to.cod.c].dist = to.dist;
-						if (to.cod.r + 1 == size_r && to.cod.c + 1 == size_c)
-						{
-							return to.dist;
-						}
-						q.push(to);
-					}
-				}
-				//다음칸에 갈 수 없을 경우 이번 보라색 칸 방문 여부 확인 후 방문
-				else if (visited[to.cod.r][to.cod.c].dist == 0)
-				{
-					visited[to.cod.r][to.cod.c].dist = to.dist;
-					if (to.cod.r + 1 == size_r && to.cod.c + 1 == size_c)
-					{
-						return to.dist;
-					}
-					q.push(to);
-				}
-			}
-			//보라색이나 핑크색 블록이 아닐 경우
-			//빨간색, 주황색, 파란색
-			else
-			{
-				to.cod = from.cod + dir;
-				if (to.cod.is_valid())
-				{
-					int color = maze[to.cod.r][to.cod.c];
-					switch (color)
-					{
-					case red:
-						continue;
-					case pink:
-						to.is_orange_smell = from.is_orange_smell;
-						to.dist = from.dist + 1;
-						break;
-					case orange:
-						to.is_orange_smell = true;
-						to.dist = from.dist + 1;
-						break;
-					case blue:
-						if (false == from.is_orange_smell)
-						{
-							continue;
-						}
-
-						to.is_orange_smell = from.is_orange_smell;
-						to.dist = from.dist + 1;
-						break;
-					default:
-						continue;
-					}
-
-					if (visited[to.cod.r][to.cod.c].dist == 0)
-					{
-						visited[to.cod.r][to.cod.c].dist = to.dist;
-						visited[to.cod.r][to.cod.c].orange_passed = to.is_orange_smell;
-
-						if (to.cod.r + 1 == size_r && to.cod.c + 1 == size_c)
-						{
-							return to.dist;
-						}
-
-						q.push(to);
-					}
-					else if (to.is_orange_smell && false == visited[to.cod.r][to.cod.c].orange_passed)
-					{
-						visited[to.cod.r][to.cod.c].dist = to.dist;
-						visited[to.cod.r][to.cod.c].orange_passed = to.is_orange_smell;
-
-						if (to.cod.r + 1 == size_r && to.cod.c + 1 == size_c)
-						{
-							return to.dist;
-						}
-
-						q.push(to);
-					}
-				}
-			}
-		}
-
+		job_q.push({ r_start + left_side, c_start });
 	}
 
-	return -1;
+	return true;
 }
 
 void solve()
 {
-	cin >> size_r >> size_c;
-	maze.resize(size_r, vector<int>((size_t)size_c));
-	visited.resize(size_r, vector<block_info>((size_t)size_c));
-
-	for (int r = 0; r < size_r; ++r)
+	cin >> r_size >> c_size;
+	
+	for (int r = 0; r < r_size; ++r)
 	{
-		for (int c = 0; c < size_c; ++c)
+		cin >> inputs[r];
+	}
+
+	job_q.push({ 0, 0 });
+
+	while (false == job_q.empty())
+	{
+		auto coord = job_q.front(); job_q.pop();
+
+		if (false == check(coord.first, coord.second))
 		{
-			cin >> maze[r][c];
+			cout << "BaboBabo";
+			return;
 		}
 	}
 
-	cout << BFS();
+	cout << "dd";
 }
