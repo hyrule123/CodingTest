@@ -14,69 +14,54 @@ int main()
 }
 
 /*
-백준 2098 (외판원 순회) [TSP][DP][복습]
-
-//dp[i][j]
-i: bit mask -> 방문한 도시를 1로 표시
-2: 마지막에 방문한 도시 -> 순서에 따라서도 달라지므로
+백준 15973 (두 박스) [기하]
+1. 우선 충돌여부를 제일 먼저 확인
 */
 
-
-constexpr int bit_MAX = 1 << 16, INF = (int)1e9;
-int N, inputs[16][16], dp[1 << 16][16];
-
-int TSP(int visited_mask, int to)
-{
-	//이번 도시를 지나갔다고 체크
-	visited_mask |= 1 << to;
-
-	//종료 조건: 모든 도시를 순회 돌았을 경우
-	if (visited_mask == (1 << N) - 1)
-	{
-		//마지막으로 방문한 도시에서 시작 도시(여기서는 0)로 돌아올 수 있는지 확인한다.
-		//돌아올 수 없다면 INF를 반환
-		return (inputs[to][0] == 0 ? INF : inputs[to][0]);
-	}
-	
-	int& cur = dp[visited_mask][to];
-
-	//아직 계산 안한 경우
-	if (cur == -1)
-	{
-		cur = INF;
-		for (int i = 0; i < 16; ++i)
-		{
-			//출발지 == 목적지
-			if (i == to) { continue; }
-
-			//길이 연결되어있지 않은 경우 0(순회 불가)
-			if (inputs[to][i] == 0) { continue; }
-
-			//이미 방문한 도시일 경우 스킵
-			if (visited_mask & 1 << i) { continue; }
-
-			//이번 도시로부터 i로 가는 방법을 구하고
-			//다른 순회 경로에서 방문했던 결과와 비교
-			cur = min(cur, TSP(visited_mask, i) + inputs[to][i]);
-		}
-	}
-
-	return cur;
-}
+constexpr int L = 0, B = 1, R = 2, T = 3;
+int P[4], Q[4];
 
 void solve()
 {
-	memset(dp, -1, sizeof(dp));
+	cin >> P[L] >> P[B] >> P[R] >> P[T]
+		>> Q[L] >> Q[B] >> Q[R] >> Q[T];
 
-	cin >> N;
-	for (int r = 0; r < N; ++r)
+	//가장먼저 충돌 여부를 확인
+	if (P[B] > Q[T] || P[L] > Q[R] || P[R] < Q[L] || P[T] < Q[B])
 	{
-		for (int c = 0; c < N; ++c)
-		{
-			cin >> inputs[r][c];
-		}
+		cout << "NULL";
+		return;
 	}
 
-	//미방문(0), 첫 출발지(0)
-	cout << TSP(0, 0);
+	//한 점만 겹침 여부를 확인
+	bool point = false;
+
+	//LB == RT
+	point |= (P[L] == Q[R] && P[B] == Q[T]);
+
+	//RT == LB
+	point |= (P[R] == Q[L] && P[T] == Q[B]);
+
+	//LT == RB
+	point |= (P[L] == Q[R] && P[T] == Q[B]);
+
+	//RB == LT
+	point |= (P[R] == Q[L] && P[B] == Q[T]);
+	if (point)
+	{
+		cout << "POINT";
+		return;
+	}
+
+
+	//한 선만 겹침 여부를 확인
+	bool line = (P[L] == Q[R] || P[R] == Q[L] || P[B] == Q[T] || P[T] == Q[B]);
+	if (line)
+	{
+		cout << "LINE";
+		return;
+	}
+
+	//다 아니면 FACE
+	cout << "FACE";
 }
