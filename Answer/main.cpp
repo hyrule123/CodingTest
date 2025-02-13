@@ -14,54 +14,59 @@ int main()
 }
 
 /*
-백준 15973 (두 박스) [기하]
-1. 우선 충돌여부를 제일 먼저 확인
+백준 1398 (동전 문제) [그리디][오답]
+
+동전이 배수 관계가 아니기 때문에 단순 그리디로 해결할 수 없다.
 */
 
-constexpr int L = 0, B = 1, R = 2, T = 3;
-int P[4], Q[4];
+#include <vector>
+#include <algorithm>
+using ull = unsigned long long;
+vector<ull> inputs;
+vector<ull> coins;
 
 void solve()
 {
-	cin >> P[L] >> P[B] >> P[R] >> P[T]
-		>> Q[L] >> Q[B] >> Q[R] >> Q[T];
-
-	//가장먼저 충돌 여부를 확인
-	if (P[B] > Q[T] || P[L] > Q[R] || P[R] < Q[L] || P[T] < Q[B])
+	ull T; cin >> T;
+	inputs.resize(T);
+	ull MAX = 0;
+	for (auto& input : inputs)
 	{
-		cout << "NULL";
-		return;
+		cin >> input;
+		MAX = max(MAX, input);
+	}
+	
+	for (ull num = 1;; num *= 10)
+	{
+		if (num > MAX) { break; }
+		coins.push_back(num);
+	}
+	for (ull num = 25;; num *= 100)
+	{
+		if (num > MAX) { break; }
+		coins.push_back(1 * num);
 	}
 
-	//한 점만 겹침 여부를 확인
-	bool point = false;
+	sort(coins.begin(), coins.end());
 
-	//LB == RT
-	point |= (P[L] == Q[R] && P[B] == Q[T]);
-
-	//RT == LB
-	point |= (P[R] == Q[L] && P[T] == Q[B]);
-
-	//LT == RB
-	point |= (P[L] == Q[R] && P[T] == Q[B]);
-
-	//RB == LT
-	point |= (P[R] == Q[L] && P[B] == Q[T]);
-	if (point)
+	for (auto input : inputs)
 	{
-		cout << "POINT";
-		return;
+		ull count = 0;
+		for (ull i = coins.size() - 1; i != -1; --i)
+		{
+			while (true)
+			{
+				if (coins[i] <= input)
+				{
+					input -= coins[i];
+					++count;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+		cout << count << '\n';
 	}
-
-
-	//한 선만 겹침 여부를 확인
-	bool line = (P[L] == Q[R] || P[R] == Q[L] || P[B] == Q[T] || P[T] == Q[B]);
-	if (line)
-	{
-		cout << "LINE";
-		return;
-	}
-
-	//다 아니면 FACE
-	cout << "FACE";
 }
