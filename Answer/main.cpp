@@ -14,89 +14,69 @@ int main()
 }
 
 /*
-백준 26598 (색종이와 공예) [BFS]
+백준 2098 (외판원 순회) [TSP][DP][복습]
 
-* 직사각형이 아닐 때만 놀려주면 되니까
-* 새로운 문자 발견 시 -> 가로(col)로 쭉 확인 후 세로로 이어서 확인하면 되지 않을까?
-* 그냥 시키는대로 할걸 최적화를 너무 생각한 듯
+//dp[i][j]
+i: bit mask -> 방문한 도시를 1로 표시
+2: 마지막에 방문한 도시 -> 순서에 따라서도 달라지므로
 */
 
-#include <stack>
 
-int r_size, c_size;
-char inputs[1001][1001];
+constexpr int bit_MAX = 1 << 16, INF = (int)1e9;
+int N, inputs[16][16], dp[1 << 16][16];
 
-bool check(int r_start, int c_start)
+int TSP(int visited_mask, int to)
 {
-	const char cur_char = inputs[r_start][c_start];
-	inputs[r_start][c_start] = 0;
+	//이번 도시를 지나갔다고 체크
+	visited_mask |= 1 << to;
 
-	pair<int, int> left_top{ 11111, 11111 }, right_bottom{};
-	stack<pair<int, int>> q;
-	int char_count = 0;
-	q.push({ r_start, c_start });
-	while (false == q.empty())
+	//종료 조건: 모든 도시를 순회 돌았을 경우
+	if (visited_mask == (1 << N) - 1)
 	{
-		pair<int, int> cur = q.top(); q.pop();
-		++char_count;
+		//마지막으로 방문한 도시에서 시작 도시(여기서는 0)로 돌아올 수 있는지 확인한다.
+		//돌아올 수 없다면 INF를 반환
+		return (inputs[to][0] == 0 ? INF : inputs[to][0]);
+	}
+	
+	int& cur = dp[visited_mask][to];
 
-		left_top.first = min(left_top.first, cur.first);
-		left_top.second = min(left_top.second, cur.second);
-		right_bottom.first = max(right_bottom.first, cur.first);
-		right_bottom.second = max(right_bottom.second, cur.second);
+	//아직 계산 안한 경우
+	if (cur == -1)
+	{
+		cur = INF;
+		for (int i = 0; i < 16; ++i)
+		{
+			//출발지 == 목적지
+			if (i == to) { continue; }
 
-		if (0 <= cur.first - 1 && inputs[cur.first - 1][cur.second] == cur_char)
-		{
-			inputs[cur.first - 1][cur.second] = 0;
-			q.push({ cur.first - 1, cur.second });
-		}
-		if (r_size > cur.first + 1 && inputs[cur.first + 1][cur.second] == cur_char)
-		{
-			inputs[cur.first + 1][cur.second] = 0;
-			q.push({ cur.first + 1, cur.second });
-		}
-		if (0 <= cur.second - 1 && inputs[cur.first][cur.second - 1] == cur_char)
-		{
-			inputs[cur.first][cur.second - 1] = 0;
-			q.push({ cur.first, cur.second - 1 });
-		}
-		if (c_size > cur.second + 1 && inputs[cur.first][cur.second + 1] == cur_char)
-		{
-			inputs[cur.first][cur.second + 1] = 0;
-			q.push({ cur.first, cur.second + 1 });
+			//길이 연결되어있지 않은 경우 0(순회 불가)
+			if (inputs[to][i] == 0) { continue; }
+
+			//이미 방문한 도시일 경우 스킵
+			if (visited_mask & 1 << i) { continue; }
+
+			//이번 도시로부터 i로 가는 방법을 구하고
+			//다른 순회 경로에서 방문했던 결과와 비교
+			cur = min(cur, TSP(visited_mask, i) + inputs[to][i]);
 		}
 	}
 
-	int size = (right_bottom.first - left_top.first + 1) * (right_bottom.second - left_top.second + 1);
-	if (char_count == size) { return true; }
-
-	return false;
+	return cur;
 }
 
 void solve()
 {
-	cin >> r_size >> c_size;
+	memset(dp, -1, sizeof(dp));
 
-	for (int r = 0; r < r_size; ++r)
+	cin >> N;
+	for (int r = 0; r < N; ++r)
 	{
-		cin >> inputs[r];
-	}
-
-	for (int r = 0; r < r_size; ++r)
-	{
-		for (int c = 0; c < c_size; ++c)
+		for (int c = 0; c < N; ++c)
 		{
-			if (inputs[r][c] != 0)
-			{
-				if (false == check(r, c))
-				{
-					cout << "BaboBabo";
-					return;
-				}
-			}
+			cin >> inputs[r][c];
 		}
 	}
 
-
-	cout << "dd";
+	//미방문(0), 첫 출발지(0)
+	cout << TSP(0, 0);
 }
