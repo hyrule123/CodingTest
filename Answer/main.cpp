@@ -14,95 +14,89 @@ int main()
 }
 
 /*
-백준 26598 (색종이와 공예) [브루트 포스][오답]
+백준 26598 (색종이와 공예) [BFS]
 
 * 직사각형이 아닐 때만 놀려주면 되니까
 * 새로운 문자 발견 시 -> 가로(col)로 쭉 확인 후 세로로 이어서 확인하면 되지 않을까?
-* 브루트포스로 하니까 시간초과 발생...
+* 그냥 시키는대로 할걸 최적화를 너무 생각한 듯
 */
 
-#include <queue>
-queue<pair<int, int>> job_q;
+#include <stack>
+
 int r_size, c_size;
 char inputs[1001][1001];
 
 bool check(int r_start, int c_start)
 {
 	const char cur_char = inputs[r_start][c_start];
+	inputs[r_start][c_start] = 0;
 
-	//테두리(상하좌우) 확인
-	int top_side = 0, left_side = 0, bottom_side = 0, right_side = 0;
-	for (int r = r_start; r < r_size; ++r)
+	pair<int, int> left_top{ 11111, 11111 }, right_bottom{};
+	stack<pair<int, int>> q;
+	int char_count = 0;
+	q.push({ r_start, c_start });
+	while (false == q.empty())
 	{
-		if (cur_char != inputs[r][c_start]) { break; }
-		++left_side;
-	}
-	for (int c = c_start; c < c_size; ++c)
-	{
-		if (cur_char != inputs[r_start][c]) { break; }
-		++top_side;
-	}
-	for (int r = r_start; r < r_size; ++r)
-	{
-		if (cur_char != inputs[r][c_start + top_side - 1]) { break; }
-		++right_side;
-	}
-	for (int c = c_start; c < c_size; ++c)
-	{
-		if (cur_char != inputs[r_start + left_side - 1][c]) { break; }
-		++bottom_side;
-	}
+		pair<int, int> cur = q.top(); q.pop();
+		++char_count;
 
-	if (left_side != right_side || top_side != bottom_side)
-	{
-		return false;
-	}
+		left_top.first = min(left_top.first, cur.first);
+		left_top.second = min(left_top.second, cur.second);
+		right_bottom.first = max(right_bottom.first, cur.first);
+		right_bottom.second = max(right_bottom.second, cur.second);
 
-	//내부
-	for (int r = r_start + 1; r < r_start + left_side - 1; ++r)
-	{
-		for (int c = c_start + 1; c < c_start + top_side - 1; ++c)
+		if (0 <= cur.first - 1 && inputs[cur.first - 1][cur.second] == cur_char)
 		{
-			if (cur_char != inputs[r][c])
-			{
-				return false;
-			}
+			inputs[cur.first - 1][cur.second] = 0;
+			q.push({ cur.first - 1, cur.second });
+		}
+		if (r_size > cur.first + 1 && inputs[cur.first + 1][cur.second] == cur_char)
+		{
+			inputs[cur.first + 1][cur.second] = 0;
+			q.push({ cur.first + 1, cur.second });
+		}
+		if (0 <= cur.second - 1 && inputs[cur.first][cur.second - 1] == cur_char)
+		{
+			inputs[cur.first][cur.second - 1] = 0;
+			q.push({ cur.first, cur.second - 1 });
+		}
+		if (c_size > cur.second + 1 && inputs[cur.first][cur.second + 1] == cur_char)
+		{
+			inputs[cur.first][cur.second + 1] = 0;
+			q.push({ cur.first, cur.second + 1 });
 		}
 	}
 
-	if (c_start + top_side < c_size)
-	{
-		job_q.push({ r_start, c_start + top_side });
-	}
-	if (r_start + left_side < r_size)
-	{
-		job_q.push({ r_start + left_side, c_start });
-	}
+	int size = (right_bottom.first - left_top.first + 1) * (right_bottom.second - left_top.second + 1);
+	if (char_count == size) { return true; }
 
-	return true;
+	return false;
 }
 
 void solve()
 {
 	cin >> r_size >> c_size;
-	
+
 	for (int r = 0; r < r_size; ++r)
 	{
 		cin >> inputs[r];
 	}
 
-	job_q.push({ 0, 0 });
-
-	while (false == job_q.empty())
+	for (int r = 0; r < r_size; ++r)
 	{
-		auto coord = job_q.front(); job_q.pop();
-
-		if (false == check(coord.first, coord.second))
+		for (int c = 0; c < c_size; ++c)
 		{
-			cout << "BaboBabo";
-			return;
+			if (inputs[r][c] != 0)
+			{
+				if (false == check(r, c))
+				{
+					cout << "BaboBabo";
+					return;
+				}
+			}
 		}
 	}
+
 
 	cout << "dd";
 }
