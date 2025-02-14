@@ -14,84 +14,60 @@ int main()
 }
 
 /*
-백준 17829 (222-풀링) [재귀]
-아이디어
-ㅁㅁ -> ㅁ
-ㅁㅁ 
-같은 공간을 재사용해도 값을 구하는데 문제가 발생하지 않으므로
-같은 공간 안에서 크기를 계속 줄여 나간다
+백준 2092 (집합의 개수) [DP]
+dp[i][j]: i 이하의 숫자 j개를 썼을 때 만들 수 있는 조합의 개수
 */
 #include <vector>
-#include <array>
-#include <algorithm>
-struct _2by2mat
-{
-	array<int, 4> m;
-
-	//insertion sort
-	int get_second()
-	{
-		for (int i = 1; i < 4; ++i)
-		{
-			int cur = m[i], check = i - 1;
-			while (check >= 0 && m[check] > cur)
-			{
-				m[check + 1] = m[check];
-				--check;
-			}
-			m[check + 1] = cur;
-		}
-
-		return m[2];
-	}
-};
-
-int N;
-vector<_2by2mat> mats;
-int get_last_num(int prev_side)
-{
-	if (prev_side == 1)
-	{
-		return mats[0].get_second();
-	}
-
-	int new_side = prev_side / 2;
-	for (int r = 0; r < new_side; ++r)
-	{
-		for (int c = 0; c < new_side; ++c)
-		{
-			_2by2mat& cur_mat = mats[r * new_side + c];
-
-			int prev_r = r * 2, prev_c = c * 2;
-			cur_mat.m[0] = mats[prev_r * prev_side + prev_c].get_second();
-			cur_mat.m[1] = mats[prev_r * prev_side + (prev_c + 1)].get_second();
-			cur_mat.m[2] = mats[(prev_r + 1) * prev_side + prev_c].get_second();
-			cur_mat.m[3] = mats[(prev_r + 1) * prev_side + (prev_c + 1)].get_second();
-		}
-	}
-
-	return get_last_num(new_side);
-}
+constexpr int mod = 1'000'000;
+int number_max, total_count, min_K, max_K;
+int numbers_count[201], dp[201][4001];
 
 void solve()
 {
-	cin >> N;
-	mats.resize(N * N / 4);
-
-	int board_size = N / 2, r = 0;
-	for (int r = 0; r < board_size; ++r)
+	cin >> number_max >> total_count >> min_K >> max_K;
+	for (int i = 0; i < total_count; ++i)
 	{
-		for (int c = 0; c < board_size; ++c)
+		int input; cin >> input;
+		numbers_count[input]++;
+	}
+
+	dp[0][0] = 1;
+	for (int n = 1; n <= number_max; ++n)
+	{
+		//아무것도 안 뽑은 집합(공집합)도 1개로 친다
+		dp[n][0] = 1;
+		for (int c = 1; c <= numbers_count[n]; ++c)
 		{
-			auto& cur_mat = mats[r * board_size + c];
-			cin >> cur_mat.m[0] >> cur_mat.m[1];
-		}		
-		for (int c = 0; c < board_size; ++c)
+			//숫자 n을 c개 써서 만들 수 있는 조합 1개씩 추가
+			//1 3개 있으면 1, 11, 111
+			dp[n][c] = 1;
+		}
+
+		for (int a = 1; a <= total_count; ++a)
 		{
-			auto& cur_mat = mats[r * board_size + c];
-			cin >> cur_mat.m[2] >> cur_mat.m[3];
+			//n을 쓰지 않는 조합의 개수를 추가
+			dp[n][a] = (dp[n][a] + dp[n - 1][a]) % mod;
+
+			for (int b = 1; b <= numbers_count[n]; ++b)
+			{
+				if (a - b >= 1)
+				{
+					//a - b개에 b, b, ..., b, b를 붙이는 방법의 수를 더한다
+					dp[n][a] = (dp[n][a] + dp[n - 1][a - b]) % mod;
+				}
+				else
+				{
+					break;
+				}
+			}
 		}
 	}
 
-	cout << get_last_num(board_size);
+	int ans = 0;
+	for (int k = min_K; k <= max_K; ++k)
+	{
+		ans = (ans + dp[number_max][k]) % mod;
+	}
+
+	cout << ans;
 }
