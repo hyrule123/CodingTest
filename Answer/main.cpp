@@ -14,51 +14,84 @@ int main()
 }
 
 /*
-백준 1398 (동전 문제) [DP][그리디]
-
-동전이 배수 관계가 아니기 때문에 단순 그리디로 해결할 수 없다.
-또한 10^15까지 액수가 나올 수 있으므로 단순 DP로는 메모리가 부족하다.
-눈여겨볼 점은 화폐단위가 100단위로 끊어진다는 점
-1, 10, 25
-100, 1000, 2500(100 ~ 10000)
-10'000, 100'000, 250'000 (10'000 ~ 1'000'000)
-
-그러니까, 100단위로 끊어서 그 이상의 액수는 그 이상의 코인 3종으로 처리해야한다는 뜻이다
-더 쉽게 말해서 3자리 단위로 끊어진다는 것
-
-100 단위에서, 동전을 가장 적게 쓰는 방법은 DP로 구할 수 있다.
-dp[현재 액수] = 1원 하나 쓰기 vs 10원 하나 쓰기 vs 25원 하나 쓰기
+백준 17829 (222-풀링) [재귀]
+아이디어
+ㅁㅁ -> ㅁ
+ㅁㅁ 
+같은 공간을 재사용해도 값을 구하는데 문제가 발생하지 않으므로
+같은 공간 안에서 크기를 계속 줄여 나간다
 */
-
 #include <vector>
+#include <array>
 #include <algorithm>
-using ull = unsigned long long;
-ull dp[101];
-vector<ull> inputs;
-vector<ull> coins;
+struct _2by2mat
+{
+	array<int, 4> m;
+
+	//insertion sort
+	int get_second()
+	{
+		for (int i = 1; i < 4; ++i)
+		{
+			int cur = m[i], check = i - 1;
+			while (check >= 0 && m[check] > cur)
+			{
+				m[check + 1] = m[check];
+				--check;
+			}
+			m[check + 1] = cur;
+		}
+
+		return m[2];
+	}
+};
+
+int N;
+vector<_2by2mat> mats;
+int get_last_num(int prev_side)
+{
+	if (prev_side == 1)
+	{
+		return mats[0].get_second();
+	}
+
+	int new_side = prev_side / 2;
+	for (int r = 0; r < new_side; ++r)
+	{
+		for (int c = 0; c < new_side; ++c)
+		{
+			_2by2mat& cur_mat = mats[r * new_side + c];
+
+			int prev_r = r * 2, prev_c = c * 2;
+			cur_mat.m[0] = mats[prev_r * prev_side + prev_c].get_second();
+			cur_mat.m[1] = mats[prev_r * prev_side + (prev_c + 1)].get_second();
+			cur_mat.m[2] = mats[(prev_r + 1) * prev_side + prev_c].get_second();
+			cur_mat.m[3] = mats[(prev_r + 1) * prev_side + (prev_c + 1)].get_second();
+		}
+	}
+
+	return get_last_num(new_side);
+}
 
 void solve()
 {
-	for (int i = 1; i <= 100; ++i)
-	{
-		dp[i] = dp[i - 1] + 1;
-		//1원짜리 하나 추가하기 vs 10원짜리 하나 추가하기
-		if (i >= 10) { dp[i] = min(dp[i], dp[i - 10] + 1); }
+	cin >> N;
+	mats.resize(N * N / 4);
 
-		//1원 추가 vs 10원 추가 vs 25원 추가
-		if (i >= 25) { dp[i] = min(dp[i], dp[i - 25] + 1); }
-	}
-	
-	ull T; cin >> T;
-	while (T--)
+	int board_size = N / 2, r = 0;
+	for (int r = 0; r < board_size; ++r)
 	{
-		ull cost; cin >> cost;
-		ull count = 0;
-		while (0 < cost)
+		for (int c = 0; c < board_size; ++c)
 		{
-			count += dp[cost % 100];
-			cost /= 100;
+			auto& cur_mat = mats[r * board_size + c];
+			cin >> cur_mat.m[0] >> cur_mat.m[1];
+		}		
+		for (int c = 0; c < board_size; ++c)
+		{
+			auto& cur_mat = mats[r * board_size + c];
+			cin >> cur_mat.m[2] >> cur_mat.m[3];
 		}
-		cout << count << '\n';
 	}
+
+	cout << get_last_num(board_size);
 }
