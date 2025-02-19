@@ -15,6 +15,7 @@ int main()
 
 /*
 백준 14657(준오는 최종인재야!!) [그래프]
+visited 안 쓴 v2
 */
 
 #include <vector>
@@ -22,12 +23,9 @@ int main()
 double T;
 int N, farthest_node = -1, farthest_node_count = -1, farthest_weighted = -1;
 vector<vector<pair<int, int>>> graph;
-vector<bool> visited;
 
-void DFS(int cur, int acc_node_count, int acc_weighted)
+void DFS(int cur, int prev, int acc_node_count, int acc_weighted)
 {
-	visited[cur] = true;
-
 	//노드 개수가 많을 경우 무조건 갱신
 	if (farthest_node_count < acc_node_count)
 	{
@@ -45,10 +43,8 @@ void DFS(int cur, int acc_node_count, int acc_weighted)
 
 	for (const auto& edge : graph[cur])
 	{
-		if (false == visited[edge.first])
-		{
-			DFS(edge.first, acc_node_count + 1, acc_weighted + edge.second);
-		}
+		if (edge.first == prev) { continue; }
+		DFS(edge.first, cur, acc_node_count + 1, acc_weighted + edge.second);
 	}
 }
 
@@ -64,15 +60,12 @@ void solve()
 		graph[b].push_back({ a, c });
 	}
 
-	visited.clear();
-	visited.resize(N + 1);
-	DFS(1, 0, 0);
+
+	DFS(1, 0, 0, 0);
 	int farthest_a = farthest_node;
 
 	farthest_node_count = farthest_node = farthest_weighted = -1;
-	visited.clear();
-	visited.resize(N + 1);
-	DFS(farthest_a, 0, 0);
+	DFS(farthest_a, 0, 0, 0);
 
 	cout << (int)ceil((double)farthest_weighted / T);
 }
