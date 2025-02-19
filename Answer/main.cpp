@@ -14,60 +14,65 @@ int main()
 }
 
 /*
-백준 2092 (집합의 개수) [DP]
-dp[i][j]: i 이하의 숫자 j개를 썼을 때 만들 수 있는 조합의 개수
+백준 14657(준오는 최종인재야!!) [그래프]
 */
+
 #include <vector>
-constexpr int mod = 1'000'000;
-int number_max, total_count, min_K, max_K;
-int numbers_count[201], dp[201][4001];
+#include <cmath>
+double T;
+int N, farthest_node = -1, farthest_node_count = -1, farthest_weighted = -1;
+vector<vector<pair<int, int>>> graph;
+vector<bool> visited;
+
+void DFS(int cur, int acc_node_count, int acc_weighted)
+{
+	visited[cur] = true;
+
+	//노드 개수가 많을 경우 무조건 갱신
+	if (farthest_node_count < acc_node_count)
+	{
+		farthest_node = cur;
+		farthest_node_count = acc_node_count;
+		farthest_weighted = acc_weighted;
+	}
+	//노드 갯수는 동일하나 거리가 더 짧을 경우(더 적은 시간으로 더 많은 문제)
+	else if (farthest_node_count == acc_node_count 
+		&& acc_weighted < farthest_weighted)
+	{
+		farthest_node = cur;
+		farthest_weighted = acc_weighted;
+	}
+
+	for (const auto& edge : graph[cur])
+	{
+		if (false == visited[edge.first])
+		{
+			DFS(edge.first, acc_node_count + 1, acc_weighted + edge.second);
+		}
+	}
+}
 
 void solve()
 {
-	cin >> number_max >> total_count >> min_K >> max_K;
-	for (int i = 0; i < total_count; ++i)
+	cin >> N >> T;
+	graph.resize(N + 1);
+	
+	for (int i = 0; i < N - 1; ++i)
 	{
-		int input; cin >> input;
-		numbers_count[input]++;
+		int a, b, c; cin >> a >> b >> c;
+		graph[a].push_back({ b, c });
+		graph[b].push_back({ a, c });
 	}
 
-	dp[0][0] = 1;
-	for (int n = 1; n <= number_max; ++n)
-	{
-		//아무것도 안 뽑은 집합(공집합)도 1개로 친다
-		dp[n][0] = 1;
-		for (int c = 1; c <= numbers_count[n]; ++c)
-		{
-			//숫자 n을 c개 써서 만들 수 있는 조합 1개씩 추가
-			//1 3개 있으면 1, 11, 111
-			dp[n][c] = 1;
-		}
+	visited.clear();
+	visited.resize(N + 1);
+	DFS(1, 0, 0);
+	int farthest_a = farthest_node;
 
-		for (int a = 1; a <= total_count; ++a)
-		{
-			//n을 쓰지 않는 조합의 개수를 추가
-			dp[n][a] = (dp[n][a] + dp[n - 1][a]) % mod;
+	farthest_node_count = farthest_node = farthest_weighted = -1;
+	visited.clear();
+	visited.resize(N + 1);
+	DFS(farthest_a, 0, 0);
 
-			for (int b = 1; b <= numbers_count[n]; ++b)
-			{
-				if (a - b >= 1)
-				{
-					//a - b개에 b, b, ..., b, b를 붙이는 방법의 수를 더한다
-					dp[n][a] = (dp[n][a] + dp[n - 1][a - b]) % mod;
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-	}
-
-	int ans = 0;
-	for (int k = min_K; k <= max_K; ++k)
-	{
-		ans = (ans + dp[number_max][k]) % mod;
-	}
-
-	cout << ans;
+	cout << (int)ceil((double)farthest_weighted / T);
 }
