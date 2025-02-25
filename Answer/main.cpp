@@ -14,91 +14,114 @@ int main()
 }
 
 /*
-백준 18405(경쟁적 전염) [BFS][v2][4ms]
-v1: 각 박테리아 별로 큐 1000개 사용
-v2: 굳이 큐를 1000개 써야되나? 인풋에서 받고 정렬한 뒤 큐에 넣으면 되지 않나? -> 맞음
+백준 11571(분수를 소수로) [수학]
+https://chatgpt.com/share/67bcf20a-bad8-8001-973a-6936e66a77f0
+1. 정수 부분을 계산(진분수로 만들기)
+2. 기약분수 만들기
+3. 유한소수 부분 구하기
+4. 순환소수 부분 구하기
 */
-#include <queue>
+#include <string>
 #include <vector>
-#include <algorithm>
-struct input { 
-	int label; 
-	pair<int, int> cod;
-	auto operator <=> (const input& o) const
+
+int GCD(int a, int b)
+{
+	while (b != 0)
 	{
-		return label <=> o.label;
+		int r = a % b;
+		a = b; 
+		b = r;
 	}
-};
-vector<input> inputs;
-queue<pair<int, int>> q[2];
-int N, K, S, X, Y, board[201][201];
+	return a;
+}
 
 void solve()
 {
-	cin >> N >> K;
-	inputs.reserve(K);
-	for (int r = 1; r <= N; ++r)
+	int T; cin >> T;
+	string output;
+	while (T--)
 	{
-		for (int c = 1; c <= N; ++c)
+		output.clear();
+
+		//정수 부분 계산
+		int nom, denom; cin >> nom >> denom;
+
+		output += to_string(nom / denom);
+		if (nom / denom) { nom %= denom; }
+		output += '.';
+
+		
+		//기약분수로 변환
+		while (true)
 		{
-			cin >> board[r][c];
-			if (board[r][c] != 0)
+			int gcd = GCD(nom, denom);
+			if (gcd == 1) { break; }
+			nom /= gcd;
+			denom /= gcd;
+		}
+		
+		//유한소수 부분
+		//분모를 소인수분해 했을 때, 2^a * 5^b * ... 형태에서
+		//max(a, b)가 비순환소수 부분의 자리수이다.
+		/*
+		* GPT 답변
+		혼순환소수의 비순환(즉, 소수점 아래 처음에 나타나는 유한한) 부분의 길이는 분수를 기약분수로 만들었을 때 분모에 포함된 2와 5의 지수에 따라 결정됩니다.
+		예를 들어, 기약분수 b / a 에서
+		b=2^α × 5^β × c(c는 2와 5와 공약수가 없음)
+		라고 나타낼 수 있습니다. 
+		이때 소수로 나타낼 때 비순환 부분의 자릿수는
+		max(α,β)
+		*/
+		int test = denom, exp_2 = 0, exp_5 = 0;
+		while (test % 2 == 0)
+		{
+			test = test / 2;
+			exp_2++;
+		}
+		while (test % 5 == 0)
+		{
+			test = test / 5;
+			exp_5++;
+		}
+
+		//순환소수 자릿수만큼 진행
+		for (int i = 0; i < max(exp_2, exp_5); ++i)
+		{
+			if (nom == 0) { break; }
+
+			nom *= 10;
+			output += to_string(nom / denom);
+			nom %= denom;
+		}
+		
+		//순환소수 부분
+		output += '(';
+
+		//2와 5가 제거된 분모가 1이 아닐 경우 순환이 있는 것
+		if (nom != 0 && test != 1)
+		{
+			//순환하는 부분의 자릿수는 10^n % test 의 나머지가 1이 되는 시점의 n
+			int cycle_len = 1, base = 10;
+			while (base % test != 1)
 			{
-				inputs.push_back({ board[r][c], {r, c} });
+				base = base % test;
+				base *= 10;
+				++cycle_len;
+			}
+
+			for (int i = 0; i < cycle_len; ++i)
+			{
+				nom *= 10;
+				output += to_string(nom / denom);
+				nom %= denom;
 			}
 		}
-	}
-	//박테리아 번호 순으로 정렬
-	sort(inputs.begin(), inputs.end());
-
-	bool cur = 0;
-	for (auto cod : inputs)
-	{
-		q[cur].push(cod.cod);
-	}
-	cin >> S >> X >> Y;
-
-	//BFS
-	while (S)
-	{
-		S--;
-		//이번 큐와 다음 큐를 분리
-		while (false == q[cur].empty())
+		else
 		{
-			pair<int, int> cur_cod = q[cur].front(); q[cur].pop();
-
-			//up
-			const int R = cur_cod.first, C = cur_cod.second;
-			if (1 <= R - 1 && board[R - 1][C] == 0)
-			{
-				board[R - 1][C] = board[R][C];
-				q[!cur].push({ R - 1, C });
-			}
-
-			//down
-			if (R + 1 <= N && board[R + 1][C] == 0)
-			{
-				board[R + 1][C] = board[R][C];
-				q[!cur].push({ R + 1, C });
-			}
-
-			//left
-			if (1 <= C - 1 && board[R][C - 1] == 0)
-			{
-				board[R][C - 1] = board[R][C];
-				q[!cur].push({ R, C - 1 });
-			}
-
-			//right
-			if (C + 1 <= N && board[R][C + 1] == 0)
-			{
-				board[R][C + 1] = board[R][C];
-				q[!cur].push({ R, C + 1 });
-			}
+			output += '0';
 		}
-		//큐 교체
-		cur = !cur;
-	}
 
-	cout << board[X][Y];
+		output += ')';
+		cout << output << '\n';
+	}
 }
