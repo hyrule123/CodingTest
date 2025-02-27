@@ -14,79 +14,67 @@ int main()
 }
 
 /*
-백준 13172(Σ) [나머지]
-* 모듈로 곱셈의 항등원: a * b ≡ a (mod X) 를 만족시키는 b
-	-> b = 1
-* 모듈로 곱셈의 역원 
-	a * b ≡ 1 (mod X) 를 만족시키는 b
-	이 때 b를 a^-1로 표현
-* 현재 mod를 소수로 사용하고 있으므로, 페르마의 소정리를 사용할 수 있다.
-	a^(X - 1) ≡ 1 (mod X)
-	-> a^(X - 2) ≡ a^(-1) (mod X)
-* 모듈러 곱셈의 역원과 일반 곱셈의 역원이 다른 이유
-	-> 모듈러는 항상 정수 형태이고, 일반 곱셈은 실수이기 때문
-	a^(-1)인 1 / a는 a가 1이 아닐때는 모듈러 곱셈 역원이 될수 없다
+백준 9205(맥주 마시면서 걸어가기) [BFS][다익스트라]
+ A
+B C
+   D
+BFS로도 가능하다.
 */
-#include <unordered_map>
-using ull = unsigned long long;
-constexpr ull mod = 1'000'000'007;
-ull M, nom, denom = 1;
-
-ull GCD(ull a, ull b)
+#include <queue>
+#include <cmath>
+constexpr int INF = 0xfffff; //최대 거리: 65535 + 65535 -> 10만 이상 필요
+struct coord
 {
-	//a = bx + r
-	while (b != 0)
+	int x, y;
+	int dist(const coord& o) const
 	{
-		ull r = a % b;
-		a = b;
-		b = r;
+		return abs(x - o.x) + abs(y - o.y);
 	}
-	return a;
-}
+};
 
-ull fastpowmod(ull base, ull exp)
+//0, 
+bool djik(const vector<coord>& map)
 {
-	if (exp == 0) { return 1; }
-
-	ull ret = exp & 1 ? base % mod : 1;
-	ull curmul = base % mod;
-	for (ull i = 1; i < 64; ++i)
+	const int final_dest = (int)map.size() - 1;
+	vector<int> dists; dists.resize(map.size(), INF);
+	dists[0] = 0;
+	priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+	pq.push({ 0, 0 });
+	while (false == pq.empty())
 	{
-		curmul = (curmul * curmul) % mod;
-		if (exp & (1ull << i))
+		auto [cur, acc_dist] = pq.top(); pq.pop();
+		if (acc_dist > dists[cur]) { continue; }
+
+		for (int i = 0; i < (int)map.size(); ++i)
 		{
-			ret = (ret * curmul) % mod;
+			if (i == cur) { continue; }
+
+			int next_dist = map[cur].dist(map[i]);
+			if (next_dist > 1000) { continue; }
+			if (acc_dist + next_dist > dists[i]) { continue; }
+
+
+			if (i == final_dest) { return true; }
+			dists[i] = acc_dist + next_dist;
+			pq.push({ i,dists[i] });
 		}
 	}
-	return ret % mod;
+
+	return false;
 }
 
 void solve()
 {
-	cin >> M;
-	for (ull i = 0; i < M; ++i)
+	int T; cin >> T;
+	while (T--)
 	{
-		ull N, S; cin >> N >> S;
-
-		//기약분수 형태로 전환
-		while (true)
+		int n; cin >> n;
+		vector<coord> map;
+		map.resize(n + 2);
+		for (auto& m : map)
 		{
-			ull gcd = GCD(S, N);
-			if (gcd == 1) { break; }
-			S /= gcd;
-			N /= gcd;
+			cin >> m.x >> m.y;
 		}
-
-		/*
-		a	c	ad + bc
-		- * - = -------
-		b	d	  bd
-		*/
-
-		nom = ((nom * N) % mod + (S * denom) % mod) % mod;
-		denom = (denom * N) % mod;
+		cout << (djik(map) ? "happy" : "sad") << '\n';
 	}
-
-	ull ans = (nom * fastpowmod(denom, mod - 2)) % mod;
-	cout << ans;
 }
