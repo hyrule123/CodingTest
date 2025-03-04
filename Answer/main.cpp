@@ -14,67 +14,95 @@ int main()
 }
 
 /*
-백준 9205(맥주 마시면서 걸어가기) [BFS][다익스트라]
- A
-B C
-   D
-BFS로도 가능하다.
+백준 15573 (채굴) [BFS]
 */
 #include <queue>
-#include <cmath>
-constexpr int INF = 0xfffff; //최대 거리: 65535 + 65535 -> 10만 이상 필요
-struct coord
+constexpr int INF = (int)0x7c7c7c7c;
+int N, M, K, blocks[1001][1001], dig_count, cur_drill_level;
+
+struct elem
 {
-	int x, y;
-	int dist(const coord& o) const
+	int block_level, r, c;
+
+	auto operator <=> (const elem& o) const
 	{
-		return abs(x - o.x) + abs(y - o.y);
+		return block_level <=> o.block_level;
 	}
 };
 
-//0, 
-bool djik(const vector<coord>& map)
-{
-	const int final_dest = (int)map.size() - 1;
-	vector<int> dists; dists.resize(map.size(), INF);
-	dists[0] = 0;
-	priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
-	pq.push({ 0, 0 });
-	while (false == pq.empty())
-	{
-		auto [cur, acc_dist] = pq.top(); pq.pop();
-		if (acc_dist > dists[cur]) { continue; }
-
-		for (int i = 0; i < (int)map.size(); ++i)
-		{
-			if (i == cur) { continue; }
-
-			int next_dist = map[cur].dist(map[i]);
-			if (next_dist > 1000) { continue; }
-			if (acc_dist + next_dist > dists[i]) { continue; }
-
-
-			if (i == final_dest) { return true; }
-			dists[i] = acc_dist + next_dist;
-			pq.push({ i,dists[i] });
-		}
-	}
-
-	return false;
-}
+priority_queue<elem, vector<elem>, greater<>> pq;
 
 void solve()
 {
-	int T; cin >> T;
-	while (T--)
+	memset(blocks, 0x7c, sizeof(blocks));
+
+	cin >> N >> M >> K;
+
+	for (int r = 1; r <= N; ++r)
 	{
-		int n; cin >> n;
-		vector<coord> map;
-		map.resize(n + 2);
-		for (auto& m : map)
+		for (int c = 1; c <= M; ++c)
 		{
-			cin >> m.x >> m.y;
+			cin >> blocks[r][c];
 		}
-		cout << (djik(map) ? "happy" : "sad") << '\n';
 	}
+
+	//공기와 맞닿은 3면을 집어넣어 준다. + 방문처리
+	for (int r = 1; r <= N; ++r)
+	{
+		pq.push({ blocks[r][1], r, 1 });
+		blocks[r][1] = INF;
+
+		pq.push({ blocks[r][M], r, M });
+		blocks[r][M] = INF;
+	}
+	for (int c = 1; c <= M; ++c)
+	{
+		pq.push({ blocks[1][c], 1, c });
+		blocks[1][c] = INF;
+	}
+
+	//BFS
+	while (false == pq.empty())
+	{
+		elem e = pq.top(); pq.pop();
+		
+		++dig_count;
+
+		//가장 낮은 레벨의 블록이 현재 곡괭이 레벨보다 높을경우 한단계 올려준다
+		cur_drill_level = max(cur_drill_level, e.block_level);
+
+		//목표 채굴 갯수 도달 시 현재 레벨을 출력
+		if (K <= dig_count)
+		{
+			cout << cur_drill_level;
+			return;
+		}
+
+		//4방향으로 탐색, 채굴하지 않은 블록을 등록
+		if (1 <= e.r - 1 && blocks[e.r - 1][e.c] != INF)
+		{
+			pq.push({ blocks[e.r - 1][e.c] , e.r - 1, e.c });
+			blocks[e.r - 1][e.c] = INF;
+		}
+		if (N >= e.r + 1 && blocks[e.r + 1][e.c] != INF)
+		{
+			pq.push({ blocks[e.r + 1][e.c] , e.r + 1, e.c });
+			blocks[e.r + 1][e.c] = INF;
+		}
+
+
+		if (1 <= e.c - 1 && blocks[e.r][e.c - 1] != INF)
+		{
+			pq.push({ blocks[e.r][e.c - 1] , e.r, e.c - 1 });
+			blocks[e.r][e.c - 1] = INF;
+		}
+		if (M >= e.c + 1 && blocks[e.r][e.c + 1] != INF)
+		{
+			pq.push({ blocks[e.r][e.c + 1] , e.r, e.c + 1 });
+			blocks[e.r][e.c + 1] = INF;
+		}
+	}
+	
+	//여기까지 올 일은 없긴 함
+	cout << cur_drill_level;
 }
