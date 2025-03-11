@@ -14,61 +14,125 @@ int main()
 }
 
 /*
-백준 12761 (돌다리) [BFS]
+백준 22868 (산책) [BFS]
+* 그냥 BFS로 최단 경로 두개 구해서 더하면 되는거 아닌가? -> 아님
+* '사전순' 조건이 의외로 걸림돌이었음
 */
+#include <array>
+#include <vector>
 #include <queue>
-queue<int> q;
-constexpr int MAX = 100'001;
-int A, B, N, M, moves[MAX];
+#include <stack>
+#include <bitset>
+#include <algorithm>
 
-inline bool push_n_check_end(int next, int cur)
+int N, M, S, E, parent[10001], dist_S2E;
+array<vector<int>, 10001> graph;
+queue<pair<int, int>> q;
+bitset<10001> visited;
+
+void find_path()
 {
-	if (moves[next] != -1) { return false; }
+	q.push({ 0, S });
+	visited[S] = true;
+	while (false == q.empty())
+	{
+		auto [dist, cur] = q.front(); q.pop();
 
-	moves[next] = moves[cur] + 1;
+		if (cur == E)
+		{
+			stack<int> trace;
+			int t = cur;
+			while (t != S)
+			{
+				trace.push(t);
+				t = parent[t];
+			}
+			trace.push(t);
 
-	if (next == M) { 
-		cout << moves[next];
-		return true; 
+			dist_S2E = (int)trace.size() - 1;
+
+			//방문처리
+			visited.reset();
+			while (false == trace.empty())
+			{
+				visited[trace.top()] = true;
+				trace.pop();
+			}
+			return;
+		}
+
+		for (int next : graph[cur])
+		{
+			if (visited[next]) { continue; }
+			visited[next] = true;
+
+			parent[next] = cur;
+
+			q.push({ dist + 1, next });
+		}
 	}
-
-	q.push(next);
-	return false;
 }
 
 void solve()
 {
-	memset(moves, 0xff, sizeof(moves));
-	cin >> A >> B >> N >> M;
-	
-	if (N == M)
+	cin >> N >> M;
+
+	for (int i = 1; i <= M; ++i)
+	{
+		int A, B; cin >> A >> B;
+		graph[A].push_back(B);
+		graph[B].push_back(A);
+	}
+	cin >> S >> E;
+
+	//예외처리: 출발점 = 도착점
+	if (S == E)
 	{
 		cout << 0;
 		return;
 	}
 
-	q.push(N);
-	moves[N] = 0;
-
-	if (A < B)
+	//사전순 최단거리를 찾아야 하므로 노드를 오름차순 정렬
+	for (auto& g : graph)
 	{
-		swap(A, B);
+		sort(g.begin(), g.end());
 	}
 
+	//S -> E 최단거리를 찾고 
+	find_path();
+
+	//큐 초기화하고
+	while (false == q.empty()) { q.pop(); }
+
+	//E -> S BFS 길찾기를 수행
+	//여기서 예외 처리를 해줘야 함
+	//S -> E로 바로 가는 경로가 있을 경우
+	//BFS를 하게되면 이 경로를 걸러내지 못함(반례 참조)
+	for (int next : graph[E])
+	{
+		if (false == visited[next])
+		{
+			visited[next] = true;
+			q.push({ 1, next });
+		}
+	}
 	while (false == q.empty())
 	{
-		int cur = q.front(); q.pop();
-		
-		if (cur * A < MAX && push_n_check_end(cur * A, cur)) { return; }
-		if (cur * B < MAX && push_n_check_end(cur * B, cur)) { return; }
+		auto [dist, cur] = q.front(); q.pop();
 
-		if (0 <= cur - A && push_n_check_end(cur - A, cur)) { return; }
-		if (cur + A < MAX && push_n_check_end(cur + A, cur)) { return; }
+		for (int next : graph[cur])
+		{
+			//도착했을 경우 결과를 출력
+			if (next == S)
+			{
+				cout << dist_S2E + dist + 1;
+				return;
+			}
 
-		if (0 <= cur - B && push_n_check_end(cur - B, cur)) { return; }
-		if (cur + B < MAX && push_n_check_end(cur + B, cur)) { return; }
+			if (visited[next]) { continue; }
 
-		if (0 <= cur - 1 && push_n_check_end(cur - 1, cur)) { return; }
-		if (cur + 1 < MAX && push_n_check_end(cur + 1, cur)) { return; }
+			visited[next] = true;
+			q.push({ dist + 1, next });
+		}
 	}
 }
