@@ -14,9 +14,8 @@ int main()
 }
 
 /*
-백준 22868 (산책) [BFS]
-* 그냥 BFS로 최단 경로 두개 구해서 더하면 되는거 아닌가? -> 아님
-* '사전순' 조건이 의외로 걸림돌이었음
+백준 22868 (산책) [BFS][v2]
+-> 쓸데없는 예외 처리 제거
 */
 #include <array>
 #include <vector>
@@ -105,17 +104,8 @@ void solve()
 	while (false == q.empty()) { q.pop(); }
 
 	//E -> S BFS 길찾기를 수행
-	//여기서 예외 처리를 해줘야 함
-	//S -> E로 바로 가는 경로가 있을 경우
-	//BFS를 하게되면 이 경로를 걸러내지 못함(반례 참조)
-	for (int next : graph[E])
-	{
-		if (false == visited[next])
-		{
-			visited[next] = true;
-			q.push({ 1, next });
-		}
-	}
+	q.push({ 0, E });
+
 	while (false == q.empty())
 	{
 		auto [dist, cur] = q.front(); q.pop();
