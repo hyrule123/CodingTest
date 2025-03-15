@@ -14,127 +14,74 @@ int main()
 }
 
 /*
-백준 19638 (센티와 마법의 뿅망치) [priority queue]
+백준 10282 (해킹) [graph][오답]
+Djikstra로 전부 순회해야 하므로 오히려 더 오래 걸리는 듯
 */
-
 #include <vector>
-template <typename T>
-struct pr_q
+#include <queue>
+struct edge
 {
-	void reserve(int cap)
+	int dest, dist;
+
+	auto operator <=> (const edge& o) const
 	{
-		cont.reserve(cap + 1);
+		return this->dist <=> o.dist;
 	}
-
-	void push(const T& data)
-	{
-		cont.push_back(data);
-		heapify_up(cont.size() - 1);
-	}
-	T top()
-	{
-		return cont[1];
-	}
-	void pop()
-	{
-		if (cont.size() >= 2)
-		{
-			swap(cont[1], cont[cont.size() - 1]);
-			cont.pop_back();
-
-			heapify_down(1);
-		}
-	}
-
-	void heapify_up(int cur)
-	{
-		while (cur / 2 > 0)
-		{
-			int par = cur / 2;
-			if (cont[par] < cont[cur])
-			{
-				swap(cont[par], cont[cur]);
-				cur = par;
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-
-	void heapify_down(int cur)
-	{
-		const int size = cont.size();
-		while (cur < size)
-		{
-			int l = cur * 2, r = l + 1, target = cur;
-
-			if (l < size && cont[target] < cont[l])
-			{
-				target = l;
-			}
-			if (r < size && cont[target] < cont[r])
-			{
-				target = r;
-			}
-
-			if (target != cur)
-			{
-				swap(cont[cur], cont[target]);
-				cur = target;
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-
-	vector<T> cont = { 0 };
 };
 
-int N, H, T;
+void BFS(const vector<vector<edge>>& graph, int start)
+{
+	constexpr int INF = (int)1e9 * 2;
+	vector<int> dists(graph.size(), INF);
+	priority_queue<edge, vector<edge>, greater<>> pq;
+	pq.push({start, 0});
+	int last_dist = dists[start] = 0;
+	int infected = 1;
+
+	while (false == pq.empty())
+	{
+		edge cur = pq.top(); pq.pop();
+
+		for (const auto& next : graph[cur.dest])
+		{
+			int next_dist = cur.dist + next.dist;
+			if (dists[next.dest] < next_dist) { continue; }
+
+			//첫 방문일 시 감염 카운트를 1 증가
+			if (dists[next.dest] == INF)
+			{
+				++infected;
+			}
+
+			dists[next.dest] = next_dist;
+			last_dist = next_dist;
+
+			pq.push({ next.dest, next_dist });
+		}
+	}
+
+	cout << infected << ' ' << last_dist << '\n';
+}
 
 void solve()
 {
-	cin >> N >> H >> T;
-	pr_q<int> pq;
-	pq.reserve(N);
-	for (int i = 0; i < N; ++i)
+	int T; cin >> T;
+	while (T--)
 	{
-		int h; cin >> h;
-		pq.push(h);
-	}
+		//컴퓨터 개수n, 의존성 개수 d, 해킹당한 컴퓨터 번호 c
+		int n, d, c; cin >> n >> d >> c;
 
-	int count = 0;
-	while(T--)
-	{
-		//맨위에꺼 꺼낸다
-		int t = pq.top();
+		//fst: node, snd: dist
+		vector<vector<edge>> graph;
+		graph.resize(n + 1);
 
-		//가장 큰 값이 H보다 작으면 -> 종료
-		//t가 1이면 -> 더이상 할필요가 없음 -> 종료
-		if (t < H || t <= 1)
+		for (int i = 0; i < d; ++i)
 		{
-			break;
+			//b가 감염되면 s초 후 a도 감염된다.
+			int a, b, s; cin >> a >> b >> s;
+			graph[b].push_back({ a, s });
 		}
 
-		//카운트 늘려주고 키를 반으로 줄인다
-		++count;
-		t /= 2;
-
-		//다시 pq에 넣어준다
-		pq.pop();
-		pq.push(t);
-	}
-
-	if (H > pq.top())
-	{
-		cout << "YES\n" << count;
-	}
-	else
-	{
-		cout << "NO\n" << pq.top();
+		BFS(graph, c);
 	}
 }
