@@ -14,115 +14,127 @@ int main()
 }
 
 /*
-백준 22868 (산책) [BFS][v2]
--> 쓸데없는 예외 처리 제거
+백준 19638 (센티와 마법의 뿅망치) [priority queue]
 */
-#include <array>
+
 #include <vector>
-#include <queue>
-#include <stack>
-#include <bitset>
-#include <algorithm>
-
-int N, M, S, E, parent[10001], dist_S2E;
-array<vector<int>, 10001> graph;
-queue<pair<int, int>> q;
-bitset<10001> visited;
-
-void find_path()
+template <typename T>
+struct pr_q
 {
-	q.push({ 0, S });
-	visited[S] = true;
-	while (false == q.empty())
+	void reserve(int cap)
 	{
-		auto [dist, cur] = q.front(); q.pop();
+		cont.reserve(cap + 1);
+	}
 
-		if (cur == E)
+	void push(const T& data)
+	{
+		cont.push_back(data);
+		heapify_up(cont.size() - 1);
+	}
+	T top()
+	{
+		return cont[1];
+	}
+	void pop()
+	{
+		if (cont.size() >= 2)
 		{
-			stack<int> trace;
-			int t = cur;
-			while (t != S)
-			{
-				trace.push(t);
-				t = parent[t];
-			}
-			trace.push(t);
+			swap(cont[1], cont[cont.size() - 1]);
+			cont.pop_back();
 
-			dist_S2E = (int)trace.size() - 1;
-
-			//방문처리
-			visited.reset();
-			while (false == trace.empty())
-			{
-				visited[trace.top()] = true;
-				trace.pop();
-			}
-			return;
-		}
-
-		for (int next : graph[cur])
-		{
-			if (visited[next]) { continue; }
-			visited[next] = true;
-
-			parent[next] = cur;
-
-			q.push({ dist + 1, next });
+			heapify_down(1);
 		}
 	}
-}
+
+	void heapify_up(int cur)
+	{
+		while (cur / 2 > 0)
+		{
+			int par = cur / 2;
+			if (cont[par] < cont[cur])
+			{
+				swap(cont[par], cont[cur]);
+				cur = par;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	void heapify_down(int cur)
+	{
+		const int size = cont.size();
+		while (cur < size)
+		{
+			int l = cur * 2, r = l + 1, target = cur;
+
+			if (l < size && cont[target] < cont[l])
+			{
+				target = l;
+			}
+			if (r < size && cont[target] < cont[r])
+			{
+				target = r;
+			}
+
+			if (target != cur)
+			{
+				swap(cont[cur], cont[target]);
+				cur = target;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	vector<T> cont = { 0 };
+};
+
+int N, H, T;
 
 void solve()
 {
-	cin >> N >> M;
-
-	for (int i = 1; i <= M; ++i)
+	cin >> N >> H >> T;
+	pr_q<int> pq;
+	pq.reserve(N);
+	for (int i = 0; i < N; ++i)
 	{
-		int A, B; cin >> A >> B;
-		graph[A].push_back(B);
-		graph[B].push_back(A);
-	}
-	cin >> S >> E;
-
-	//예외처리: 출발점 = 도착점
-	if (S == E)
-	{
-		cout << 0;
-		return;
+		int h; cin >> h;
+		pq.push(h);
 	}
 
-	//사전순 최단거리를 찾아야 하므로 노드를 오름차순 정렬
-	for (auto& g : graph)
+	int count = 0;
+	while(T--)
 	{
-		sort(g.begin(), g.end());
-	}
+		//맨위에꺼 꺼낸다
+		int t = pq.top();
 
-	//S -> E 최단거리를 찾고 
-	find_path();
-
-	//큐 초기화하고
-	while (false == q.empty()) { q.pop(); }
-
-	//E -> S BFS 길찾기를 수행
-	q.push({ 0, E });
-
-	while (false == q.empty())
-	{
-		auto [dist, cur] = q.front(); q.pop();
-
-		for (int next : graph[cur])
+		//가장 큰 값이 H보다 작으면 -> 종료
+		//t가 1이면 -> 더이상 할필요가 없음 -> 종료
+		if (t < H || t <= 1)
 		{
-			//도착했을 경우 결과를 출력
-			if (next == S)
-			{
-				cout << dist_S2E + dist + 1;
-				return;
-			}
-
-			if (visited[next]) { continue; }
-
-			visited[next] = true;
-			q.push({ dist + 1, next });
+			break;
 		}
+
+		//카운트 늘려주고 키를 반으로 줄인다
+		++count;
+		t /= 2;
+
+		//다시 pq에 넣어준다
+		pq.pop();
+		pq.push(t);
+	}
+
+	if (H > pq.top())
+	{
+		cout << "YES\n" << count;
+	}
+	else
+	{
+		cout << "NO\n" << pq.top();
 	}
 }
