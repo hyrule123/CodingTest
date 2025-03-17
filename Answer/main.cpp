@@ -14,75 +14,56 @@ int main()
 }
 
 /*
-백준 10282 (해킹) [graph][다익스트라]
-* 다익스트라를 사용
+백준 7453 (합이 0인 네 정수) [오답 - 시간 초과]
+* map은 항상 정렬된 순서로 데이터를 저장한다는데 착안 + 투 포인터
+* v2 만들어 보기: 투 포인터 말고 맵 검색을 사용해서 구현
 */
-#include <vector>
-#include <queue>
-struct edge
-{
-	int dest, dist;
+#include <map>
+#include <cmath>
 
-	auto operator <=> (const edge& o) const
-	{
-		return this->dist <=> o.dist;
-	}
-};
-
-void BFS(const vector<vector<edge>>& graph, int start)
-{
-	constexpr int INF = (int)1e9 * 2;
-	vector<int> dists(graph.size(), INF);
-	priority_queue<edge, vector<edge>, greater<>> pq;
-	pq.push({ start, 0 });
-	dists[start] = 0;
-
-	while (false == pq.empty())
-	{
-		edge cur = pq.top(); pq.pop();
-
-		for (const auto& next : graph[cur.dest])
-		{
-			int next_dist = cur.dist + next.dist;
-			if (dists[next.dest] > next_dist)
-			{
-				dists[next.dest] = next_dist;
-				pq.push({ next.dest, next_dist });
-			}
-		}
-	}
-
-	int longest = 0, infected = 0;
-	for (int i = 1; i < (int)graph.size(); ++i)
-	{
-		if (dists[i] == INF) { continue; }
-
-		longest = max(longest, dists[i]);
-		infected++;
-	}
-
-	cout << infected << ' ' << longest << '\n';
-}
+constexpr int a = 0, b = 1, c = 2, d = 3;
+int n, abcd[4000][4];
+map<int, int> ab, cd;
 
 void solve()
 {
-	int T; cin >> T;
-	while (T--)
+	cin >> n;
+	for (int i = 0; i < n; ++i)
 	{
-		//컴퓨터 개수n, 의존성 개수 d, 해킹당한 컴퓨터 번호 c
-		int n, d, c; cin >> n >> d >> c;
-
-		//fst: node, snd: dist
-		vector<vector<edge>> graph;
-		graph.resize(n + 1);
-
-		for (int i = 0; i < d; ++i)
-		{
-			//b가 감염되면 s초 후 a도 감염된다.
-			int a, b, s; cin >> a >> b >> s;
-			graph[b].push_back({ a, s });
-		}
-
-		BFS(graph, c);
+		cin >> abcd[i][0] >> abcd[i][1] >> abcd[i][2] >> abcd[i][3];
 	}
+
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j = 0; j < n; ++j)
+		{
+			ab[abcd[i][a] + abcd[j][b]]++;
+			cd[abcd[i][c] + abcd[j][d]]++;
+		}
+	}
+
+	long long ans = 0;
+	auto iter_ab = ab.begin();
+	auto riter_cd = cd.rbegin();
+	while (iter_ab != ab.end() && riter_cd != cd.rend())
+	{
+		int sum = iter_ab->first + riter_cd->first;
+		//abs(ab) > abs(cd)
+		if (sum < 0)
+		{
+			++iter_ab;
+		}
+		else if (sum > 0)
+		{
+			++riter_cd;
+		}
+		else //sum == 0
+		{
+			ans += (long long)iter_ab->second * (long long)riter_cd->second;
+			++iter_ab;
+			++riter_cd;
+		}
+	}
+	
+	cout << ans;
 }
