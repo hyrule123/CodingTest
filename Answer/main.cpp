@@ -14,12 +14,16 @@ int main()
 }
 
 /*
-백준 7453 (합이 0인 네 정수) [v3][투 포인터]
+백준 7453 (합이 0인 네 정수) [투 포인터][v4]
+v4: 인풋 받을때 캐시 적중률 올리면 효과 있는지 확인(A[4000], B[4000], ... -> ABCD[4000][4])
+-> 효과 없다? 이런것도 최적화를 해 주는건가...
 */
 #include <vector>
 #include <algorithm>
 constexpr int MAX = 4000;
-int AB[MAX * MAX], CD[MAX * MAX], A[MAX], B[MAX], C[MAX], D[MAX], N;
+enum e { a, b, c, d };
+enum ee { ab, cd };
+int AB[MAX * MAX], CD[MAX * MAX], ABCD[MAX][4], N;
 
 void solve()
 {
@@ -27,16 +31,15 @@ void solve()
 
 	for (int i = 0; i < N; ++i)
 	{
-		cin >> A[i] >> B[i] >> C[i] >> D[i];
+		cin >> ABCD[i][a] >> ABCD[i][b] >> ABCD[i][c] >> ABCD[i][d];
 	}
 
-	int idx = 0;
-	for (int r = 0; r < N; ++r)
+	for (int idx = 0, i = 0; i < N; ++i)
 	{
-		for (int c = 0; c < N; ++c)
+		for (int j = 0; j < N; ++j)
 		{
-			AB[idx] = A[r] + B[c];
-			CD[idx] = C[r] + D[c];
+			AB[idx] = ABCD[i][a] + ABCD[j][b];
+			CD[idx] = ABCD[i][c] + ABCD[j][d];
 			++idx;
 		}
 	}
