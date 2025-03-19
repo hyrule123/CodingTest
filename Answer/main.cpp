@@ -14,56 +14,67 @@ int main()
 }
 
 /*
-백준 7453 (합이 0인 네 정수) [오답 - 시간 초과]
-* map은 항상 정렬된 순서로 데이터를 저장한다는데 착안 + 투 포인터
-* v2 만들어 보기: 투 포인터 말고 맵 검색을 사용해서 구현
+백준 7453 (합이 0인 네 정수) [v3][투 포인터]
 */
-#include <map>
-#include <cmath>
-
-constexpr int a = 0, b = 1, c = 2, d = 3;
-int n, abcd[4000][4];
-map<int, int> ab, cd;
+#include <vector>
+#include <algorithm>
+constexpr int MAX = 4000;
+int AB[MAX * MAX], CD[MAX * MAX], A[MAX], B[MAX], C[MAX], D[MAX], N;
 
 void solve()
 {
-	cin >> n;
-	for (int i = 0; i < n; ++i)
+	cin >> N;
+
+	for (int i = 0; i < N; ++i)
 	{
-		cin >> abcd[i][0] >> abcd[i][1] >> abcd[i][2] >> abcd[i][3];
+		cin >> A[i] >> B[i] >> C[i] >> D[i];
 	}
 
-	for (int i = 0; i < n; ++i)
+	int idx = 0;
+	for (int r = 0; r < N; ++r)
 	{
-		for (int j = 0; j < n; ++j)
+		for (int c = 0; c < N; ++c)
 		{
-			ab[abcd[i][a] + abcd[j][b]]++;
-			cd[abcd[i][c] + abcd[j][d]]++;
+			AB[idx] = A[r] + B[c];
+			CD[idx] = C[r] + D[c];
+			++idx;
 		}
 	}
 
+	sort(begin(AB), begin(AB) + N * N);
+	sort(begin(CD), begin(CD) + N * N);
+
 	long long ans = 0;
-	auto iter_ab = ab.begin();
-	auto riter_cd = cd.rbegin();
-	while (iter_ab != ab.end() && riter_cd != cd.rend())
+	int l = 0, r = N * N - 1;
+	while (l < N * N && r >= 0)
 	{
-		int sum = iter_ab->first + riter_cd->first;
-		//abs(ab) > abs(cd)
+		int sum = AB[l] + CD[r];
 		if (sum < 0)
 		{
-			++iter_ab;
+			++l;
 		}
 		else if (sum > 0)
 		{
-			++riter_cd;
+			--r;
 		}
-		else //sum == 0
+		else
 		{
-			ans += (long long)iter_ab->second * (long long)riter_cd->second;
-			++iter_ab;
-			++riter_cd;
+			int l_n = l + 1, r_n = r - 1;
+
+			while (l_n < N * N && AB[l] == AB[l_n])
+			{
+				++l_n;
+			}
+			while (r_n >= 0 && CD[r] == CD[r_n])
+			{
+				--r_n;
+			}
+
+			ans += (long long)(l_n - l) * (long long)(r - r_n);
+
+			l = l_n; r = r_n;
 		}
 	}
-	
+
 	cout << ans;
 }
