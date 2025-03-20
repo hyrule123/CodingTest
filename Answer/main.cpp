@@ -14,13 +14,17 @@ int main()
 }
 
 /*
-백준 14225 (부분수열의 합) [조합]
+백준 14225 (부분수열의 합) [조합][v2]
+참고: https://cocoon1787.tistory.com/333
+재귀를 통한 조합 구현(더하냐 안더하냐)
 */
 #include <bitset>
 #include <vector>
 #include <algorithm>
+#include <stack>
 int seq[20], N;
 bitset<2'000'001> is_number;
+stack<pair<int, int>> stk;
 
 void solve()
 {
@@ -30,26 +34,20 @@ void solve()
 		cin >> seq[i];
 	}
 
-	for (int len = 1; len <= N; ++len)
+	stk.push({ 0, 0 });
+	while (false == stk.empty())
 	{
-		vector<bool> comb; comb.resize(N);
-		for (int i = N - len; i < N; ++i)
-		{
-			comb[i] = true;
-		}
+		auto [cur_idx, sum] = stk.top(); stk.pop();
+		is_number[sum] = true;
 
-		do
+		if (cur_idx < N)
 		{
-			int sum = 0;
-			for (int i = 0; i < N; ++i)
-			{
-				if (comb[i])
-				{
-					sum += seq[i];
-				}
-			}
-			is_number[sum] = true;
-		} while (next_permutation(comb.begin(), comb.end()));
+			//더하지 않거나
+			stk.push({ cur_idx + 1 , sum });
+
+			//더하거나
+			stk.push({ cur_idx + 1, sum + seq[cur_idx] });
+		}
 	}
 
 	for (int i = 1; i < N * 100'000; ++i)
