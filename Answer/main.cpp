@@ -14,47 +14,64 @@ int main()
 }
 
 /*
-백준 14225 (부분수열의 합) [조합][v2]
-참고: https://cocoon1787.tistory.com/333
-재귀를 통한 조합 구현(더하냐 안더하냐)
+백준 12738 (가장 긴 증가하는 부분 수열 3) [dp][이진 탐색]
 */
-#include <bitset>
 #include <vector>
-#include <algorithm>
-#include <stack>
-int seq[20], N;
-bitset<2'000'001> is_number;
-stack<pair<int, int>> stk;
+int N;
+vector<int> input, dp;
+
+int find_dp(int val)
+{
+	int start = 1, end = dp.size() - 1;
+	while (start <= end)
+	{
+		int mid = (start + end) / 2;
+
+		if (dp[mid] == val)
+		{
+			return mid;
+		}
+
+
+		if (dp[mid] < val)
+		{
+			start = mid + 1;
+		}
+		else
+		{
+			end = mid - 1;
+		}
+	}
+
+	return start;
+}
+
+void insert_dp(int val)
+{
+	if (dp.back() < val)
+	{
+		dp.push_back(val);
+		return;
+	}
+
+	dp[find_dp(val)] = val;
+}
 
 void solve()
 {
 	cin >> N;
-	for (int i = 0; i < N; ++i)
+	input.resize(N + 1);
+	for (int i = 1; i <= N; ++i)
 	{
-		cin >> seq[i];
+		cin >> input[i];
 	}
 
-	stk.push({ 0, 0 });
-	while (false == stk.empty())
+	dp.reserve(N + 1);
+	dp.push_back(std::numeric_limits<int>::min());
+	for (int i = 1; i <= N; ++i)
 	{
-		auto [cur_idx, sum] = stk.top(); stk.pop();
-		is_number[sum] = true;
-
-		if (cur_idx < N)
-		{
-			//더하지 않거나
-			stk.push({ cur_idx + 1 , sum });
-
-			//더하거나
-			stk.push({ cur_idx + 1, sum + seq[cur_idx] });
-		}
+		insert_dp(input[i]);
 	}
 
-	for (int i = 1; i < N * 100'000; ++i)
-	{
-		if (is_number[i]) { continue; }
-
-		cout << i;
-		return;
-	}
+	cout << dp.size() - 1;
 }
